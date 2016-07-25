@@ -1,0 +1,43 @@
+# Default librarian configuration file
+
+config:
+  content_types:
+    - tvshows: "(?<name>.+)S(?<season>[0-9]{1,2})E(?<episode>[0-9]{1,3})(?<rest>.*)"
+    - tvshows: "(?<name>.+)(?:.*[^0-9])(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)"
+    - music: '\.mp3|\.ogg|music|album|disco|cdrip'
+    - videos: '\.avi|\.mpeg|\.mpg|\.mov|\.wmv|\.mp4|\.m4v|\.mkv'
+    - books: 'ebook|\.pdf|\.epub|\.fb2'
+
+  tvshows:
+    numbering_schema: "S{season:2}E{episode:2}"
+    season_schema: "Season_{season:2}"
+
+input:
+  folders:
+    - folder1
+    - folder2
+
+output:
+  folders:
+    -
+      path: tvshows
+      contents: tvshows
+      auto_create: false
+
+    -
+      path: tvshows2
+      contents: tvshows
+      auto_create: true
+
+    -
+      path: movies
+      contents: videos
+
+    -
+      path: music
+      contents: music
+
+    -
+      path: books
+      contents: books
+
