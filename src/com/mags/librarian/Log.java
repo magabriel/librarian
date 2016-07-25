@@ -1,3 +1,12 @@
+/*
+ * This file is part of the librarian application.
+ *
+ * Copyright (c) Miguel Angel Gabriel <magabriel@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 package com.mags.librarian;
 
 import java.io.IOException;
@@ -90,7 +99,7 @@ public class Log {
                 @Override
                 public String format(LogRecord record) {
 
-                    SimpleDateFormat dt = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+                    SimpleDateFormat dt = new SimpleDateFormat("yyyy-MM-dd HH.mm:ss");
                     String msg = String.format(
                             "%s [%s] %s\n",
                             dt.format(new Date()),

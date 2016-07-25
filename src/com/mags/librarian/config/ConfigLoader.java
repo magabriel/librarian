@@ -1,6 +1,14 @@
+/*
+ * This file is part of the librarian application.
+ *
+ * Copyright (c) Miguel Angel Gabriel <magabriel@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 package com.mags.librarian.config;
 
-import com.mags.librarian.Log;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.*;
@@ -8,7 +16,6 @@ import java.nio.file.FileAlreadyExistsException;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**

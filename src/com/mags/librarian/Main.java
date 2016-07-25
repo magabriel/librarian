@@ -1,3 +1,12 @@
+/*
+ * This file is part of the librarian application.
+ *
+ * Copyright (c) Miguel Angel Gabriel <magabriel@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 package com.mags.librarian;
 
 import com.mags.librarian.config.Config;
@@ -7,7 +16,6 @@ import com.mags.librarian.config.ConfigLoader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class Main {
 
@@ -17,7 +25,6 @@ public class Main {
 
     static final String CONFIG_FILE = "librarian.yml";
     static final String LOG_FILE = "librarian.log";
-    static Logger logger;
     private static String configFile = System.getProperty("user.dir") + '/' + CONFIG_FILE;
     private static String logFile = System.getProperty("user.dir") + '/' + LOG_FILE;
     private static Config config;
@@ -32,11 +39,6 @@ public class Main {
         readOptions(args);
 
         loadConfig();
-
-        process();
-    }
-
-    private static void process() {
 
         Processor processor = new Processor(options, config);
         processor.run();
