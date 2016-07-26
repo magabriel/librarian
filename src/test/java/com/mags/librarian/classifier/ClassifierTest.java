@@ -7,10 +7,7 @@
  * file that was distributed with this source code.
  */
 
-package com.mags.librarian.test;
-
-import com.mags.librarian.classifier.Classification;
-import com.mags.librarian.classifier.Classifier;
+package com.mags.librarian.classifier;
 
 import org.junit.BeforeClass;
 import org.junit.Test;

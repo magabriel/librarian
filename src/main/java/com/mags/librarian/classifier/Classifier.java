@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
  */
 public class Classifier {
 
-    private ArrayList<Criterium> criteria = new ArrayList<Criterium>();
+    private ArrayList<Criterium> criteria = new ArrayList<>();
 
     public Classifier() {
 
@@ -91,7 +91,6 @@ public class Classifier {
                                 replace(" ", ".");
                         classification.setTvshowName(tvShowName);
                     } catch (IllegalArgumentException e) {
-
                     }
 
                     try {

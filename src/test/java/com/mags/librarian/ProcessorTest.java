@@ -41,9 +41,9 @@ public class ProcessorTest {
 
         executionPath = executionFolder.getAbsolutePath();
 
-        inputPath = new File("test/functional/input").getAbsolutePath();
+        inputPath = new File("src/test/resources/functional/input").getAbsolutePath();
         outputPath = new File(executionPath + "/output").getAbsolutePath();
-        expectedPath = new File("test/functional/expected").getAbsolutePath();
+        expectedPath = new File("src/test/resources/functional/expected").getAbsolutePath();
 
         Log.setLogFileName(executionPath + "/librarian.log");
     }

@@ -7,7 +7,7 @@
  * file that was distributed with this source code.
  */
 
-package com.mags.librarian.test;
+package com.mags.librarian;
 
 import com.mags.librarian.Mover;
 import com.mags.librarian.Options;

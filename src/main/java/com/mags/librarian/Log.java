@@ -75,11 +75,10 @@ public class Log {
             @Override
             public String format(LogRecord record) {
 
-                String msg = String.format(
+                return String.format(
                         "%s\n",
                         record.getMessage()
-                ).toString();
-                return msg;
+                );
             }
         });
         consoleHandler.setLevel(consoleLogLevel);
@@ -100,14 +99,13 @@ public class Log {
                 public String format(LogRecord record) {
 
                     SimpleDateFormat dt = new SimpleDateFormat("yyyy-MM-dd HH.mm:ss");
-                    String msg = String.format(
+
+                    return String.format(
                             "%s [%s] %s\n",
                             dt.format(new Date()),
                             record.getLevel().toString().substring(0, 2),
                             record.getMessage()
-                    ).toString();
-
-                    return msg;
+                    );
                 }
             });
             logger.addHandler(fileHandler);

@@ -16,6 +16,7 @@ import com.mags.librarian.config.Config;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -131,7 +132,7 @@ public class Processor {
      */
     private ArrayList<Criterium> constructCriteria() {
 
-        ArrayList<Criterium> criteria = new ArrayList<Criterium>();
+        ArrayList<Criterium> criteria = new ArrayList<>();
         for (Map contentType : config.getContentTypes()) {
             Criterium criterium = new Criterium();
             criterium.setName(contentType.keySet().toArray()[0].toString());
@@ -150,12 +151,13 @@ public class Processor {
      */
     private ArrayList<File> collectInputFiles() {
 
-        ArrayList<File> inputFiles = new ArrayList<File>();
+        ArrayList<File> inputFiles = new ArrayList<>();
 
         for (String inputFolder : config.getInputFolders()) {
             File folder = new File(inputFolder);
-            for (File file : folder.listFiles()) {
-                inputFiles.add(file);
+            File[] files = folder.listFiles();
+            if (files != null) {
+                Collections.addAll(inputFiles, files);
             }
         }
 

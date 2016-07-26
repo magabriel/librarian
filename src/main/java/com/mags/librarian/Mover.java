@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,7 +53,7 @@ public class Mover {
         }
 
         // move other file
-        moveFileToDestination(inputFile, fileClassification, suitableDestinations);
+        moveFileToDestination(inputFile, suitableDestinations);
     }
 
     private String replaceWordsSeparatorsInFileName(String fileName) {
@@ -103,7 +104,7 @@ public class Mover {
      */
     private ArrayList<Map> findDestinations(Classification fileClassification) {
 
-        ArrayList<Map> destinations = new ArrayList<Map>();
+        ArrayList<Map> destinations = new ArrayList<>();
 
         for (Map outputFolder : config.getOutputFolders()) {
             if (outputFolder.get("contents").equals(fileClassification.getName())) {
@@ -120,11 +121,10 @@ public class Mover {
      * Move a file to the first of the suitable destinations.
      *
      * @param inputFile
-     * @param fileClassification
      * @param suitableDestinations
      */
     private void moveFileToDestination(
-            File inputFile, Classification fileClassification, ArrayList<Map> suitableDestinations) {
+            File inputFile, ArrayList<Map> suitableDestinations) {
 
         if (suitableDestinations.isEmpty()) {
             Log.getLogger().warning("- No suitable destination found, skipping.");
@@ -222,18 +222,16 @@ public class Mover {
     private String applyTvShowNumberingSchema(Classification classification) {
 
         // default
-        String seasonAndEpisode = String.format(config.getTvShowsNumberingSchema());
+        String seasonAndEpisode = config.getTvShowsNumberingSchema();
 
         seasonAndEpisode = replaceTag(seasonAndEpisode, "season", classification.getSeason());
         seasonAndEpisode = replaceTag(seasonAndEpisode, "episode", classification.getEpisode());
 
-        String showName = String.format("%s%s%s%s",
-                                        classification.getTvshowName(),
-                                        config.getWordsSeparator(),
-                                        seasonAndEpisode,
-                                        classification.getTvshowRest());
-
-        return showName;
+        return String.format("%s%s%s%s",
+                             classification.getTvshowName(),
+                             config.getWordsSeparator(),
+                             seasonAndEpisode,
+                             classification.getTvshowRest());
     }
 
     /**
@@ -286,7 +284,7 @@ public class Mover {
                 destinationFolder.mkdirs();
             }
 
-            if (newName == "") {
+            if (newName.isEmpty()) {
                 newName = inputFile.getName();
             }
 

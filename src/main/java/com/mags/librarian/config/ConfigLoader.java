@@ -25,8 +25,6 @@ public class ConfigLoader {
 
     private Yaml configYaml;
     private LinkedHashMap configObj;
-    private Object configObj1;
-    private ConfigAdaptor adaptor;
 
     public ConfigLoader() {
         configYaml = new Yaml();
@@ -62,7 +60,7 @@ public class ConfigLoader {
         this.configObj = (LinkedHashMap) this.configYaml.load(document);
     }
 
-    public boolean createDefault(String templateFile, String fileName) throws IOException {
+    public void createDefault(String templateFile, String fileName) throws IOException {
 
         File file = new File(fileName);
         if (file.exists()) {
@@ -80,8 +78,6 @@ public class ConfigLoader {
         BufferedWriter bw = new BufferedWriter(new FileWriter(file.getAbsoluteFile()));
         bw.write(content);
         bw.close();
-
-        return true;
     }
 
     /**
@@ -159,31 +155,20 @@ public class ConfigLoader {
     }
 
     /**
-     * Retrieve a Boolean value.
+     * * Retrieve a Boolean value with default.
      *
      * @param key
      * @return The value of the key or false if not found.
      */
     protected Boolean getValueBoolean(String key) {
-        return getValueBoolean(key, false);
-    }
-
-    /**
-     * * Retrieve a Boolean value with default.
-     *
-     * @param key
-     * @param defaultValue
-     * @return The value of the key or defaultValue if not found.
-     */
-    protected Boolean getValueBoolean(String key, boolean defaultValue) {
 
         String[] keyParts = key.split("\\.");
 
         LinkedHashMap map = this.configObj;
-        boolean value = defaultValue;
+        boolean value = false;
         for (String keyPart : keyParts) {
             if (!map.containsKey(keyPart)) {
-                return defaultValue;
+                return false;
             }
 
             value = Boolean.parseBoolean(map.get(keyPart).toString());
