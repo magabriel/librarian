@@ -50,7 +50,6 @@ public class ProcessorTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        //executionFolder.delete();
     }
 
     @Test

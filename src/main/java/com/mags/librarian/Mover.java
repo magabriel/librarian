@@ -15,6 +15,7 @@ import com.mags.librarian.config.Config;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -190,10 +191,11 @@ public class Mover {
         fileClassification.setTvshowName(replaceWordsSeparators(fileClassification.getTvshowName()));
 
         // the real destination folder is a subfolder of the parent found
-        File tvShowDestinationFolder = new File(
-                parentDestinationFolder[0].getAbsolutePath() + "/" +
-                        fileClassification.getTvshowName() + "/" +
-                        seasonName);
+        File tvShowDestinationFolder = Paths.get(
+                parentDestinationFolder[0].getAbsolutePath(),
+                        fileClassification.getTvshowName(),
+                        seasonName).toFile();
+
 
         if (!tvShowDestinationFolder.exists()) {
             tvShowDestinationFolder.mkdir();
@@ -289,7 +291,6 @@ public class Mover {
 
             // replace words separator in name
             newName = replaceWordsSeparatorsInFileName(newName);
-            //File newInputFile = inputFile.toPath().getParent().resolve(newName).toFile();
 
             if (options.getCopyOnly()) {
                 if (!options.getDryRun()) {

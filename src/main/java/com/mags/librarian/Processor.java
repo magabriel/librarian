@@ -20,6 +20,9 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Level;
 
+/**
+ * Processes the config file to actually move the files.
+ */
 class Processor {
 
     private final Options options;

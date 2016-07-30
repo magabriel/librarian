@@ -164,7 +164,7 @@ public class Main {
             config = adaptor.process();
 
         } catch (FileNotFoundException e) {
-            Log.getLogger().severe("ERROR: Configuration file '" + configFile + "' not found.");
+            Log.getLogger().severe(String.format("ERROR: Configuration file '%s' not found.", configFile));
             Log.getLogger().severe("HINT: You can generate a default configuration file with the provided command line option.");
 
             System.exit(1);
@@ -177,14 +177,18 @@ public class Main {
 
         try {
             configLoader.createDefault("/librarian-default.yml", configFile);
-            Log.getLogger().info("Default configuration file created as '" + configFile + "'");
+            Log.getLogger().info(String.format("Default configuration file created as '%s'", configFile));
 
         } catch (FileNotFoundException e) {
-            Log.getLogger().severe("ERROR: Configuration file '" + configFile + "' could not be created. Check intermediate folders exist.");
+            Log.getLogger().severe(String.format(
+                    "ERROR: Configuration file '%s' could not be created. Check intermediate folders exist.",
+                    configFile));
             System.exit(1);
 
         } catch (IOException e) {
-            Log.getLogger().severe("ERROR: Configuration file '" + configFile + "' could not be created: '" + e.getMessage() + "'");
+            Log.getLogger().severe(
+                    String.format("ERROR: Configuration file '%s' could not be created: '%s'", configFile,
+                                  e.getMessage()));
             System.exit(1);
         }
     }

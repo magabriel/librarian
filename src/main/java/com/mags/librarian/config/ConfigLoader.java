@@ -60,6 +60,13 @@ public class ConfigLoader {
         this.configObj = (LinkedHashMap) this.configYaml.load(document);
     }
 
+    /**
+     * Create the default config file from a given template.
+     *
+     * @param templateFile
+     * @param fileName
+     * @throws IOException
+     */
     public void createDefault(String templateFile, String fileName) throws IOException {
 
         File file = new File(fileName);
