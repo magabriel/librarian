@@ -52,15 +52,15 @@ public class Classifier {
      */
     public Classification classify(String sourceFileName) {
 
-        Classification classification = checkIsTVshow(sourceFileName);
+        Classification classification = checkForTVshow(sourceFileName);
 
         if (!classification.getTvshowName().isEmpty()) {
+            // it is a TV show
             return classification;
         }
 
-        classification = checkMeetsCriteria(sourceFileName);
-
-        return classification;
+        // other kind of files
+        return checkMeetsCriteria(sourceFileName);
     }
 
     /**
@@ -69,7 +69,7 @@ public class Classifier {
      * @param sourceFileName
      * @return True if it is a TV show.
      */
-    private Classification checkIsTVshow(String sourceFileName) {
+    private Classification checkForTVshow(String sourceFileName) {
 
         Classification classification = new Classification();
 
@@ -84,6 +84,7 @@ public class Classifier {
                     classification.setName(criterium.getName());
 
                     try {
+                        // replace word separators with dots in captured TVshow name
                         String tvShowName = matcher.group("name").
                                 replace("_", " ").
                                 replace(".", " ").

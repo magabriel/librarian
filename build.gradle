@@ -1,0 +1,35 @@
+group 'librarian'
+version '0.1-SNAPSHOT'
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.yaml:snakeyaml:1.17'
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+}
+
+jar {
+    manifest {
+        attributes  'Main-Class': 'com.mags.librarian.Main',
+                    'Implementation-Title': 'Librarian',
+                    'Implementation-Version': version,
+                    'Built-By': System.getProperty('user.name'),
+                    'Built-Date': new Date(),
+                    'Built-JDK': System.getProperty('java.version'),
+                    'Built-Gradle': gradle.gradleVersion
+    }
+
+    // include all dependencies in jar
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+
+}

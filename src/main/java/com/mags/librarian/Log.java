@@ -55,6 +55,7 @@ public class Log {
         if (ourInstance.logger == null) {
             ourInstance.initLogger();
         }
+
         return ourInstance.logger;
     }
 
@@ -103,7 +104,7 @@ public class Log {
                     return String.format(
                             "%s [%s] %s\n",
                             dt.format(new Date()),
-                            record.getLevel().toString().substring(0, 2),
+                            record.getLevel().toString().substring(0, 3),
                             record.getMessage()
                     );
                 }

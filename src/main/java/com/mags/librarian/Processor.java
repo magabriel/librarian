@@ -20,12 +20,12 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Level;
 
-public class Processor {
+class Processor {
 
     private final Options options;
     private final Config config;
 
-    public Processor(Options options, Config config) {
+    Processor(Options options, Config config) {
 
         this.options = options;
         this.config = config;
@@ -34,7 +34,7 @@ public class Processor {
     /**
      * Runs the classification process.
      */
-    public void run() {
+    void run() {
 
         Log.getLogger().info("Started");
 
@@ -154,10 +154,37 @@ public class Processor {
         ArrayList<File> inputFiles = new ArrayList<>();
 
         for (String inputFolder : config.getInputFolders()) {
+
             File folder = new File(inputFolder);
-            File[] files = folder.listFiles();
-            if (files != null) {
-                Collections.addAll(inputFiles, files);
+
+            if (!folder.exists()) {
+                Log.getLogger().warning(String.format("- Input folder '%s' does not exist.", inputFolder));
+                continue;
+            }
+            Collections.addAll(inputFiles, collectFiles(folder).toArray(new File[0]));
+        }
+
+        return inputFiles;
+    }
+
+    /**
+     * Construct a list of files in the folder
+     *
+     * @return List of files.
+     */
+    private ArrayList<File> collectFiles(File inputFolder) {
+
+        ArrayList<File> inputFiles = new ArrayList<>();
+
+        File[] files = inputFolder.listFiles();
+
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    inputFiles.addAll(collectFiles(file));
+                } else {
+                    inputFiles.add(file);
+                }
             }
         }
 

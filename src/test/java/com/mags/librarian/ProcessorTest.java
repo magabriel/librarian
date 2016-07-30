@@ -70,7 +70,7 @@ public class ProcessorTest {
         outputdDir.mkdirs();
 
         // make input folders relative to the test input directory
-        ArrayList<String> newFolders = new ArrayList<String>();
+        ArrayList<String> newFolders = new ArrayList<>();
         for (String folder : config.getInputFolders()) {
             String newPath = inputPath + "/" + folder;
             newFolders.add(newPath);
@@ -109,11 +109,9 @@ public class ProcessorTest {
 
     private ArrayList<String> relativizePaths(ArrayList<File> outputFiles, String absolutePath) {
 
-        ArrayList<String> files = new ArrayList<String>();
+        ArrayList<String> files = new ArrayList<>();
 
-        outputFiles.forEach(file -> {
-            files.add(file.getAbsolutePath().substring(absolutePath.length() + 1));
-        });
+        outputFiles.forEach(file -> files.add(file.getAbsolutePath().substring(absolutePath.length() + 1)));
 
         return files;
     }
@@ -125,13 +123,16 @@ public class ProcessorTest {
      */
     private ArrayList<File> collectFiles(File inputFolder) {
 
-        ArrayList<File> inputFiles = new ArrayList<File>();
+        ArrayList<File> inputFiles = new ArrayList<>();
 
-        for (File file : inputFolder.listFiles()) {
-            if (file.isDirectory()) {
-                inputFiles.addAll(collectFiles(file));
-            } else {
-                inputFiles.add(file);
+        File[] files = inputFolder.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    inputFiles.addAll(collectFiles(file));
+                } else {
+                    inputFiles.add(file);
+                }
             }
         }
 

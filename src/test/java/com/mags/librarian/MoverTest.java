@@ -9,8 +9,6 @@
 
 package com.mags.librarian;
 
-import com.mags.librarian.Mover;
-import com.mags.librarian.Options;
 import com.mags.librarian.classifier.Classification;
 import com.mags.librarian.config.Config;
 import org.junit.Test;
@@ -70,7 +68,7 @@ public class MoverTest {
         /*
          * Output folders
          */
-        ArrayList<Map> outputFolders = new ArrayList();
+        ArrayList<Map> outputFolders = new ArrayList<>();
         outputFolders.add(
                 new HashMap() {
                     {
@@ -101,7 +99,7 @@ public class MoverTest {
         /*
          * Content types
          */
-        ArrayList<Map> contentTypes = new ArrayList();
+        ArrayList<Map> contentTypes = new ArrayList<>();
         contentTypes.add(
                 new HashMap() {
                     {

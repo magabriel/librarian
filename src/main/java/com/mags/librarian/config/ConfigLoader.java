@@ -68,7 +68,6 @@ public class ConfigLoader {
         }
 
         // read default file
-
         InputStream res = getClass().getResourceAsStream(templateFile);
         BufferedReader br = new BufferedReader(new InputStreamReader(res));
         List<String> lines = br.lines().collect(Collectors.toList());

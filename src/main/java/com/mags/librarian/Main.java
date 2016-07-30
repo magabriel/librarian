@@ -44,6 +44,11 @@ public class Main {
         processor.run();
     }
 
+    /**
+     * Read and configure the command line options.
+     *
+     * @param args
+     */
     private static void readOptions(String[] args) {
 
         options = new Options();
@@ -80,10 +85,12 @@ public class Main {
                     options.setVerbosity(Options.Verbosity.HIGH);
                     Log.setConsoleLogLevel(Level.CONFIG);
                     break;
-//
-//                case "--quiet":
-//                    options.setVerbosity(Options.Verbosity.NONE);
-//                    break;
+
+                case "--quiet":
+                    options.setVerbosity(Options.Verbosity.NONE);
+                    Log.setConsoleLogLevel(Level.OFF);
+
+                    break;
 
                 case "--config":
                 case "-c":
@@ -139,7 +146,7 @@ public class Main {
         writeMessage("         -c --config <file> : Use that config file instead of the one in execution directory.");
         writeMessage("         -l --log <file>    : Write to that log file instead of creating one in the execution directory.");
         writeMessage("         -v, -vv            : Verbosity normal (default) or high.");
-//        writeMessage("         --quiet            : do not write messages.");
+        writeMessage("         --quiet            : Do not write messages.");
 
         System.exit(1);
     }
@@ -169,7 +176,7 @@ public class Main {
         ConfigLoader configLoader = new ConfigLoader();
 
         try {
-            configLoader.createDefault("/" + Main.class.getPackage().getName().replace('.', '/') + "/resources/librarian-default.yml", configFile);
+            configLoader.createDefault("/librarian-default.yml", configFile);
             Log.getLogger().info("Default configuration file created as '" + configFile + "'");
 
         } catch (FileNotFoundException e) {

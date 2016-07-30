@@ -10,7 +10,7 @@
 package com.mags.librarian.classifier;
 
 /**
- * Represents the classification results.
+ * Represents the classification results for a file.
  */
 public class Classification {
 

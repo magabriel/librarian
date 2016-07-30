@@ -2,7 +2,7 @@
 
 ## Application Code ##
 
-This piece of software is released under the MIT License:
+This software piece is released under the MIT License:
 
 ---
 
