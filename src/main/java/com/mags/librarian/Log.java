@@ -17,9 +17,9 @@ import java.util.logging.*;
 /**
  * Configures the logger.
  */
-public class Log {
+class Log {
 
-    private static Log ourInstance = new Log();
+    private static final Log ourInstance = new Log();
     private Level logLevel = Level.FINE;
     private Level consoleLogLevel = Level.INFO;
 
@@ -30,17 +30,17 @@ public class Log {
 
     }
 
-    public static void setLogFileName(String logFileName) {
+    static void setLogFileName(String logFileName) {
 
         ourInstance.logFileName = logFileName;
     }
 
-    public static void setLogLevel(Level logLevel) {
+    static void setLogLevel(Level logLevel) {
 
         ourInstance.logLevel = logLevel;
     }
 
-    public static void setConsoleLogLevel(Level logLevel) {
+    static void setConsoleLogLevel(Level logLevel) {
 
         ourInstance.consoleLogLevel = logLevel;
     }
@@ -48,9 +48,9 @@ public class Log {
     /**
      * Retrieve the logger instance.
      *
-     * @return
+     * @return the logger instance
      */
-    public static Logger getLogger() {
+    static Logger getLogger() {
 
         if (ourInstance.logger == null) {
             ourInstance.initLogger();
@@ -62,7 +62,7 @@ public class Log {
     /**
      * Initializations.
      */
-    private void initLogger() {
+    void initLogger() {
 
         logger = Logger.getLogger(this.getClass().getName());
         logger.setUseParentHandlers(false);

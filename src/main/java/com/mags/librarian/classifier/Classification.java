@@ -9,6 +9,7 @@
 
 package com.mags.librarian.classifier;
 
+
 /**
  * Represents the classification results for a file.
  */
@@ -22,6 +23,16 @@ public class Classification {
 
     @Override
     public boolean equals(Object obj) {
+
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+
+        Classification that = (Classification) obj;
+
         return this.toString().equals(obj.toString());
     }
 

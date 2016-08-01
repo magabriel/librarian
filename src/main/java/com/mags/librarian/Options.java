@@ -14,9 +14,9 @@ import java.util.logging.Level;
 /**
  * Stores the user options.
  */
-public class Options {
+class Options {
 
-    public enum Verbosity {
+    enum Verbosity {
         NONE,
         NORMAL,
         HIGH
@@ -26,44 +26,65 @@ public class Options {
     private Level logLevel = Level.INFO;
     private Boolean dryRun = false;
     private Boolean copyOnly = false;
+    private String logFileName = "";
+    private String rssFileName = "";
 
-    public Level getLogLevel() {
+    public String getLogFileName() {
+
+        return logFileName;
+    }
+
+    void setLogFileName(String logFileName) {
+
+        this.logFileName = logFileName;
+    }
+
+    String getRssFileName() {
+
+        return rssFileName;
+    }
+
+    void setRssFileName(String rssFileName) {
+
+        this.rssFileName = rssFileName;
+    }
+
+    Level getLogLevel() {
 
         return logLevel;
     }
 
-    public void setLogLevel(Level logLevel) {
+    void setLogLevel(Level logLevel) {
 
         this.logLevel = logLevel;
     }
 
-    public Verbosity getVerbosity() {
+    Verbosity getVerbosity() {
 
         return verbosity;
     }
 
-    public void setVerbosity(Verbosity verbosity) {
+    void setVerbosity(Verbosity verbosity) {
 
         this.verbosity = verbosity;
     }
 
-    public Boolean getDryRun() {
+    Boolean getDryRun() {
 
         return dryRun;
     }
 
-    public void setDryRun(Boolean dryRun) {
+    void setDryRun(Boolean dryRun) {
 
         this.dryRun = dryRun;
     }
 
-
-    public Boolean getCopyOnly() {
+    Boolean getCopyOnly() {
 
         return copyOnly;
     }
 
-    public void setCopyOnly(Boolean copyOnly) {
+    void setCopyOnly(Boolean copyOnly) {
 
         this.copyOnly = copyOnly;
     }

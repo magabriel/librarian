@@ -25,11 +25,11 @@ import static org.junit.Assert.assertArrayEquals;
 
 public class ProcessorTest {
 
-    static File executionFolder;
-    static String executionPath;
-    static String inputPath;
-    static String outputPath;
-    static String expectedPath;
+    private static File executionFolder;
+    private static String executionPath;
+    private static String inputPath;
+    private static String outputPath;
+    private static String expectedPath;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -85,6 +85,7 @@ public class ProcessorTest {
         // set options
         Options options = new Options();
         options.setCopyOnly(true);
+        options.setRssFileName(executionPath + "/librarian.rss");
 
         // execute
         Processor proc = new Processor(options, config);

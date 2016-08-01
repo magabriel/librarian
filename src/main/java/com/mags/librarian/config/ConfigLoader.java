@@ -16,6 +16,7 @@ import java.nio.file.FileAlreadyExistsException;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
  */
 public class ConfigLoader {
 
-    private Yaml configYaml;
+    private final Yaml configYaml;
     private LinkedHashMap configObj;
 
     public ConfigLoader() {
@@ -35,7 +36,7 @@ public class ConfigLoader {
      *
      * @return The raw configuration object.
      */
-    public LinkedHashMap getConfigRaw() {
+    LinkedHashMap getConfigRaw() {
         return configObj;
     }
 
@@ -92,7 +93,7 @@ public class ConfigLoader {
      * @param key
      * @return The value of the key or null if not found.
      */
-    protected String getValueString(String key) {
+    String getValueString(String key) {
         return getValueString(key, null);
     }
 
@@ -103,7 +104,7 @@ public class ConfigLoader {
      * @param defaultValue
      * @return The value of the key or defaultValue if not found.
      */
-    protected String getValueString(String key, String defaultValue) {
+    String getValueString(String key, String defaultValue) {
 
         String[] keyParts = key.split("\\.");
 
@@ -129,7 +130,7 @@ public class ConfigLoader {
      * @param key
      * @return The value of the key or null if not found.
      */
-    protected Integer getValueInt(String key) {
+    Integer getValueInt(String key) {
         return getValueInt(key, null);
     }
 
@@ -140,7 +141,7 @@ public class ConfigLoader {
      * @param defaultValue
      * @return The value of the key or defaultValue if not found.
      */
-    protected Integer getValueInt(String key, Integer defaultValue) {
+    Integer getValueInt(String key, Integer defaultValue) {
 
         String[] keyParts = key.split("\\.");
 
@@ -166,7 +167,7 @@ public class ConfigLoader {
      * @param key
      * @return The value of the key or false if not found.
      */
-    protected Boolean getValueBoolean(String key) {
+    Boolean getValueBoolean(String key) {
 
         String[] keyParts = key.split("\\.");
 
@@ -187,12 +188,12 @@ public class ConfigLoader {
     }
 
     /**
-     * Retrieve a list value.
+     * Retrieve a list value (a list of Strings).
      *
      * @param key
      * @return The value of the key as a List, or an empty List if not set.
      */
-    protected List<String> getValueList(String key) {
+    List<String> getValueListStrings(String key) {
 
         String[] keyParts = key.split("\\.");
         LinkedHashMap map = this.configObj;
@@ -205,6 +206,36 @@ public class ConfigLoader {
             if (map.get(keyPart) != null) {
                 if (map.get(keyPart).getClass().getName().equals("java.util.ArrayList")) {
                     value = (List<String>) map.get(keyPart);
+                }
+
+                if (map.get(keyPart).getClass().getName().equals("java.util.LinkedHashMap")) {
+                    map = (LinkedHashMap) map.get(keyPart);
+                }
+            }
+        }
+
+        return value;
+    }
+
+    /**
+     * Retrieve a list value (a list of Maps)
+     *
+     * @param key
+     * @return The value of the key as a List, or an empty List if not set.
+     */
+    List<Map> getValueListMap(String key) {
+
+        String[] keyParts = key.split("\\.");
+        LinkedHashMap map = this.configObj;
+        List<Map> value = Collections.emptyList();
+        for (String keyPart : keyParts) {
+            if (!map.containsKey(keyPart)) {
+                return Collections.emptyList();
+            }
+
+            if (map.get(keyPart) != null) {
+                if (map.get(keyPart).getClass().getName().equals("java.util.ArrayList")) {
+                    value = (List<Map>) map.get(keyPart);
                 }
 
                 if (map.get(keyPart).getClass().getName().equals("java.util.LinkedHashMap")) {

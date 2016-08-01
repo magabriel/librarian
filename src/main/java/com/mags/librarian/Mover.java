@@ -21,15 +21,16 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Mover {
+class Mover {
 
     private final Config config;
     private final Options options;
 
     // for testing purposes
     private String actionPerformed = "";
+    private Summary summary;
 
-    public Mover(Options options, Config config) {
+    Mover(Options options, Config config) {
 
         this.options = options;
         this.config = config;
@@ -38,10 +39,13 @@ public class Mover {
     /**
      * Move a file to its destination folder.
      *
-     * @param inputFile
-     * @param fileClassification
+     * @param inputFile The input file
+     * @param fileClassification The file classification
      */
-    public void moveToDestination(File inputFile, Classification fileClassification) {
+    void moveToDestination(File inputFile, Classification fileClassification) {
+
+        actionPerformed = "";
+        summary = new Summary();
 
         // find all suitable destinations for this file
         ArrayList<Map> suitableDestinations = findDestinations(fileClassification);
@@ -62,15 +66,15 @@ public class Mover {
 
         String newName = replaceWordsSeparators(fileNameWithoutExtension);
 
-        return newName+ "." + getFileExtension(fileName);
+        return newName + "." + getFileExtension(fileName);
     }
 
     private String replaceWordsSeparators(String fileNameWithoutExtension) {
 
         return fileNameWithoutExtension.
-                    replace(" ", config.getWordsSeparator()).
-                    replace("_", config.getWordsSeparator()).
-                    replace(".", config.getWordsSeparator());
+                replace(" ", config.getWordsSeparator()).
+                replace("_", config.getWordsSeparator()).
+                replace(".", config.getWordsSeparator());
     }
 
     private String getFileExtension(String fileName) {
@@ -86,6 +90,7 @@ public class Mover {
     }
 
     private String getFilenameWithoutExtension(String fileName) {
+
         String extension = getFileExtension(fileName);
 
         if (extension.isEmpty()) {
@@ -99,7 +104,7 @@ public class Mover {
     /**
      * Find all the possible destinations for a file.
      *
-     * @param fileClassification
+     * @param fileClassification The file classification
      * @return A list of destinations
      */
     private ArrayList<Map> findDestinations(Classification fileClassification) {
@@ -140,9 +145,9 @@ public class Mover {
     /**
      * Moves a TV show file to one of the suitable destinations.
      *
-     * @param inputFile
-     * @param fileClassification
-     * @param suitableDestinations
+     * @param inputFile The input file
+     * @param fileClassification The file classification
+     * @param suitableDestinations List of suitable destinations
      */
     private void moveTvShowToDestination(
             File inputFile,
@@ -193,8 +198,8 @@ public class Mover {
         // the real destination folder is a subfolder of the parent found
         File tvShowDestinationFolder = Paths.get(
                 parentDestinationFolder[0].getAbsolutePath(),
-                        fileClassification.getTvshowName(),
-                        seasonName).toFile();
+                fileClassification.getTvshowName(),
+                seasonName).toFile();
 
 
         if (!tvShowDestinationFolder.exists()) {
@@ -292,6 +297,12 @@ public class Mover {
             // replace words separator in name
             newName = replaceWordsSeparatorsInFileName(newName);
 
+            // create summary
+            summary.inputFolder = inputFile.getParent();
+            summary.inputFilename = inputFile.getName();
+            summary.outputFolder = destinationFolder.toString();
+            summary.outputFilename = newName;
+
             if (options.getCopyOnly()) {
                 if (!options.getDryRun()) {
                     Files.copy(inputFile.toPath(), destinationFolder.toPath().resolve(newName));
@@ -300,6 +311,7 @@ public class Mover {
                                                 destinationFolder.getAbsolutePath(), newName);
                 Log.getLogger().info(String.format("- File '%s' copied to '%s' as '%s'.", inputFile.getName(),
                                                    destinationFolder.getAbsolutePath(), newName));
+                summary.action = "copy";
 
             } else {
                 if (!options.getDryRun()) {
@@ -309,6 +321,7 @@ public class Mover {
                                                 destinationFolder.getAbsolutePath(), newName);
                 Log.getLogger().info(String.format("- File '%s' moved to '%s' as '%s'.", inputFile.getName(),
                                                    destinationFolder.getAbsolutePath(), newName));
+                summary.action = "move";
             }
 
         } catch (IOException e) {
@@ -324,9 +337,22 @@ public class Mover {
         }
     }
 
-
-    public String getActionPerformed() {
+    String getActionPerformed() {
 
         return actionPerformed;
+    }
+
+    Summary getSummary() {
+
+        return summary;
+    }
+
+    class Summary {
+
+        String inputFolder;
+        String inputFilename;
+        String outputFolder;
+        String outputFilename;
+        String action;
     }
 }

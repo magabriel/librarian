@@ -13,24 +13,33 @@ import com.mags.librarian.config.Config;
 import com.mags.librarian.config.ConfigAdaptor;
 import com.mags.librarian.config.ConfigLoader;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.logging.Level;
 
 public class Main {
 
-    static final String NAME = "librarian";
-    static final String VERSION = "0.1";
-    static final String COPYRIGHT = "(C) MAGS 2016";
+    private static final String NAME = "librarian";
+    private static final String VERSION = "0.1";
+    private static final String COPYRIGHT = "(C) MAGS 2016";
 
-    static final String CONFIG_FILE = "librarian.yml";
-    static final String LOG_FILE = "librarian.log";
-    private static String configFile = System.getProperty("user.dir") + '/' + CONFIG_FILE;
-    private static String logFile = System.getProperty("user.dir") + '/' + LOG_FILE;
+    private static final String CONFIG_FILE = "librarian.yml";
+    private static final String LOG_FILE = "librarian.log";
+    private static final String RSS_FILE = "librarian.rss";
+
+    private static String configFile;
+    private static String logFile;
+    private static String rssFile;
+
     private static Config config;
     private static Options options;
 
     public static void main(String[] args) {
+
+        configFile = (new File(System.getProperty("user.dir"))).toPath().resolve(CONFIG_FILE).toString();
+        logFile = (new File(System.getProperty("user.dir"))).toPath().resolve(LOG_FILE).toString();
+        rssFile = (new File(System.getProperty("user.dir"))).toPath().resolve(RSS_FILE).toString();
 
         Log.setLogFileName(logFile);
 
@@ -106,6 +115,16 @@ public class Main {
                         i++;
                         logFile = args[i];
                         Log.setLogFileName(logFile);
+                        options.setLogFileName(logFile);
+                    }
+                    break;
+
+                case "--rss":
+                case "-r":
+                    if (i < args.length - 1) {
+                        i++;
+                        rssFile = args[i];
+                        options.setRssFileName(rssFile);
                     }
                     break;
 
@@ -145,6 +164,7 @@ public class Main {
         writeMessage("         --loglevel <level> : Loglevel (NONE, INFO, WARNING, SEVERE). Default INFO.");
         writeMessage("         -c --config <file> : Use that config file instead of the one in execution directory.");
         writeMessage("         -l --log <file>    : Write to that log file instead of creating one in the execution directory.");
+        writeMessage("         -r --rss<file>     : Write to that rss file instead of the one in execution directory.");
         writeMessage("         -v, -vv            : Verbosity normal (default) or high.");
         writeMessage("         --quiet            : Do not write messages.");
 
@@ -193,7 +213,7 @@ public class Main {
         }
     }
 
-    public static void writeMessage(String msg) {
+    private static void writeMessage(String msg) {
 
         if (options != null) {
             if (options.getVerbosity() == Options.Verbosity.NONE) {
@@ -204,7 +224,7 @@ public class Main {
         System.err.println(msg);
     }
 
-    public static void writeMessage() {
+    private static void writeMessage() {
 
         if (options != null) {
             if (options.getVerbosity() == Options.Verbosity.NONE) {

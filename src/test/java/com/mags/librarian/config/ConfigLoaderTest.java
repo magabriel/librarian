@@ -19,7 +19,7 @@ import static org.junit.Assert.*;
 
 public class ConfigLoaderTest {
 
-    ConfigLoader loader;
+    private ConfigLoader loader;
 
     @Before
     public void setUp() throws Exception {
@@ -78,14 +78,14 @@ public class ConfigLoaderTest {
 
         String[] expected = {"first", "second", "third"};
 
-        assertArrayEquals(expected, loader.getValueList("key4").toArray(new String[0]));
+        assertArrayEquals(expected, loader.getValueListStrings("key4").toArray(new String[0]));
 
         // empty arrray if key not found
-        assertArrayEquals(new String[0], loader.getValueList("key0").toArray(new String[0]));
-        assertArrayEquals(new String[0], loader.getValueList("key3.key0").toArray(new String[0]));
+        assertArrayEquals(new String[0], loader.getValueListStrings("key0").toArray(new String[0]));
+        assertArrayEquals(new String[0], loader.getValueListStrings("key3.key0").toArray(new String[0]));
     }
 
-    protected String getYamlSource() {
+    private String getYamlSource() {
 
         return "key1: value1\n" +
                 "key2: 123\n" +

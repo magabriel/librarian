@@ -27,6 +27,7 @@ class Processor {
 
     private final Options options;
     private final Config config;
+    private FeedWriter feedWriter;
 
     Processor(Options options, Config config) {
 
@@ -47,6 +48,8 @@ class Processor {
             Log.getLogger().severe("No output folders set, cannot continue.");
             return;
         }
+
+        feedWriter = new FeedWriter(options.getRssFileName());
 
         process();
 
@@ -125,7 +128,32 @@ class Processor {
             }
 
             mover.moveToDestination(inputFile, fileClassification);
+
+            // if something done, write it to feed
+            if (!mover.getActionPerformed().isEmpty()) {
+                String title = String.format(
+                        "File \"%s\" -> \"%s\" (action: %s)",
+                        mover.getSummary().inputFilename,
+                        mover.getSummary().outputFolder,
+                        mover.getSummary().action
+                );
+
+                if (!fileClassification.getTvshowName().isEmpty()) {
+                    title = String.format(
+                            "Episode \"%s\" of TV show \"%s\" -> \"%s\" (action: %s)",
+                            mover.getSummary().inputFilename,
+                            fileClassification.getTvshowName(),
+                            mover.getSummary().outputFolder,
+                            mover.getSummary().action
+                    );
+
+                }
+
+                feedWriter.addEntry(title, mover.getActionPerformed());
+            }
         }
+
+        feedWriter.writeFeed();
     }
 
     /**
