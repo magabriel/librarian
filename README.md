@@ -1,6 +1,6 @@
 # Librarian
 
-[![Build Status](https://travis-ci.org/mags/librarian.svg?branch=master)](https://travis-ci.org/mags/librarian)
+[![Build Status](https://travis-ci.org/magabriel/librarian.svg?branch=master)](https://travis-ci.org/magabriel/librarian)
 
 **librarian** is a rule-based file classifier.
 
