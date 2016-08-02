@@ -44,7 +44,7 @@ class Processor {
 
         logOptionsAndConfig();
 
-        if (config.getOutputFolders().length == 0) {
+        if (config.outputFolders.length == 0) {
             Log.getLogger().severe("No output folders set, cannot continue.");
             return;
         }
@@ -70,19 +70,19 @@ class Processor {
         }
 
         Log.getLogger().log(Level.CONFIG, "- Content types: ");
-        for (Map contentType : config.getContentTypes()) {
+        for (Map contentType : config.contentTypes) {
             String name = contentType.keySet().toArray()[0].toString();
             String regExp = contentType.get(name).toString();
             Log.getLogger().log(Level.CONFIG, "    - " + name + " : \"" + regExp + "\"");
         }
 
         Log.getLogger().log(Level.CONFIG, "- Input folders: ");
-        for (String folder : config.getInputFolders()) {
+        for (String folder : config.inputFolders) {
             Log.getLogger().log(Level.CONFIG, "    - " + folder);
         }
 
         Log.getLogger().log(Level.CONFIG, "- Output folders: ");
-        for (Map folder : config.getOutputFolders()) {
+        for (Map folder : config.outputFolders) {
             Log.getLogger().log(Level.CONFIG, "    - " + folder);
         }
     }
@@ -113,18 +113,18 @@ class Processor {
 
             Classification fileClassification = classifier.classify(inputFile.getName());
 
-            if (fileClassification.getName().isEmpty()) {
+            if (fileClassification.name.isEmpty()) {
                 Log.getLogger().warning("- File class not found, skipping.");
                 continue;
             }
 
-            Log.getLogger().info(String.format("- File class found: '%s'.", fileClassification.getName()));
+            Log.getLogger().info(String.format("- File class found: '%s'.", fileClassification.name));
 
-            if (fileClassification.getName().equals("tvshows")) {
+            if (fileClassification.name.equals("tvshows")) {
                 Log.getLogger().info(String.format("- TV show: '%s', season %s, episode %s.",
-                                                   fileClassification.getTvshowName(),
-                                                   fileClassification.getSeason(),
-                                                   fileClassification.getEpisode()));
+                                                   fileClassification.tvshowName,
+                                                   fileClassification.season,
+                                                   fileClassification.episode));
             }
 
             mover.moveToDestination(inputFile, fileClassification);
@@ -138,11 +138,11 @@ class Processor {
                         mover.getSummary().action
                 );
 
-                if (!fileClassification.getTvshowName().isEmpty()) {
+                if (!fileClassification.tvshowName.isEmpty()) {
                     title = String.format(
                             "Episode \"%s\" of TV show \"%s\" -> \"%s\" (action: %s)",
                             mover.getSummary().inputFilename,
-                            fileClassification.getTvshowName(),
+                            fileClassification.tvshowName,
                             mover.getSummary().outputFolder,
                             mover.getSummary().action
                     );
@@ -164,10 +164,10 @@ class Processor {
     private ArrayList<Criterium> constructCriteria() {
 
         ArrayList<Criterium> criteria = new ArrayList<>();
-        for (Map contentType : config.getContentTypes()) {
+        for (Map contentType : config.contentTypes) {
             Criterium criterium = new Criterium();
-            criterium.setName(contentType.keySet().toArray()[0].toString());
-            criterium.setRegExp(contentType.get(criterium.getName()).toString());
+            criterium.name = contentType.keySet().toArray()[0].toString();
+            criterium.regExp = contentType.get(criterium.name).toString();
 
             criteria.add(criterium);
         }
@@ -184,7 +184,7 @@ class Processor {
 
         ArrayList<File> inputFiles = new ArrayList<>();
 
-        for (String inputFolder : config.getInputFolders()) {
+        for (String inputFolder : config.inputFolders) {
 
             File folder = new File(inputFolder);
 

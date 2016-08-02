@@ -38,8 +38,8 @@ public class Classifier {
     public void addCriterium(String name, String regExp) {
 
         Criterium criterium = new Criterium();
-        criterium.setName(name);
-        criterium.setRegExp(regExp);
+        criterium.name = name;
+        criterium.regExp = regExp;
 
         criteria.add(criterium);
     }
@@ -54,7 +54,7 @@ public class Classifier {
 
         Classification classification = checkForTVshow(sourceFileName);
 
-        if (!classification.getTvshowName().isEmpty()) {
+        if (!classification.tvshowName.isEmpty()) {
             // it is a TV show
             return classification;
         }
@@ -75,13 +75,13 @@ public class Classifier {
 
         // check first for tvshows if present
         for (Criterium criterium : criteria) {
-            if (criterium.getName().equals("tvshows")) {
+            if (criterium.name.equals("tvshows")) {
 
-                Pattern regExp = Pattern.compile(criterium.getRegExp(), Pattern.CASE_INSENSITIVE);
+                Pattern regExp = Pattern.compile(criterium.regExp, Pattern.CASE_INSENSITIVE);
                 Matcher matcher = regExp.matcher(sourceFileName);
 
                 if (matcher.find()) {
-                    classification.setName(criterium.getName());
+                    classification.name = criterium.name;
 
                     try {
                         // replace word separators with dots in captured TVshow name
@@ -90,22 +90,22 @@ public class Classifier {
                                 replace(".", " ").
                                 trim().
                                 replace(" ", ".");
-                        classification.setTvshowName(tvShowName);
+                        classification.tvshowName = tvShowName;
                     } catch (IllegalArgumentException e) {
                     }
 
                     try {
-                        classification.setSeason(Integer.parseInt(matcher.group("season")));
+                        classification.season = Integer.parseInt(matcher.group("season"));
                     } catch (IllegalArgumentException e) {
                     }
 
                     try {
-                        classification.setEpisode(Integer.parseInt(matcher.group("episode")));
+                        classification.episode = Integer.parseInt(matcher.group("episode"));
                     } catch (IllegalArgumentException e) {
                     }
 
                     try {
-                        classification.setTvshowRest(matcher.group("rest"));
+                        classification.tvshowRest = matcher.group("rest");
                     } catch (IllegalArgumentException e) {
                     }
 
@@ -128,10 +128,10 @@ public class Classifier {
         Classification classification = new Classification();
 
         for (Criterium criterium : criteria) {
-            Pattern regExp = Pattern.compile(criterium.getRegExp());
+            Pattern regExp = Pattern.compile(criterium.regExp);
             Matcher matcher = regExp.matcher(sourceFileName);
             if (matcher.find()) {
-                classification.setName(criterium.getName());
+                classification.name = criterium.name;
                 break;
             }
         }

@@ -15,11 +15,11 @@ package com.mags.librarian.classifier;
  */
 public class Classification {
 
-    private String name = "";
-    private Integer season = 0;
-    private Integer episode = 0;
-    private String tvshowName = "";
-    private String tvshowRest = "";
+    public String name = "";
+    public Integer season = 0;
+    public Integer episode = 0;
+    public String tvshowName = "";
+    public String tvshowRest = "";
 
     @Override
     public boolean equals(Object obj) {
@@ -48,45 +48,4 @@ public class Classification {
         return String.format("%s", name);
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Integer getSeason() {
-        return season;
-    }
-
-    public void setSeason(Integer season) {
-        this.season = season;
-    }
-
-    public Integer getEpisode() {
-        return episode;
-    }
-
-    public void setEpisode(Integer episode) {
-        this.episode = episode;
-    }
-
-    public String getTvshowName() {
-        return tvshowName;
-    }
-
-    public void setTvshowName(String tvshowName) {
-        this.tvshowName = tvshowName;
-    }
-
-    public String getTvshowRest() {
-
-        return tvshowRest;
-    }
-
-    public void setTvshowRest(String tvshowRest) {
-
-        this.tvshowRest = tvshowRest;
-    }
 }

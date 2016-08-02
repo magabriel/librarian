@@ -32,7 +32,7 @@ public class ClassifierTest {
     public void classify() throws Exception {
 
         Classification expected = new Classification();
-        expected.setName("videos");
+        expected.name = "videos";
 
         assertEquals(expected, classifier.classify("test1.avi"));
         assertEquals(expected, classifier.classify("test2.mkv"));
@@ -44,10 +44,10 @@ public class ClassifierTest {
     public void classifyTVShow() throws Exception {
 
         Classification expected = new Classification();
-        expected.setName("tvshows");
-        expected.setSeason(2);
-        expected.setEpisode(10);
-        expected.setTvshowName("A.TV.show");
+        expected.name = "tvshows";
+        expected.season = 2;
+        expected.episode = 10;
+        expected.tvshowName = "A.TV.show";
 
         assertEquals("TV show nXnn", expected, classifier.classify("A_TV_show_2x10_something.avi"));
         assertEquals("TV show SnnEnn", expected, classifier.classify("A_TV_show_S02E10_something_else.avi"));

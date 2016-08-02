@@ -70,14 +70,14 @@ public class ProcessorTest {
 
         // make input folders relative to the test input directory
         ArrayList<String> newFolders = new ArrayList<>();
-        for (String folder : config.getInputFolders()) {
+        for (String folder : config.inputFolders) {
             String newPath = inputPath + "/" + folder;
             newFolders.add(newPath);
         }
-        config.setInputFolders(newFolders.toArray(new String[0]));
+        config.inputFolders = newFolders.toArray(new String[0]);
 
         // make output folders relative to the temp directory
-        for (Map folder : config.getOutputFolders()) {
+        for (Map folder : config.outputFolders) {
             String newPath = outputPath + "/" + folder.get("path").toString();
             folder.put("path", newPath);
         }

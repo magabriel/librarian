@@ -51,7 +51,7 @@ class Mover {
         ArrayList<Map> suitableDestinations = findDestinations(fileClassification);
 
         // if it is a tvshow, move it (special treatment)
-        if (fileClassification.getName().equals("tvshows")) {
+        if (fileClassification.name.equals("tvshows")) {
             moveTvShowToDestination(inputFile, fileClassification, suitableDestinations);
             return;
         }
@@ -72,9 +72,9 @@ class Mover {
     private String replaceWordsSeparators(String fileNameWithoutExtension) {
 
         return fileNameWithoutExtension.
-                replace(" ", config.getWordsSeparator()).
-                replace("_", config.getWordsSeparator()).
-                replace(".", config.getWordsSeparator());
+                replace(" ", config.wordsSeparator).
+                replace("_", config.wordsSeparator).
+                replace(".", config.wordsSeparator);
     }
 
     private String getFileExtension(String fileName) {
@@ -111,8 +111,8 @@ class Mover {
 
         ArrayList<Map> destinations = new ArrayList<>();
 
-        for (Map outputFolder : config.getOutputFolders()) {
-            if (outputFolder.get("contents").equals(fileClassification.getName())) {
+        for (Map outputFolder : config.outputFolders) {
+            if (outputFolder.get("contents").equals(fileClassification.name)) {
                 Log.getLogger().fine(String.format("- Output folder found: '%s'.", outputFolder.get("path")));
 
                 destinations.add(outputFolder);
@@ -166,7 +166,7 @@ class Mover {
                 // for tvshows output folders, only accept it as a destination if
                 // a folder for the TV show already exists, or "autocreate" option
                 // is set
-                if (inputFile.getName().matches(fileClassification.getTvshowName())) {
+                if (inputFile.getName().matches(fileClassification.tvshowName)) {
 
                     return true;
                 } else if (destination.containsKey("autocreate") && (Boolean) destination.get("autocreate")) {
@@ -193,12 +193,12 @@ class Mover {
         String tvShowFileName = applyTvShowNumberingSchema(fileClassification);
 
         // replace separators in TV show name and season
-        fileClassification.setTvshowName(replaceWordsSeparators(fileClassification.getTvshowName()));
+        fileClassification.tvshowName = replaceWordsSeparators(fileClassification.tvshowName);
 
         // the real destination folder is a subfolder of the parent found
         File tvShowDestinationFolder = Paths.get(
                 parentDestinationFolder[0].getAbsolutePath(),
-                fileClassification.getTvshowName(),
+                fileClassification.tvshowName,
                 seasonName).toFile();
 
 
@@ -218,9 +218,9 @@ class Mover {
     private String applySeasonSchema(Classification classification) {
 
         // default season name
-        String seasonName = String.format(config.getTvShowsSeasonSchema(), classification.getSeason());
+        String seasonName = String.format(config.tvShowsSeasonSchema, classification.season);
 
-        seasonName = replaceTag(seasonName, "season", classification.getSeason());
+        seasonName = replaceTag(seasonName, "season", classification.season);
 
         return seasonName;
     }
@@ -228,16 +228,16 @@ class Mover {
     private String applyTvShowNumberingSchema(Classification classification) {
 
         // default
-        String seasonAndEpisode = config.getTvShowsNumberingSchema();
+        String seasonAndEpisode = config.tvShowsNumberingSchema;
 
-        seasonAndEpisode = replaceTag(seasonAndEpisode, "season", classification.getSeason());
-        seasonAndEpisode = replaceTag(seasonAndEpisode, "episode", classification.getEpisode());
+        seasonAndEpisode = replaceTag(seasonAndEpisode, "season", classification.season);
+        seasonAndEpisode = replaceTag(seasonAndEpisode, "episode", classification.episode);
 
         return String.format("%s%s%s%s",
-                             classification.getTvshowName(),
-                             config.getWordsSeparator(),
+                             classification.tvshowName,
+                             config.wordsSeparator,
                              seasonAndEpisode,
-                             classification.getTvshowRest());
+                             classification.tvshowRest);
     }
 
     /**

@@ -14,22 +14,7 @@ package com.mags.librarian.classifier;
  */
 public class Criterium {
 
-    private String name;
-    private String regExp;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getRegExp() {
-        return regExp;
-    }
-
-    public void setRegExp(String regExp) {
-        this.regExp = regExp;
-    }
+    public String name;
+    public String regExp;
 }
+

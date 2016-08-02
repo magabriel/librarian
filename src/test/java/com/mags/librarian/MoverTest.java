@@ -28,7 +28,7 @@ public class MoverTest {
         Mover mover = getMover();
 
         Classification classification = new Classification();
-        classification.setName("videos");
+        classification.name = "videos";
         mover.moveToDestination(new File("/input/my_movie.avi"), classification);
 
         assertEquals("moved [/input/my_movie.avi] to [/output/videos] as [my_movie.avi]", mover.getActionPerformed());
@@ -40,15 +40,17 @@ public class MoverTest {
         Mover mover = getMover();
 
         Classification classification = new Classification();
-        classification.setName("tvshows");
-        classification.setSeason(2);
-        classification.setEpisode(10);
-        classification.setTvshowName("My_Tvshow");
-        classification.setTvshowRest("_some_data.avi");
+        classification.name = "tvshows";
+        classification.season = 2;
+        classification.episode = 10;
+        classification.tvshowName = "My_Tvshow";
+        classification.tvshowRest = "_some_data.avi";
 
         mover.moveToDestination(new File("/input/My_Tvshow_S02E10_some_data.avi"), classification);
 
-        assertEquals("moved [/input/My_Tvshow_S02E10_some_data.avi] to [/output/tvshows/My_Tvshow/The.season.002] as [My_Tvshow_S=2E=010_some_data.avi]", mover.getActionPerformed());
+        assertEquals(
+                "moved [/input/My_Tvshow_S02E10_some_data.avi] to [/output/tvshows/My_Tvshow/The.season.002] as [My_Tvshow_S=2E=010_some_data.avi]",
+                mover.getActionPerformed());
     }
 
     private Mover getMover() {
@@ -94,7 +96,7 @@ public class MoverTest {
                 }
         );
 
-        config.setOutputFolders(outputFolders.toArray(new Map[0]));
+        config.outputFolders = outputFolders.toArray(new Map[0]);
 
         /*
          * Content types
@@ -109,13 +111,13 @@ public class MoverTest {
                     }
                 }
         );
-        config.setContentTypes(contentTypes.toArray(new Map[0]));
+        config.contentTypes = contentTypes.toArray(new Map[0]);
 
         /*
          * Schemas
          */
-        config.setTvShowsSeasonSchema("The.season.{season:3}");
-        config.setTvShowsNumberingSchema("S={season:1}E={episode:3}");
+        config.tvShowsSeasonSchema = "The.season.{season:3}";
+        config.tvShowsNumberingSchema = "S={season:1}E={episode:3}";
 
         return config;
     }
