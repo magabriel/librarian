@@ -23,15 +23,20 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Writes an RSS feed.
+ */
 class FeedWriter {
 
     private final SyndFeedImpl feed;
     private final List<SyndEntry> entries;
     private String rssFilename = "";
+    private Log logger;
 
-    FeedWriter(String rssFilename) {
+    FeedWriter(String rssFilename, Log logger) {
 
         this.rssFilename = rssFilename;
+        this.logger = logger;
 
         feed = new SyndFeedImpl();
         feed.setFeedType("rss_2.0");
@@ -71,9 +76,9 @@ class FeedWriter {
             Writer writer = new FileWriter(rssFilename);
             output.output(feed, writer);
         } catch (IOException e) {
-            Log.getLogger().severe(e.getMessage());
+            logger.getLogger().severe(e.getMessage());
         } catch (FeedException e) {
-            Log.getLogger().severe(e.toString());
+            logger.getLogger().severe(e.toString());
             e.printStackTrace();
         }
     }

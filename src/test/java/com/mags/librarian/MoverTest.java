@@ -56,11 +56,12 @@ public class MoverTest {
     private Mover getMover() {
 
         Options options = new Options();
-        options.setDryRun(true);
+        options.dryRun = true;
 
         Config config = setUpConfig();
 
-        return new Mover(options, config);
+        Log logger = new Log(System.getProperty("temp.dir") + "/librarian.log");
+        return new Mover(options, config, logger);
     }
 
     private Config setUpConfig() {

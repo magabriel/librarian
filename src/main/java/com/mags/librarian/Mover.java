@@ -24,16 +24,18 @@ import java.util.regex.Pattern;
 class Mover {
 
     private final Config config;
+    private final Log logger;
     private final Options options;
 
     // for testing purposes
     private String actionPerformed = "";
     private Summary summary;
 
-    Mover(Options options, Config config) {
+    Mover(Options options, Config config, Log logger) {
 
         this.options = options;
         this.config = config;
+        this.logger = logger;
     }
 
     /**
@@ -113,7 +115,7 @@ class Mover {
 
         for (Map outputFolder : config.outputFolders) {
             if (outputFolder.get("contents").equals(fileClassification.name)) {
-                Log.getLogger().fine(String.format("- Output folder found: '%s'.", outputFolder.get("path")));
+                logger.getLogger().fine(String.format("- Output folder found: '%s'.", outputFolder.get("path")));
 
                 destinations.add(outputFolder);
             }
@@ -132,7 +134,7 @@ class Mover {
             File inputFile, ArrayList<Map> suitableDestinations) {
 
         if (suitableDestinations.isEmpty()) {
-            Log.getLogger().warning("- No suitable destination found, skipping.");
+            logger.getLogger().warning("- No suitable destination found, skipping.");
             return;
         }
 
@@ -204,10 +206,10 @@ class Mover {
 
         if (!tvShowDestinationFolder.exists()) {
             tvShowDestinationFolder.mkdir();
-            Log.getLogger().fine(String.format("- Created folder for TV show: '%s'.",
+            logger.getLogger().fine(String.format("- Created folder for TV show: '%s'.",
                                                tvShowDestinationFolder.getAbsolutePath()));
         } else {
-            Log.getLogger().fine(String.format("- Using existing folder for TV show: '%s'.",
+            logger.getLogger().fine(String.format("- Using existing folder for TV show: '%s'.",
                                                tvShowDestinationFolder.getAbsolutePath()));
         }
 
@@ -279,14 +281,14 @@ class Mover {
     /**
      * Do the actual file move.
      *
-     * @param inputFile
-     * @param destinationFolder
-     * @param newName
+     * @param inputFile The input file
+     * @param destinationFolder The destination folder
+     * @param newName The name to give to the copied/moved file
      */
     private void moveTheFile(File inputFile, File destinationFolder, String newName) {
 
         try {
-            if (!options.getDryRun()) {
+            if (!options.dryRun) {
                 destinationFolder.mkdirs();
             }
 
@@ -303,34 +305,34 @@ class Mover {
             summary.outputFolder = destinationFolder.toString();
             summary.outputFilename = newName;
 
-            if (options.getCopyOnly()) {
-                if (!options.getDryRun()) {
+            if (options.copyOnly) {
+                if (!options.dryRun) {
                     Files.copy(inputFile.toPath(), destinationFolder.toPath().resolve(newName));
                 }
                 actionPerformed = String.format("copied [%s] to [%s] as [%s]", inputFile.getAbsolutePath(),
                                                 destinationFolder.getAbsolutePath(), newName);
-                Log.getLogger().info(String.format("- File '%s' copied to '%s' as '%s'.", inputFile.getName(),
+                logger.getLogger().info(String.format("- File '%s' copied to '%s' as '%s'.", inputFile.getName(),
                                                    destinationFolder.getAbsolutePath(), newName));
                 summary.action = "copy";
 
             } else {
-                if (!options.getDryRun()) {
+                if (!options.dryRun) {
                     Files.move(inputFile.toPath(), destinationFolder.toPath().resolve(newName));
                 }
                 actionPerformed = String.format("moved [%s] to [%s] as [%s]", inputFile.getAbsolutePath(),
                                                 destinationFolder.getAbsolutePath(), newName);
-                Log.getLogger().info(String.format("- File '%s' moved to '%s' as '%s'.", inputFile.getName(),
+                logger.getLogger().info(String.format("- File '%s' moved to '%s' as '%s'.", inputFile.getName(),
                                                    destinationFolder.getAbsolutePath(), newName));
                 summary.action = "move";
             }
 
         } catch (IOException e) {
             String msg = "- Cannot move file '%s' to '%s': %s";
-            if (options.getCopyOnly()) {
+            if (options.copyOnly) {
                 msg = "- Cannot move file '%s' to '%s': %s";
             }
 
-            Log.getLogger().severe(String.format(msg,
+            logger.getLogger().severe(String.format(msg,
                                                  inputFile.getName(),
                                                  destinationFolder.getAbsolutePath(),
                                                  e.toString()));

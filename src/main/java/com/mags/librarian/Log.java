@@ -1,10 +1,10 @@
 /*
  * This file is part of the librarian application.
  *
- * Copyright (c) Miguel Angel Gabriel <magabriel@gmail.com>
+ * Copyright (c) 2016 Miguel Angel Gabriel <magabriel@gmail.com>
  *
  * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * file that was distributed with this source code
  */
 
 package com.mags.librarian;
@@ -17,46 +17,40 @@ import java.util.logging.*;
 /**
  * Configures the logger.
  */
-class Log {
+public class Log {
 
-    private static final Log ourInstance = new Log();
     private Level logLevel = Level.FINE;
     private Level consoleLogLevel = Level.INFO;
 
-    private Logger logger;
+    private java.util.logging.Logger logger;
     private String logFileName;
+    private Handler consoleHandler;
+    private Handler fileHandler;
 
-    private Log() {
+    public Log(String logFileName) {
 
+        this.logFileName = logFileName;
+        initLogger();
     }
 
-    static void setLogFileName(String logFileName) {
+    void setLogLevel(Level logLevel) {
 
-        ourInstance.logFileName = logFileName;
+        fileHandler.setLevel(logLevel);
     }
 
-    static void setLogLevel(Level logLevel) {
+    void setConsoleLogLevel(Level logLevel) {
 
-        ourInstance.logLevel = logLevel;
+        consoleHandler.setLevel(consoleLogLevel);
     }
 
-    static void setConsoleLogLevel(Level logLevel) {
+    public void setLogFileName(String logFileName) throws IOException {
 
-        ourInstance.consoleLogLevel = logLevel;
+        this.fileHandler = new FileHandler(logFileName, true);
     }
 
-    /**
-     * Retrieve the logger instance.
-     *
-     * @return the logger instance
-     */
-    static Logger getLogger() {
+    java.util.logging.Logger getLogger() {
 
-        if (ourInstance.logger == null) {
-            ourInstance.initLogger();
-        }
-
-        return ourInstance.logger;
+        return logger;
     }
 
     /**
@@ -64,15 +58,15 @@ class Log {
      */
     void initLogger() {
 
-        logger = Logger.getLogger(this.getClass().getName());
+        logger = java.util.logging.Logger.getLogger(this.getClass().getName());
         logger.setUseParentHandlers(false);
         logger.setLevel(logLevel);
 
         /*
          * Create the console handler with reduced info and INFO level
          */
-        Handler consoleHandler = new ConsoleHandler();
-        consoleHandler.setFormatter(new java.util.logging.Formatter() {
+        consoleHandler = new ConsoleHandler();
+        consoleHandler.setFormatter(new Formatter() {
             @Override
             public String format(LogRecord record) {
 
@@ -94,8 +88,8 @@ class Log {
                 return;
             }
             //FileHandler file name with max size and number of log files limit
-            Handler fileHandler = new FileHandler(logFileName, true);
-            fileHandler.setFormatter(new java.util.logging.Formatter() {
+            fileHandler = new FileHandler(logFileName, true);
+            fileHandler.setFormatter(new Formatter() {
                 @Override
                 public String format(LogRecord record) {
 

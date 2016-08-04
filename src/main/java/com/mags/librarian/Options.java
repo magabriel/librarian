@@ -22,70 +22,11 @@ class Options {
         HIGH
     }
 
-    private Verbosity verbosity = Verbosity.NORMAL;
-    private Level logLevel = Level.INFO;
-    private Boolean dryRun = false;
-    private Boolean copyOnly = false;
-    private String logFileName = "";
-    private String rssFileName = "";
+    Verbosity verbosity = Verbosity.NORMAL;
+    Level logLevel = Level.INFO;
+    Boolean dryRun = false;
+    Boolean copyOnly = false;
+    String logFileName = "";
+    String rssFileName = "";
 
-    public String getLogFileName() {
-
-        return logFileName;
-    }
-
-    void setLogFileName(String logFileName) {
-
-        this.logFileName = logFileName;
-    }
-
-    String getRssFileName() {
-
-        return rssFileName;
-    }
-
-    void setRssFileName(String rssFileName) {
-
-        this.rssFileName = rssFileName;
-    }
-
-    Level getLogLevel() {
-
-        return logLevel;
-    }
-
-    void setLogLevel(Level logLevel) {
-
-        this.logLevel = logLevel;
-    }
-
-    Verbosity getVerbosity() {
-
-        return verbosity;
-    }
-
-    void setVerbosity(Verbosity verbosity) {
-
-        this.verbosity = verbosity;
-    }
-
-    Boolean getDryRun() {
-
-        return dryRun;
-    }
-
-    void setDryRun(Boolean dryRun) {
-
-        this.dryRun = dryRun;
-    }
-
-    Boolean getCopyOnly() {
-
-        return copyOnly;
-    }
-
-    void setCopyOnly(Boolean copyOnly) {
-
-        this.copyOnly = copyOnly;
-    }
 }

@@ -27,12 +27,14 @@ class Processor {
 
     private final Options options;
     private final Config config;
+    private Log logger;
     private FeedWriter feedWriter;
 
-    Processor(Options options, Config config) {
+    Processor(Options options, Config config, Log logger) {
 
         this.options = options;
         this.config = config;
+        this.logger = logger;
     }
 
     /**
@@ -40,50 +42,50 @@ class Processor {
      */
     void run() {
 
-        Log.getLogger().info("Started");
+        logger.getLogger().info("Started");
 
         logOptionsAndConfig();
 
         if (config.outputFolders.length == 0) {
-            Log.getLogger().severe("No output folders set, cannot continue.");
+            logger.getLogger().severe("No output folders set, cannot continue.");
             return;
         }
 
-        feedWriter = new FeedWriter(options.getRssFileName());
+        feedWriter = new FeedWriter(options.rssFileName, logger);
 
         process();
 
-        Log.getLogger().info("Finished");
+        logger.getLogger().info("Finished");
     }
 
     /**
-     * Write options and configuration values to the log.
+     * Write options and configuration values to the logger.
      */
     private void logOptionsAndConfig() {
 
-        if (options.getDryRun()) {
-            Log.getLogger().log(Level.CONFIG, "- Dry run: true");
+        if (options.dryRun) {
+            logger.getLogger().log(Level.CONFIG, "- Dry run: true");
         }
 
-        if (options.getCopyOnly()) {
-            Log.getLogger().log(Level.CONFIG, "- Copy only: true");
+        if (options.copyOnly) {
+            logger.getLogger().log(Level.CONFIG, "- Copy only: true");
         }
 
-        Log.getLogger().log(Level.CONFIG, "- Content types: ");
+        logger.getLogger().log(Level.CONFIG, "- Content types: ");
         for (Map contentType : config.contentTypes) {
             String name = contentType.keySet().toArray()[0].toString();
             String regExp = contentType.get(name).toString();
-            Log.getLogger().log(Level.CONFIG, "    - " + name + " : \"" + regExp + "\"");
+            logger.getLogger().log(Level.CONFIG, "    - " + name + " : \"" + regExp + "\"");
         }
 
-        Log.getLogger().log(Level.CONFIG, "- Input folders: ");
+        logger.getLogger().log(Level.CONFIG, "- Input folders: ");
         for (String folder : config.inputFolders) {
-            Log.getLogger().log(Level.CONFIG, "    - " + folder);
+            logger.getLogger().log(Level.CONFIG, "    - " + folder);
         }
 
-        Log.getLogger().log(Level.CONFIG, "- Output folders: ");
+        logger.getLogger().log(Level.CONFIG, "- Output folders: ");
         for (Map folder : config.outputFolders) {
-            Log.getLogger().log(Level.CONFIG, "    - " + folder);
+            logger.getLogger().log(Level.CONFIG, "    - " + folder);
         }
     }
 
@@ -99,29 +101,29 @@ class Processor {
         Classifier classifier = new Classifier(criteria);
 
         // get a mover
-        Mover mover = new Mover(options, config);
+        Mover mover = new Mover(options, config, logger);
 
         // classify all input files
         ArrayList<File> inputFiles = collectInputFiles();
-        Log.getLogger().info(String.format("Found %s input files.", inputFiles.size()));
+        logger.getLogger().info(String.format("Found %s input files.", inputFiles.size()));
 
         int count = 0;
         for (File inputFile : inputFiles) {
             count++;
-            Log.getLogger().info(String.format("Processing file (%s/%s) '%s'.", count++, inputFiles.size(),
+            logger.getLogger().info(String.format("Processing file (%s/%s) '%s'.", count++, inputFiles.size(),
                                                inputFile.getName()));
 
             Classification fileClassification = classifier.classify(inputFile.getName());
 
             if (fileClassification.name.isEmpty()) {
-                Log.getLogger().warning("- File class not found, skipping.");
+                logger.getLogger().warning("- File class not found, skipping.");
                 continue;
             }
 
-            Log.getLogger().info(String.format("- File class found: '%s'.", fileClassification.name));
+            logger.getLogger().info(String.format("- File class found: '%s'.", fileClassification.name));
 
             if (fileClassification.name.equals("tvshows")) {
-                Log.getLogger().info(String.format("- TV show: '%s', season %s, episode %s.",
+                logger.getLogger().info(String.format("- TV show: '%s', season %s, episode %s.",
                                                    fileClassification.tvshowName,
                                                    fileClassification.season,
                                                    fileClassification.episode));
@@ -189,7 +191,7 @@ class Processor {
             File folder = new File(inputFolder);
 
             if (!folder.exists()) {
-                Log.getLogger().warning(String.format("- Input folder '%s' does not exist.", inputFolder));
+                logger.getLogger().warning(String.format("- Input folder '%s' does not exist.", inputFolder));
                 continue;
             }
             Collections.addAll(inputFiles, collectFiles(folder).toArray(new File[0]));

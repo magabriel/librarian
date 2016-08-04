@@ -21,8 +21,8 @@ import java.util.logging.Level;
 public class Main {
 
     private static final String NAME = "librarian";
-    private static final String VERSION = "0.1";
-    private static final String COPYRIGHT = "(C) MAGS 2016";
+    private static final String VERSION = "0.2";
+    private static final String COPYRIGHT = "(C) MAGS";
 
     private static final String CONFIG_FILE = "librarian.yml";
     private static final String LOG_FILE = "librarian.log";
@@ -34,6 +34,7 @@ public class Main {
 
     private static Config config;
     private static Options options;
+    private static Log logger;
 
     public static void main(String[] args) {
 
@@ -41,7 +42,9 @@ public class Main {
         logFile = (new File(System.getProperty("user.dir"))).toPath().resolve(LOG_FILE).toString();
         rssFile = (new File(System.getProperty("user.dir"))).toPath().resolve(RSS_FILE).toString();
 
-        Log.setLogFileName(logFile);
+//        logger.setLogFileName(logFile);
+
+        logger = new Log(logFile);
 
         writeMessage(NAME + " version " + VERSION + " " + COPYRIGHT);
 
@@ -49,7 +52,7 @@ public class Main {
 
         loadConfig();
 
-        Processor processor = new Processor(options, config);
+        Processor processor = new Processor(options, config, logger);
         processor.run();
     }
 
@@ -72,7 +75,7 @@ public class Main {
                     break;
 
                 case "--copy":
-                    options.setCopyOnly(true);
+                    options.copyOnly = true;
                     break;
 
                 case "--create-config":
@@ -82,22 +85,22 @@ public class Main {
                     break;
 
                 case "--dry-run":
-                    options.setDryRun(true);
+                    options.dryRun = true;
                     break;
 
                 case "-v":
-                    options.setVerbosity(Options.Verbosity.NORMAL);
-                    Log.setConsoleLogLevel(Level.INFO);
+                    options.verbosity = Options.Verbosity.NORMAL;
+                    logger.setConsoleLogLevel(Level.INFO);
                     break;
 
                 case "-vv":
-                    options.setVerbosity(Options.Verbosity.HIGH);
-                    Log.setConsoleLogLevel(Level.CONFIG);
+                    options.verbosity = Options.Verbosity.HIGH;
+                    logger.setConsoleLogLevel(Level.CONFIG);
                     break;
 
                 case "--quiet":
-                    options.setVerbosity(Options.Verbosity.NONE);
-                    Log.setConsoleLogLevel(Level.OFF);
+                    options.verbosity = Options.Verbosity.NONE;
+                    logger.setConsoleLogLevel(Level.OFF);
 
                     break;
 
@@ -114,8 +117,14 @@ public class Main {
                     if (i < args.length - 1) {
                         i++;
                         logFile = args[i];
-                        Log.setLogFileName(logFile);
-                        options.setLogFileName(logFile);
+                        try {
+                            logger.setLogFileName(logFile);
+                            options.logFileName = logFile;
+                        } catch (IOException e) {
+                            logger.getLogger().severe(e.getMessage());
+
+                            System.exit(1);
+                        }
                     }
                     break;
 
@@ -124,7 +133,7 @@ public class Main {
                     if (i < args.length - 1) {
                         i++;
                         rssFile = args[i];
-                        options.setRssFileName(rssFile);
+                        options.rssFileName = rssFile;
                     }
                     break;
 
@@ -135,10 +144,10 @@ public class Main {
 
                         try {
                             Level logLevel = Level.parse(level.toUpperCase());
-                            options.setLogLevel(logLevel);
-                            Log.getLogger().setLevel(logLevel);
+                            options.logLevel = logLevel;
+                            logger.getLogger().setLevel(logLevel);
                         } catch (IllegalArgumentException e) {
-                            Log.getLogger().severe(String.format("Invalid log level \"%s\"", level));
+                            logger.getLogger().severe(String.format("Invalid log level \"%s\"", level));
 
                             System.exit(1);
                         }
@@ -163,7 +172,8 @@ public class Main {
         writeMessage("         --dry-run          : Do not change anything, just tell what would have been done.");
         writeMessage("         --loglevel <level> : Loglevel (NONE, INFO, WARNING, SEVERE). Default INFO.");
         writeMessage("         -c --config <file> : Use that config file instead of the one in execution directory.");
-        writeMessage("         -l --log <file>    : Write to that log file instead of creating one in the execution directory.");
+        writeMessage(
+                "         -l --log <file>    : Write to that log file instead of creating one in the execution directory.");
         writeMessage("         -r --rss<file>     : Write to that rss file instead of the one in execution directory.");
         writeMessage("         -v, -vv            : Verbosity normal (default) or high.");
         writeMessage("         --quiet            : Do not write messages.");
@@ -184,8 +194,9 @@ public class Main {
             config = adaptor.process();
 
         } catch (FileNotFoundException e) {
-            Log.getLogger().severe(String.format("ERROR: Configuration file '%s' not found.", configFile));
-            Log.getLogger().severe("HINT: You can generate a default configuration file with the provided command line option.");
+            logger.getLogger().severe(String.format("ERROR: Configuration file '%s' not found.", configFile));
+            logger.getLogger().severe(
+                    "HINT: You can generate a default configuration file with the provided command line option.");
 
             System.exit(1);
         }
@@ -197,16 +208,16 @@ public class Main {
 
         try {
             configLoader.createDefault("/librarian-default.yml", configFile);
-            Log.getLogger().info(String.format("Default configuration file created as '%s'", configFile));
+            logger.getLogger().info(String.format("Default configuration file created as '%s'", configFile));
 
         } catch (FileNotFoundException e) {
-            Log.getLogger().severe(String.format(
+            logger.getLogger().severe(String.format(
                     "ERROR: Configuration file '%s' could not be created. Check intermediate folders exist.",
                     configFile));
             System.exit(1);
 
         } catch (IOException e) {
-            Log.getLogger().severe(
+            logger.getLogger().severe(
                     String.format("ERROR: Configuration file '%s' could not be created: '%s'", configFile,
                                   e.getMessage()));
             System.exit(1);
@@ -216,7 +227,7 @@ public class Main {
     private static void writeMessage(String msg) {
 
         if (options != null) {
-            if (options.getVerbosity() == Options.Verbosity.NONE) {
+            if (options.verbosity == Options.Verbosity.NONE) {
                 return;
             }
         }
@@ -227,7 +238,7 @@ public class Main {
     private static void writeMessage() {
 
         if (options != null) {
-            if (options.getVerbosity() == Options.Verbosity.NONE) {
+            if (options.verbosity == Options.Verbosity.NONE) {
                 return;
             }
         }

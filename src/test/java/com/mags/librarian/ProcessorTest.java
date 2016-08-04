@@ -17,11 +17,13 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.logging.Level;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertTrue;
 
 public class ProcessorTest {
 
@@ -30,6 +32,7 @@ public class ProcessorTest {
     private static String inputPath;
     private static String outputPath;
     private static String expectedPath;
+    private static Log logger;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -45,7 +48,8 @@ public class ProcessorTest {
         outputPath = new File(executionPath + "/output").getAbsolutePath();
         expectedPath = new File("src/test/resources/functional/expected").getAbsolutePath();
 
-        Log.setLogFileName(executionPath + "/librarian.log");
+        logger = new Log(executionPath + "/librarian.log");
+
     }
 
     @AfterClass
@@ -55,7 +59,7 @@ public class ProcessorTest {
     @Test
     public void run() throws Exception {
 
-        Log.getLogger().log(Level.INFO, "Starting functional test");
+        logger.getLogger().log(Level.INFO, "Starting functional test");
 
         // load configuration
         ConfigLoader configLoader = new ConfigLoader();
@@ -84,11 +88,11 @@ public class ProcessorTest {
 
         // set options
         Options options = new Options();
-        options.setCopyOnly(true);
-        options.setRssFileName(executionPath + "/librarian.rss");
+        options.copyOnly = true;
+        options.rssFileName = executionPath + "/librarian.rss";
 
         // execute
-        Processor proc = new Processor(options, config);
+        Processor proc = new Processor(options, config, logger);
         proc.run();
 
         // get actual output files
@@ -102,9 +106,12 @@ public class ProcessorTest {
         ArrayList<String> expectedFilePaths = relativizePaths(expectedFiles, expectedDir.getAbsolutePath());
         expectedFilePaths.sort(String::compareTo);
 
-        assertArrayEquals(expectedFilePaths.toArray(), outputFilePaths.toArray());
+        assertArrayEquals("All files moved", expectedFilePaths.toArray(), outputFilePaths.toArray());
 
-        Log.getLogger().log(Level.INFO, "Ended functional test");
+        assertTrue("RSS file created", Files.exists(executionFolder.toPath().resolve("librarian.rss")));
+        assertTrue("Log file created", Files.exists(executionFolder.toPath().resolve("librarian.log")));
+
+        logger.getLogger().log(Level.INFO, "Ended functional test");
     }
 
     private ArrayList<String> relativizePaths(ArrayList<File> outputFiles, String absolutePath) {
