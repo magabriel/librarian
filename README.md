@@ -154,6 +154,16 @@ Things to remember:
     - `episode`: the episode number.
     - `rest`: any other information left in the filename. 
  
+### Output folders definitions
+ 
+`output.folders` is a list of output folders definition, each one of the form:
+
+- `path`: The absolute or relative path of that folder.
+- `contents`: The name of one of the content types defined in `config.content_types`.
+- `auto_create`: (Optional for `tvshows` content type) If set to true, the TV Show folder will be created in that folder
+  if it doesn't exist yet. Otherwise the TV show will not be moved there. It is assumed as `true` for the last (or only)
+  folder for `tvshows`, so a new TV show will be moved by default to the last folder defined. 
+ 
 ### Execute the process
 
 `java -jar /path/to/librarian.jar` will read the `librarian.yml` file in the current directory and act accordingly.

@@ -42,8 +42,6 @@ public class Main {
         logFile = (new File(System.getProperty("user.dir"))).toPath().resolve(LOG_FILE).toString();
         rssFile = (new File(System.getProperty("user.dir"))).toPath().resolve(RSS_FILE).toString();
 
-//        logger.setLogFileName(logFile);
-
         logger = new Log(logFile);
 
         writeMessage(NAME + " version " + VERSION + " " + COPYRIGHT);
