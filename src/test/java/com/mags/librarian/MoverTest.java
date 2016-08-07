@@ -11,7 +11,7 @@ package com.mags.librarian;
 
 import com.mags.librarian.classifier.Classification;
 import com.mags.librarian.config.Config;
-import org.junit.Test;
+import org.junit.*;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -22,10 +22,26 @@ import static org.junit.Assert.assertEquals;
 
 public class MoverTest {
 
+    private static Mover mover;
+    private static Log logger;
+
+    @Before
+    public void setUp() throws Exception {
+        mover = getMover();
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        logger.close();
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+
+    }
+
     @Test
     public void moveVideo() throws Exception {
-
-        Mover mover = getMover();
 
         Classification classification = new Classification();
         classification.name = "videos";
@@ -36,8 +52,6 @@ public class MoverTest {
 
     @Test
     public void moveTvShow() throws Exception {
-
-        Mover mover = getMover();
 
         Classification classification = new Classification();
         classification.name = "tvshows";
@@ -53,18 +67,18 @@ public class MoverTest {
                 mover.getActionPerformed());
     }
 
-    private Mover getMover() {
+    private static Mover getMover() {
 
         Options options = new Options();
         options.dryRun = true;
 
         Config config = setUpConfig();
 
-        Log logger = new Log(System.getProperty("temp.dir") + "/librarian.log");
+        logger = new Log(System.getProperty("java.io.tmpdir") + "/librarian.log");
         return new Mover(options, config, logger);
     }
 
-    private Config setUpConfig() {
+    private static Config setUpConfig() {
 
         Config config = new Config();
 

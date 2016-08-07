@@ -10,6 +10,7 @@
 package com.mags.librarian;
 
 import com.mags.librarian.classifier.Classification;
+import com.mags.librarian.classifier.FileMatcher;
 import com.mags.librarian.config.Config;
 
 import java.io.File;
@@ -41,7 +42,7 @@ class Mover {
     /**
      * Move a file to its destination folder.
      *
-     * @param inputFile The input file
+     * @param inputFile          The input file
      * @param fileClassification The file classification
      */
     void moveToDestination(File inputFile, Classification fileClassification) {
@@ -147,8 +148,8 @@ class Mover {
     /**
      * Moves a TV show file to one of the suitable destinations.
      *
-     * @param inputFile The input file
-     * @param fileClassification The file classification
+     * @param inputFile            The input file
+     * @param fileClassification   The file classification
      * @param suitableDestinations List of suitable destinations
      */
     private void moveTvShowToDestination(
@@ -156,22 +157,82 @@ class Mover {
             Classification fileClassification,
             ArrayList<Map> suitableDestinations) {
 
+        // find the parent destination folder for that TV show
+        File parentDestinationFolder = findParentDestinationFolder(inputFile, fileClassification,
+                                                                   suitableDestinations);
+
+        // if no suitable destination found, use the last one as autocreate
+        if (parentDestinationFolder == null) {
+            String path = suitableDestinations.get(suitableDestinations.size() - 1).get("path").toString();
+            parentDestinationFolder = new File(path);
+
+            logger.getLogger().fine(
+                    String.format("- No suitable destination folder found, using '%s' as default.", path));
+
+        }
+
+        // apply season and numbering schemas
+        String seasonName = applySeasonSchema(fileClassification);
+        String tvShowFileName = applyTvShowNumberingSchema(fileClassification);
+
+        // replace separators in TV show name and season
+        fileClassification.tvshowName = replaceWordsSeparators(fileClassification.tvshowName);
+
+        // the real destination folder is a subfolder of the parent found
+        File tvShowDestinationFolder = Paths.get(
+                parentDestinationFolder.getAbsolutePath(),
+                fileClassification.tvshowName,
+                seasonName).toFile();
+
+
+        if (!tvShowDestinationFolder.exists()) {
+            if (!options.dryRun) {
+                tvShowDestinationFolder.mkdir();
+            }
+            logger.getLogger().fine(String.format("- Created folder for TV show/season: '%s'.",
+                                                  tvShowDestinationFolder.getAbsolutePath()));
+        } else {
+            logger.getLogger().fine(String.format("- Using existing folder for TV show/season: '%s'.",
+                                                  tvShowDestinationFolder.getAbsolutePath()));
+        }
+
+        // move the file
+        moveTheFile(inputFile, tvShowDestinationFolder, tvShowFileName);
+    }
+
+    /**
+     * Find the parent folder of an existing TV show folder.
+     *
+     * @param inputFile            The input file
+     * @param fileClassification   The file classification
+     * @param suitableDestinations List of suitable destinations
+     * @return The destination folder
+     */
+    private File findParentDestinationFolder(
+            File inputFile,
+            Classification fileClassification,
+            ArrayList<Map> suitableDestinations) {
+
+        logger.getLogger().fine(String.format("- Find suitable parent destination folder for file \"%s\"", inputFile
+                .getName()));
+
         // NOTE: using a final array[1] because of lambda usage limitations
         final File[] parentDestinationFolder = new File[1];
 
         suitableDestinations.forEach(destination -> {
             File destinationFolder = new File(destination.get("path").toString());
 
+            logger.getLogger().fine(String.format("- Checking candidate parent destination folder \"%s\"",
+                                                  destinationFolder));
+
             // try finding an existing subfolder for the TV show
             String tvShowSubfolders[] = destinationFolder.list((dir, name) -> {
 
                 // for tvshows output folders, only accept it as a destination if
-                // a folder for the TV show already exists, or "autocreate" option
-                // is set
-                if (inputFile.getName().matches(fileClassification.tvshowName)) {
+                // a folder for the TV show already exists
+                if (FileMatcher.matchTVShowName(name, fileClassification.tvshowName)) {
 
-                    return true;
-                } else if (destination.containsKey("autocreate") && (Boolean) destination.get("autocreate")) {
+                    logger.getLogger().finer(String.format("- Matched folder name \"%s\"", name));
                     return true;
                 }
 
@@ -184,37 +245,14 @@ class Mover {
             }
         });
 
-        // if no suitable destination found, use the last one as autocreate
-        if (parentDestinationFolder[0] == null) {
-            String path = suitableDestinations.get(suitableDestinations.size() - 1).get("path").toString();
-            parentDestinationFolder[0] = new File(path);
+        if (parentDestinationFolder[0] != null) {
+            logger.getLogger().fine(
+                    String.format("- Using parent destination folder \"%s\"", parentDestinationFolder[0]));
+            return parentDestinationFolder[0];
         }
 
-        // apply season and numbering schemas
-        String seasonName = applySeasonSchema(fileClassification);
-        String tvShowFileName = applyTvShowNumberingSchema(fileClassification);
-
-        // replace separators in TV show name and season
-        fileClassification.tvshowName = replaceWordsSeparators(fileClassification.tvshowName);
-
-        // the real destination folder is a subfolder of the parent found
-        File tvShowDestinationFolder = Paths.get(
-                parentDestinationFolder[0].getAbsolutePath(),
-                fileClassification.tvshowName,
-                seasonName).toFile();
-
-
-        if (!tvShowDestinationFolder.exists()) {
-            tvShowDestinationFolder.mkdir();
-            logger.getLogger().fine(String.format("- Created folder for TV show: '%s'.",
-                                               tvShowDestinationFolder.getAbsolutePath()));
-        } else {
-            logger.getLogger().fine(String.format("- Using existing folder for TV show: '%s'.",
-                                               tvShowDestinationFolder.getAbsolutePath()));
-        }
-
-        // move the file
-        moveTheFile(inputFile, tvShowDestinationFolder, tvShowFileName);
+        logger.getLogger().fine("- Parent destination folder not found");
+        return null;
     }
 
     private String applySeasonSchema(Classification classification) {
@@ -281,9 +319,9 @@ class Mover {
     /**
      * Do the actual file move.
      *
-     * @param inputFile The input file
+     * @param inputFile         The input file
      * @param destinationFolder The destination folder
-     * @param newName The name to give to the copied/moved file
+     * @param newName           The name to give to the copied/moved file
      */
     private void moveTheFile(File inputFile, File destinationFolder, String newName) {
 
@@ -312,7 +350,7 @@ class Mover {
                 actionPerformed = String.format("copied [%s] to [%s] as [%s]", inputFile.getAbsolutePath(),
                                                 destinationFolder.getAbsolutePath(), newName);
                 logger.getLogger().info(String.format("- File '%s' copied to '%s' as '%s'.", inputFile.getName(),
-                                                   destinationFolder.getAbsolutePath(), newName));
+                                                      destinationFolder.getAbsolutePath(), newName));
                 summary.action = "copy";
 
             } else {
@@ -322,7 +360,7 @@ class Mover {
                 actionPerformed = String.format("moved [%s] to [%s] as [%s]", inputFile.getAbsolutePath(),
                                                 destinationFolder.getAbsolutePath(), newName);
                 logger.getLogger().info(String.format("- File '%s' moved to '%s' as '%s'.", inputFile.getName(),
-                                                   destinationFolder.getAbsolutePath(), newName));
+                                                      destinationFolder.getAbsolutePath(), newName));
                 summary.action = "move";
             }
 
@@ -333,9 +371,9 @@ class Mover {
             }
 
             logger.getLogger().severe(String.format(msg,
-                                                 inputFile.getName(),
-                                                 destinationFolder.getAbsolutePath(),
-                                                 e.toString()));
+                                                    inputFile.getName(),
+                                                    destinationFolder.getAbsolutePath(),
+                                                    e.toString()));
         }
     }
 

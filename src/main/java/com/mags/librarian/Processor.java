@@ -64,28 +64,31 @@ class Processor {
     private void logOptionsAndConfig() {
 
         if (options.dryRun) {
-            logger.getLogger().log(Level.CONFIG, "- Dry run: true");
+            logger.getLogger().config("- Dry run: true");
         }
+
+        logger.getLogger().config(String.format("- Log level: %s", options.logLevel));
+        logger.getLogger().config(String.format("- Verbosity: %s", options.verbosity));
 
         if (options.copyOnly) {
-            logger.getLogger().log(Level.CONFIG, "- Copy only: true");
+            logger.getLogger().config("- Copy only: true");
         }
 
-        logger.getLogger().log(Level.CONFIG, "- Content types: ");
+        logger.getLogger().config("- Content types: ");
         for (Map contentType : config.contentTypes) {
             String name = contentType.keySet().toArray()[0].toString();
             String regExp = contentType.get(name).toString();
-            logger.getLogger().log(Level.CONFIG, "    - " + name + " : \"" + regExp + "\"");
+            logger.getLogger().config("    - " + name + " : \"" + regExp + "\"");
         }
 
-        logger.getLogger().log(Level.CONFIG, "- Input folders: ");
+        logger.getLogger().config("- Input folders: ");
         for (String folder : config.inputFolders) {
-            logger.getLogger().log(Level.CONFIG, "    - " + folder);
+            logger.getLogger().config("    - " + folder);
         }
 
-        logger.getLogger().log(Level.CONFIG, "- Output folders: ");
+        logger.getLogger().config("- Output folders: ");
         for (Map folder : config.outputFolders) {
-            logger.getLogger().log(Level.CONFIG, "    - " + folder);
+            logger.getLogger().config("    - " + folder);
         }
     }
 

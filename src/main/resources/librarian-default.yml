@@ -22,12 +22,10 @@ output:
     -
       path: /my/output/folder/tvshows
       contents: tvshows
-      auto_create: false
 
     -
       path: /my/output/folder/tvshows2
       contents: tvshows
-      auto_create: true
 
     -
       path: /my/output/folder/movies

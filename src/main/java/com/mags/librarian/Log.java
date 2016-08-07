@@ -27,25 +27,39 @@ public class Log {
     private Handler consoleHandler;
     private Handler fileHandler;
 
-    public Log(String logFileName) {
+    Log(String logFileName) {
 
         this.logFileName = logFileName;
+
+        logger = java.util.logging.Logger.getLogger(this.getClass().getName());
+        logger.setUseParentHandlers(false);
+    }
+
+    void start() {
+
         initLogger();
+    }
+
+    void close() {
+
+        for (Handler handler : logger.getHandlers()) {
+            logger.removeHandler(handler);
+        }
     }
 
     void setLogLevel(Level logLevel) {
 
-        fileHandler.setLevel(logLevel);
+        this.logLevel = logLevel;
     }
 
     void setConsoleLogLevel(Level logLevel) {
 
-        consoleHandler.setLevel(consoleLogLevel);
+        consoleLogLevel = logLevel;
     }
 
     public void setLogFileName(String logFileName) throws IOException {
 
-        this.fileHandler = new FileHandler(logFileName, true);
+        this.logFileName = logFileName;
     }
 
     java.util.logging.Logger getLogger() {
@@ -58,8 +72,6 @@ public class Log {
      */
     void initLogger() {
 
-        logger = java.util.logging.Logger.getLogger(this.getClass().getName());
-        logger.setUseParentHandlers(false);
         logger.setLevel(logLevel);
 
         /*
@@ -98,14 +110,16 @@ public class Log {
                     return String.format(
                             "%s [%s] %s\n",
                             dt.format(new Date()),
-                            record.getLevel().toString().substring(0, 3),
+                            record.getLevel().toString().concat("      ").substring(0, 6),
                             record.getMessage()
                     );
                 }
             });
             logger.addHandler(fileHandler);
 
-        } catch (SecurityException | IOException e) {
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

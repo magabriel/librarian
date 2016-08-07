@@ -22,7 +22,7 @@ public class Main {
 
     private static final String NAME = "librarian";
     private static final String VERSION = "0.2";
-    private static final String COPYRIGHT = "(C) MAGS";
+    private static final String COPYRIGHT = "(C) magabriel@gmail.com";
 
     private static final String CONFIG_FILE = "librarian.yml";
     private static final String LOG_FILE = "librarian.log";
@@ -42,11 +42,15 @@ public class Main {
         logFile = (new File(System.getProperty("user.dir"))).toPath().resolve(LOG_FILE).toString();
         rssFile = (new File(System.getProperty("user.dir"))).toPath().resolve(RSS_FILE).toString();
 
+        // create logger but no logging allowed yet
         logger = new Log(logFile);
 
         writeMessage(NAME + " version " + VERSION + " " + COPYRIGHT);
 
         readOptions(args);
+
+        // start logging
+        logger.start();
 
         loadConfig();
 

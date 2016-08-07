@@ -22,12 +22,10 @@ output:
     -
       path: tvshows
       contents: tvshows
-      auto_create: false
 
     -
       path: tvshows2
       contents: tvshows
-      auto_create: true
 
     -
       path: movies

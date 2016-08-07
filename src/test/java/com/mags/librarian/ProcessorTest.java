@@ -49,6 +49,8 @@ public class ProcessorTest {
         expectedPath = new File("src/test/resources/functional/expected").getAbsolutePath();
 
         logger = new Log(executionPath + "/librarian.log");
+        logger.setLogLevel(Level.ALL);
+        logger.start();
 
     }
 
