@@ -57,8 +57,8 @@ public class MoverTest {
         classification.name = "tvshows";
         classification.season = 2;
         classification.episode = 10;
-        classification.tvshowName = "My_Tvshow";
-        classification.tvshowRest = "_some_data.avi";
+        classification.tvShowName = "My_Tvshow";
+        classification.tvShowRest = "_some_data.avi";
 
         mover.moveToDestination(new File("/input/My_Tvshow_S02E10_some_data.avi"), classification);
 

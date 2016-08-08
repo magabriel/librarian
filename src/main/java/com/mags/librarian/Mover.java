@@ -51,7 +51,7 @@ class Mover {
         summary = new Summary();
 
         // find all suitable destinations for this file
-        ArrayList<Map> suitableDestinations = findDestinations(fileClassification);
+        ArrayList<Map> suitableDestinations = findSuitableDestinations(fileClassification);
 
         // if it is a tvshow, move it (special treatment)
         if (fileClassification.name.equals("tvshows")) {
@@ -110,13 +110,14 @@ class Mover {
      * @param fileClassification The file classification
      * @return A list of destinations
      */
-    private ArrayList<Map> findDestinations(Classification fileClassification) {
+    private ArrayList<Map> findSuitableDestinations(Classification fileClassification) {
 
         ArrayList<Map> destinations = new ArrayList<>();
 
         for (Map outputFolder : config.outputFolders) {
             if (outputFolder.get("contents").equals(fileClassification.name)) {
-                logger.getLogger().fine(String.format("- Output folder found: '%s'.", outputFolder.get("path")));
+                logger.getLogger().fine(String.format("- Suitable destination folder found: '%s'.", outputFolder.get
+                        ("path")));
 
                 destinations.add(outputFolder);
             }
@@ -168,26 +169,29 @@ class Mover {
 
             logger.getLogger().fine(
                     String.format("- No suitable destination folder found, using '%s' as default.", path));
-
         }
 
         // apply season and numbering schemas
         String seasonName = applySeasonSchema(fileClassification);
         String tvShowFileName = applyTvShowNumberingSchema(fileClassification);
 
-        // replace separators in TV show name and season
-        fileClassification.tvshowName = replaceWordsSeparators(fileClassification.tvshowName);
+        // replace separators in TV show name
+        fileClassification.tvShowName = replaceWordsSeparators(fileClassification.tvShowName);
+
+        // ensure we have a valid folder name for the tv show, wheather preexisting or new
+        if (fileClassification.tvShowFolderName.isEmpty()) {
+            fileClassification.tvShowFolderName = fileClassification.tvShowName;
+        }
 
         // the real destination folder is a subfolder of the parent found
         File tvShowDestinationFolder = Paths.get(
                 parentDestinationFolder.getAbsolutePath(),
-                fileClassification.tvshowName,
+                fileClassification.tvShowFolderName,
                 seasonName).toFile();
-
 
         if (!tvShowDestinationFolder.exists()) {
             if (!options.dryRun) {
-                tvShowDestinationFolder.mkdir();
+                tvShowDestinationFolder.mkdirs();
             }
             logger.getLogger().fine(String.format("- Created folder for TV show/season: '%s'.",
                                                   tvShowDestinationFolder.getAbsolutePath()));
@@ -230,7 +234,10 @@ class Mover {
 
                 // for tvshows output folders, only accept it as a destination if
                 // a folder for the TV show already exists
-                if (FileMatcher.matchTVShowName(name, fileClassification.tvshowName)) {
+                if (FileMatcher.matchTVShowName(name, fileClassification.tvShowName)) {
+
+                    // save real folder name to avoid creating extra folders on case or separators change
+                    fileClassification.tvShowFolderName = name;
 
                     logger.getLogger().finer(String.format("- Matched folder name \"%s\"", name));
                     return true;
@@ -274,10 +281,10 @@ class Mover {
         seasonAndEpisode = replaceTag(seasonAndEpisode, "episode", classification.episode);
 
         return String.format("%s%s%s%s",
-                             classification.tvshowName,
+                             classification.tvShowName,
                              config.wordsSeparator,
                              seasonAndEpisode,
-                             classification.tvshowRest);
+                             classification.tvShowRest);
     }
 
     /**
@@ -326,8 +333,12 @@ class Mover {
     private void moveTheFile(File inputFile, File destinationFolder, String newName) {
 
         try {
-            if (!options.dryRun) {
-                destinationFolder.mkdirs();
+            if (!destinationFolder.exists()) {
+                if (!options.dryRun) {
+                    destinationFolder.mkdirs();
+                    logger.getLogger().fine(String.format("- Created destination folder '%s'.",
+                                                          destinationFolder.getAbsolutePath()));
+                }
             }
 
             if (newName.isEmpty()) {

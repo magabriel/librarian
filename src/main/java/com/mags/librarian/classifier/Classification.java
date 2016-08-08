@@ -18,8 +18,9 @@ public class Classification {
     public String name = "";
     public Integer season = 0;
     public Integer episode = 0;
-    public String tvshowName = "";
-    public String tvshowRest = "";
+    public String tvShowName = "";
+    public String tvShowRest = "";
+    public String tvShowFolderName = "";
 
     @Override
     public boolean equals(Object obj) {
@@ -42,7 +43,7 @@ public class Classification {
         }
 
         if (name.equals("tvshows")) {
-            return String.format("%s: \"%s\" (%s/%s)", name, tvshowName, season, episode);
+            return String.format("%s: \"%s\" (%s/%s)", name, tvShowName, season, episode);
         }
 
         return String.format("%s", name);

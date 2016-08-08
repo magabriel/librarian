@@ -9,10 +9,7 @@
 
 package com.mags.librarian.classifier;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Classifies files based on criteria.
@@ -60,7 +57,7 @@ public class Classifier {
             if (criterium.name.equals("tvshows")) {
                 // try to match against this tv show criterium
                 classification = FileMatcher.matchTVShow(sourceFileName, criterium);
-                if (!classification.tvshowName.isEmpty()) {
+                if (!classification.tvShowName.isEmpty()) {
                     // it is a TV show
                     return classification;
                 }

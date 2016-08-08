@@ -47,7 +47,7 @@ public class ClassifierTest {
         expected.name = "tvshows";
         expected.season = 2;
         expected.episode = 10;
-        expected.tvshowName = "A.TV.show";
+        expected.tvShowName = "A.TV.show";
 
         assertEquals("TV show nXnn", expected, classifier.classify("A_TV_show_2x10_something.avi"));
         assertEquals("TV show SnnEnn", expected, classifier.classify("A_TV_show_S02E10_something_else.avi"));

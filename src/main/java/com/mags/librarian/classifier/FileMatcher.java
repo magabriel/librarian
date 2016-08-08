@@ -76,7 +76,7 @@ public class FileMatcher {
                         .replace(".", " ")
                         .trim()
                         .replace(" ", ".");
-                classification.tvshowName = tvShowName;
+                classification.tvShowName = tvShowName;
             } catch (IllegalArgumentException e) {
             }
 
@@ -91,7 +91,7 @@ public class FileMatcher {
             }
 
             try {
-                classification.tvshowRest = matcher.group("rest");
+                classification.tvShowRest = matcher.group("rest");
             } catch (IllegalArgumentException e) {
             }
 

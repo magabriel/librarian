@@ -18,7 +18,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
-import java.util.logging.Level;
 
 /**
  * Processes the config file to actually move the files.
@@ -127,7 +126,7 @@ class Processor {
 
             if (fileClassification.name.equals("tvshows")) {
                 logger.getLogger().info(String.format("- TV show: '%s', season %s, episode %s.",
-                                                   fileClassification.tvshowName,
+                                                   fileClassification.tvShowName,
                                                    fileClassification.season,
                                                    fileClassification.episode));
             }
@@ -143,11 +142,11 @@ class Processor {
                         mover.getSummary().action
                 );
 
-                if (!fileClassification.tvshowName.isEmpty()) {
+                if (!fileClassification.tvShowName.isEmpty()) {
                     title = String.format(
                             "Episode \"%s\" of TV show \"%s\" -> \"%s\" (action: %s)",
                             mover.getSummary().inputFilename,
-                            fileClassification.tvshowName,
+                            fileClassification.tvShowName,
                             mover.getSummary().outputFolder,
                             mover.getSummary().action
                     );

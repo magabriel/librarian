@@ -13,8 +13,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
-
 import static org.junit.Assert.*;
 
 public class FileMatcherTest {
@@ -60,7 +58,7 @@ public class FileMatcherTest {
         expected.name = "tvshows";
         expected.season = 1;
         expected.episode = 2;
-        expected.tvshowName = "A.TV.Show";
+        expected.tvShowName = "A.TV.Show";
 
         assertEquals(expected, FileMatcher.matchTVShow("A.TV.Show.S01E02.mkv", criterium));
     }
