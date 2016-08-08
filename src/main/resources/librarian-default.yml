@@ -12,6 +12,10 @@ config:
     numbering_schema: "S{season:2}E{episode:2}"
     season_schema: "Season_{season:2}"
 
+  words_separator:
+    show: "_"
+    file: "_"
+
 input:
   folders:
     - /my/input/folder1

@@ -25,5 +25,7 @@ public class Config {
     public Map[] outputFolders = new Map[]{};
     public String tvShowsNumberingSchema = DEFAULT_TVSHOWS_NUMBERING_SCHEMA;
     public String tvShowsSeasonSchema = DEFAULT_TVSHOWS_SEASON_SCHEMA;
-    public String wordsSeparator = DEFAULT_WORDS_SEPARATOR;
+
+    public String wordsSeparatorShow = DEFAULT_WORDS_SEPARATOR;
+    public String wordsSeparatorFile = DEFAULT_WORDS_SEPARATOR;
 }

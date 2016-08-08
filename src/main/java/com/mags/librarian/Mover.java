@@ -67,17 +67,17 @@ class Mover {
 
         String fileNameWithoutExtension = getFilenameWithoutExtension(fileName);
 
-        String newName = replaceWordsSeparators(fileNameWithoutExtension);
+        String newName = replaceWordsSeparators(fileNameWithoutExtension, config.wordsSeparatorFile);
 
         return newName + "." + getFileExtension(fileName);
     }
 
-    private String replaceWordsSeparators(String fileNameWithoutExtension) {
+    private String replaceWordsSeparators(String fileNameWithoutExtension, String separator) {
 
         return fileNameWithoutExtension.
-                replace(" ", config.wordsSeparator).
-                replace("_", config.wordsSeparator).
-                replace(".", config.wordsSeparator);
+                replace(" ", separator).
+                replace("_", separator).
+                replace(".", separator);
     }
 
     private String getFileExtension(String fileName) {
@@ -176,7 +176,8 @@ class Mover {
         String tvShowFileName = applyTvShowNumberingSchema(fileClassification);
 
         // replace separators in TV show name
-        fileClassification.tvShowName = replaceWordsSeparators(fileClassification.tvShowName);
+        fileClassification.tvShowName = replaceWordsSeparators(fileClassification.tvShowName,
+                                                               config.wordsSeparatorShow);
 
         // ensure we have a valid folder name for the tv show, wheather preexisting or new
         if (fileClassification.tvShowFolderName.isEmpty()) {
@@ -282,7 +283,7 @@ class Mover {
 
         return String.format("%s%s%s%s",
                              classification.tvShowName,
-                             config.wordsSeparator,
+                             config.wordsSeparatorFile,
                              seasonAndEpisode,
                              classification.tvShowRest);
     }
@@ -345,7 +346,6 @@ class Mover {
                 newName = inputFile.getName();
             }
 
-            // replace words separator in name
             newName = replaceWordsSeparatorsInFileName(newName);
 
             // create summary
