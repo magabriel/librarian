@@ -41,12 +41,12 @@ public class ConfigAdaptor {
                 "config.tvshows.season_schema",
                 config.tvShowsSeasonSchema);
 
-        config.wordsSeparatorShow = loader.getValueString(
-                "config.words_separator.show",
-                config.wordsSeparatorShow);
-        config.wordsSeparatorFile = loader.getValueString(
-                "config.words_separator.file",
-                config.wordsSeparatorFile);
+        config.tvShowsWordsSeparatorShow = loader.getValueString(
+                "config.tvshows.words_separator.show",
+                config.tvShowsWordsSeparatorShow);
+        config.tvShowsWordsSeparatorFile = loader.getValueString(
+                "config.tvshows.words_separator.file",
+                config.tvShowsWordsSeparatorFile);
 
         config.inputFolders = loader.getValueListStrings("input.folders").toArray(new String[0]);
         config.outputFolders = loader.getValueListMap("output.folders").toArray(new Map[0]);

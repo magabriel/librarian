@@ -12,6 +12,8 @@ package com.mags.librarian.classifier;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.File;
+
 import static org.junit.Assert.*;
 
 public class ClassifierTest {
@@ -34,10 +36,10 @@ public class ClassifierTest {
         Classification expected = new Classification();
         expected.name = "videos";
 
-        assertEquals(expected, classifier.classify("test1.avi"));
-        assertEquals(expected, classifier.classify("test2.mkv"));
+        assertEquals(expected, classifier.classify(new File("test1.avi"), new File("/music")));
+        assertEquals(expected, classifier.classify(new File("test2.mkv"), new File("/music")));
 
-        assertNotEquals(expected, classifier.classify("test3.mp3"));
+        assertNotEquals(expected, classifier.classify(new File("test3.mp3"), new File("/music")));
     }
 
     @Test
@@ -51,14 +53,18 @@ public class ClassifierTest {
         expected.tvShowNamePostSeparator = "_";
         expected.tvShowName = "A TV show";
 
-        assertEquals("TV show nXnn", expected, classifier.classify("A_TV_show_2x10_something.avi"));
-        assertEquals("TV show SnnEnn", expected, classifier.classify("A_TV_show_S02E10_something.avi"));
+        assertEquals("TV show nXnn", expected, classifier.classify(new File("A_TV_show_2x10_something.avi"), new
+                File("/input1")));
+        assertEquals("TV show SnnEnn", expected, classifier.classify(new File("A_TV_show_S02E10_something.avi"), new
+                File("/input1")));
 
         expected.tvShowRest = ".something.avi";
         expected.tvShowNamePostSeparator = ".";
-        assertEquals("TV show SnnEnn", expected, classifier.classify("A.TV.show.S02E10.something.avi"));
+        assertEquals("TV show SnnEnn", expected, classifier.classify(new File("A.TV.show.S02E10.something.avi"), new
+                File("/input1")));
 
-        assertNotEquals(expected, classifier.classify("test1.avi"));
+        assertNotEquals(expected, classifier.classify(new File("test1.avi"), new
+                File("/input1")));
     }
 
 }

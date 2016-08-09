@@ -22,6 +22,7 @@ public class Classification {
     public String tvShowNamePostSeparator = "";
     public String tvShowRest = "";
     public String tvShowFolderName = "";
+    public String albumName = "";
 
     @Override
     public boolean equals(Object obj) {
@@ -61,6 +62,7 @@ public class Classification {
         result = 31 * result + tvShowNamePostSeparator.hashCode();
         result = 31 * result + tvShowRest.hashCode();
         result = 31 * result + tvShowFolderName.hashCode();
+        result = 31 * result + albumName.hashCode();
         return result;
     }
 }

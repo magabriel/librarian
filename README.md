@@ -68,7 +68,7 @@ configuration file will be created in the current folder.
 config:
   content_types:
     - tvshows: "(?<name>.+)S(?<season>[0-9]{1,2})E(?<episode>[0-9]{1,3})(?<rest>.*)"
-    - tvshows: "(?<name>.+)(?:.*[^0-9])(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)"
+    - tvshows: "(?<name>.+(?:[^\\p{Alnum}]))(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)"
     - music: '\.mp3|\.ogg|music|album|disco|cdrip'
     - videos: '\.avi|\.mpeg|\.mpg|\.mov|\.wmv|\.mp4|\.m4v|\.mkv'
     - books: 'ebook|\.pdf|\.epub|\.fb2'
@@ -76,6 +76,10 @@ config:
   tvshows:
     numbering_schema: "S{season:2}E{episode:2}"
     season_schema: "Season_{season:2}"
+
+    words_separator:
+      show: "_"
+      file: "_"
 
 input:
   folders:
@@ -120,6 +124,9 @@ output:
 - `config.tvshows.season_schema`: The nameing schema to use TV shows season folders. The folders will be created using 
    this pattern. `{season:N}` is available as explained above.
 
+- `config.tvshows.words_separator`: Contains the characters that will be used to replace word separators in show folders
+   and the episode file itself.
+
 - `input.folders`: A list of paths to one or more input folders (i.e. where the input file will be found).
 
 - `output.folders`: A list of output folders definitions (where the files will be copied to). See below for format.
@@ -139,7 +146,7 @@ two default definitions cover pretty much all the cases:
 
 ~~~YAML
 - tvshows: "(?<name>.+)S(?<season>[0-9]{1,2})E(?<episode>[0-9]{1,3})(?<rest>.*)"
-- tvshows: "(?<name>.+)(?:.*[^0-9])(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)"
+- tvshows: "(?<name>.+(?:[^\\p{Alnum}]))(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)"
 ~~~
 
 That two defintions will match files of the form `My tv show name S01E02 whatever.*` and `My tv show name 01x02 whatever.*`

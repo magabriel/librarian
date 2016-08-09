@@ -59,6 +59,12 @@ class Mover {
             return;
         }
 
+        // if it is a music file, move it (special treatment)
+        if (fileClassification.name.equals("music")) {
+            moveMusicToDestination(inputFile, fileClassification, suitableDestinations);
+            return;
+        }
+
         // move other file
         moveRegularFileToDestination(inputFile, suitableDestinations);
     }
@@ -74,7 +80,7 @@ class Mover {
             existingSeparator = ".";
         }
 
-        String newName = fileName.replace(existingSeparator, config.wordsSeparatorFile);
+        String newName = fileName.replace(existingSeparator, config.tvShowsWordsSeparatorFile);
         return newName;
     }
 
@@ -83,9 +89,9 @@ class Mover {
         String fileNameWithoutExtension = getFilenameWithoutExtension(fileName);
 
         String newName = fileNameWithoutExtension.
-                replace(" ", config.wordsSeparatorFile).
-                replace("_", config.wordsSeparatorFile).
-                replace(".", config.wordsSeparatorFile);
+                replace(" ", config.tvShowsWordsSeparatorFile).
+                replace("_", config.tvShowsWordsSeparatorFile).
+                replace(".", config.tvShowsWordsSeparatorFile);
 
         return newName + "." + getFileExtension(fileName);
     }
@@ -93,9 +99,9 @@ class Mover {
     private String replaceWordsSeparatorsInTvShowName(String fileNameWithoutExtension) {
 
         return fileNameWithoutExtension.
-                replace(" ", config.wordsSeparatorShow).
-                replace("_", config.wordsSeparatorShow).
-                replace(".", config.wordsSeparatorShow);
+                replace(" ", config.tvShowsWordsSeparatorShow).
+                replace("_", config.tvShowsWordsSeparatorShow).
+                replace(".", config.tvShowsWordsSeparatorShow);
     }
 
     private String getFileExtension(String fileName) {
@@ -162,6 +168,32 @@ class Mover {
         File destinationFolder = new File(suitableDestinations.get(0).get("path").toString());
 
         moveTheFile(inputFile, destinationFolder);
+    }
+
+
+    /**
+     * Moves a music file to one of the suitable destinations.
+     *
+     * @param inputFile            The input file
+     * @param fileClassification   The file classification
+     * @param suitableDestinations List of suitable destinations
+     */
+    private void moveMusicToDestination(
+            File inputFile,
+            Classification fileClassification,
+            ArrayList<Map> suitableDestinations) {
+
+        if (fileClassification.albumName.isEmpty()) {
+            // no album, it is just a regular move
+            moveRegularFileToDestination(inputFile, suitableDestinations);
+            return;
+        }
+
+        // use the first suitable destination, adding the album as subfolder
+        File albumFolder = Paths.get(suitableDestinations.get(0).get("path").toString(),
+                                     fileClassification.albumName).toFile();
+
+        moveTheFile(inputFile, albumFolder);
     }
 
     /**

@@ -9,6 +9,7 @@
 
 package com.mags.librarian.classifier;
 
+import java.io.File;
 import java.util.ArrayList;
 
 /**
@@ -45,10 +46,10 @@ public class Classifier {
     /**
      * Performs the classification.
      *
-     * @param sourceFileName
+     * @param sourceFile
      * @return The classification
      */
-    public Classification classify(String sourceFileName) {
+    public Classification classify(File sourceFile, File baseFolder) {
 
         Classification classification = new Classification();
 
@@ -56,7 +57,7 @@ public class Classifier {
         for (Criterium criterium : criteria) {
             if (criterium.name.equals("tvshows")) {
                 // try to match against this tv show criterium
-                classification = FileMatcher.matchTVShow(sourceFileName, criterium);
+                classification = FileMatcher.matchTVShow(sourceFile.getName(), criterium);
                 if (!classification.tvShowName.isEmpty()) {
                     // it is a TV show
                     return classification;
@@ -66,8 +67,18 @@ public class Classifier {
 
         // other kind of files
         for (Criterium criterium : criteria) {
-            if (FileMatcher.matchRegExp(sourceFileName, criterium.regExp)) {
+            if (FileMatcher.matchRegExp(sourceFile.getName(), criterium.regExp)) {
                 classification.name = criterium.name;
+
+                if (classification.name.equals("music")) {
+                    // if file is in a subfolder, assume it is an album
+                    if (sourceFile.getParent() != null) {
+                        if (!sourceFile.getParent().toString().equals(baseFolder.toString())) {
+                            classification.albumName = sourceFile.getParentFile().getName();
+                        }
+                    }
+                }
+
                 return classification;
             }
         }

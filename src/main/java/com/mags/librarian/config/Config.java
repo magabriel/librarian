@@ -26,6 +26,6 @@ public class Config {
     public String tvShowsNumberingSchema = DEFAULT_TVSHOWS_NUMBERING_SCHEMA;
     public String tvShowsSeasonSchema = DEFAULT_TVSHOWS_SEASON_SCHEMA;
 
-    public String wordsSeparatorShow = DEFAULT_WORDS_SEPARATOR;
-    public String wordsSeparatorFile = DEFAULT_WORDS_SEPARATOR;
+    public String tvShowsWordsSeparatorShow = DEFAULT_WORDS_SEPARATOR;
+    public String tvShowsWordsSeparatorFile = DEFAULT_WORDS_SEPARATOR;
 }
