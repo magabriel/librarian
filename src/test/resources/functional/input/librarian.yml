@@ -3,7 +3,7 @@
 config:
   content_types:
     - tvshows: "(?<name>.+)S(?<season>[0-9]{1,2})E(?<episode>[0-9]{1,3})(?<rest>.*)"
-    - tvshows: "(?<name>.+)(?:.*[^0-9])(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)"
+    - tvshows: "(?<name>.+(?:[^\\p{Alnum}]))(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)"
     - music: '\.mp3|\.ogg|music|album|disco|cdrip'
     - videos: '\.avi|\.mpeg|\.mpg|\.mov|\.wmv|\.mp4|\.m4v|\.mkv'
     - books: 'ebook|\.pdf|\.epub|\.fb2'
@@ -14,7 +14,7 @@ config:
 
   words_separator:
     show: "_"
-    file: "."
+    file: " "
 
 input:
   folders:

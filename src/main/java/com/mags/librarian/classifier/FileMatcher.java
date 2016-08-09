@@ -70,12 +70,21 @@ public class FileMatcher {
             classification.name = criterium.name;
 
             try {
-                // replace word separators with dots in captured TVshow name
-                String tvShowName = matcher.group("name")
+                String tvShowName = matcher.group("name");
+
+                // last character of tvshowname may be a separator
+                if (tvShowName.length() >= 2) {
+                    String lastChar = tvShowName.substring(tvShowName.length() - 1);
+                    if (lastChar.matches("[_\\. ]")) {
+                        classification.tvShowNamePostSeparator = lastChar;
+                    }
+                }
+
+                // replace word separators with spaces in captured TVshow name
+                tvShowName = matcher.group("name")
                         .replace("_", " ")
                         .replace(".", " ")
-                        .trim()
-                        .replace(" ", ".");
+                        .trim();
                 classification.tvShowName = tvShowName;
             } catch (IllegalArgumentException e) {
             }

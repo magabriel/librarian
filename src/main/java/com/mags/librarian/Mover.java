@@ -60,24 +60,42 @@ class Mover {
         }
 
         // move other file
-        moveFileToDestination(inputFile, suitableDestinations);
+        moveRegularFileToDestination(inputFile, suitableDestinations);
+    }
+
+    private String replaceWordsSeparatorsInFileNameFragment(String fileName) {
+
+        String existingSeparator = " ";
+        if (fileName.matches(" ")) {
+            existingSeparator = " ";
+        } else if (fileName.matches("_")) {
+            existingSeparator = "_";
+        } else if (fileName.matches("\\.")) {
+            existingSeparator = ".";
+        }
+
+        String newName = fileName.replace(existingSeparator, config.wordsSeparatorFile);
+        return newName;
     }
 
     private String replaceWordsSeparatorsInFileName(String fileName) {
 
         String fileNameWithoutExtension = getFilenameWithoutExtension(fileName);
 
-        String newName = replaceWordsSeparators(fileNameWithoutExtension, config.wordsSeparatorFile);
+        String newName = fileNameWithoutExtension.
+                replace(" ", config.wordsSeparatorFile).
+                replace("_", config.wordsSeparatorFile).
+                replace(".", config.wordsSeparatorFile);
 
         return newName + "." + getFileExtension(fileName);
     }
 
-    private String replaceWordsSeparators(String fileNameWithoutExtension, String separator) {
+    private String replaceWordsSeparatorsInTvShowName(String fileNameWithoutExtension) {
 
         return fileNameWithoutExtension.
-                replace(" ", separator).
-                replace("_", separator).
-                replace(".", separator);
+                replace(" ", config.wordsSeparatorShow).
+                replace("_", config.wordsSeparatorShow).
+                replace(".", config.wordsSeparatorShow);
     }
 
     private String getFileExtension(String fileName) {
@@ -132,7 +150,7 @@ class Mover {
      * @param inputFile
      * @param suitableDestinations
      */
-    private void moveFileToDestination(
+    private void moveRegularFileToDestination(
             File inputFile, ArrayList<Map> suitableDestinations) {
 
         if (suitableDestinations.isEmpty()) {
@@ -176,8 +194,7 @@ class Mover {
         String tvShowFileName = applyTvShowNumberingSchema(fileClassification);
 
         // replace separators in TV show name
-        fileClassification.tvShowName = replaceWordsSeparators(fileClassification.tvShowName,
-                                                               config.wordsSeparatorShow);
+        fileClassification.tvShowName = replaceWordsSeparatorsInTvShowName(fileClassification.tvShowName);
 
         // ensure we have a valid folder name for the tv show, wheather preexisting or new
         if (fileClassification.tvShowFolderName.isEmpty()) {
@@ -281,11 +298,15 @@ class Mover {
         seasonAndEpisode = replaceTag(seasonAndEpisode, "season", classification.season);
         seasonAndEpisode = replaceTag(seasonAndEpisode, "episode", classification.episode);
 
-        return String.format("%s%s%s%s",
-                             classification.tvShowName,
-                             config.wordsSeparatorFile,
-                             seasonAndEpisode,
-                             classification.tvShowRest);
+        String newName = String.format("%s%s%s%s",
+                                       replaceWordsSeparatorsInFileNameFragment(classification.tvShowName),
+                                       classification.tvShowNamePostSeparator,
+                                       seasonAndEpisode,
+                                       replaceWordsSeparatorsInFileNameFragment(classification.tvShowRest));
+
+        newName = replaceWordsSeparatorsInFileName(newName);
+
+        return newName;
     }
 
     /**
@@ -345,8 +366,6 @@ class Mover {
             if (newName.isEmpty()) {
                 newName = inputFile.getName();
             }
-
-            newName = replaceWordsSeparatorsInFileName(newName);
 
             // create summary
             summary.inputFolder = inputFile.getParent();

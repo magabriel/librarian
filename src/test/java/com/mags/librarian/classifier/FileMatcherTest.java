@@ -58,9 +58,29 @@ public class FileMatcherTest {
         expected.name = "tvshows";
         expected.season = 1;
         expected.episode = 2;
-        expected.tvShowName = "A.TV.Show";
+        expected.tvShowName = "A TV Show";
+        expected.tvShowRest = ".mkv";
+        expected.tvShowNamePostSeparator = ".";
 
         assertEquals(expected, FileMatcher.matchTVShow("A.TV.Show.S01E02.mkv", criterium));
+    }
+
+    @Test
+    public void matchTVShowSeasonXTwoFigures() throws Exception {
+
+        Criterium criterium = new Criterium();
+        criterium.name = "tvshows";
+        criterium.regExp = "(?<name>.+(?:[^\\p{Alnum}]))(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)";
+
+        Classification expected = new Classification();
+        expected.name = "tvshows";
+        expected.season = 70;
+        expected.episode = 2;
+        expected.tvShowName = "A TV Show";
+        expected.tvShowRest = ".mkv";
+        expected.tvShowNamePostSeparator = ".";
+
+        assertEquals(expected, FileMatcher.matchTVShow("A.TV.Show.70x02.mkv", criterium));
     }
 
     @Test

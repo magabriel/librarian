@@ -19,6 +19,7 @@ public class Classification {
     public Integer season = 0;
     public Integer episode = 0;
     public String tvShowName = "";
+    public String tvShowNamePostSeparator = "";
     public String tvShowRest = "";
     public String tvShowFolderName = "";
 
@@ -34,7 +35,7 @@ public class Classification {
 
         Classification that = (Classification) obj;
 
-        return this.toString().equals(obj.toString());
+        return this.hashCode() == obj.hashCode();
     }
 
     public String toString() {
@@ -43,10 +44,23 @@ public class Classification {
         }
 
         if (name.equals("tvshows")) {
-            return String.format("%s: \"%s\" (%s/%s)", name, tvShowName, season, episode);
+            return String.format("%s: \"%s\" (%s/%s) %s %s (sep:%s)", name, tvShowName, season, episode,
+                                 tvShowFolderName, tvShowRest, tvShowNamePostSeparator);
         }
 
         return String.format("%s", name);
     }
 
+    @Override
+    public int hashCode() {
+
+        int result = name.hashCode();
+        result = 31 * result + season.hashCode();
+        result = 31 * result + episode.hashCode();
+        result = 31 * result + tvShowName.hashCode();
+        result = 31 * result + tvShowNamePostSeparator.hashCode();
+        result = 31 * result + tvShowRest.hashCode();
+        result = 31 * result + tvShowFolderName.hashCode();
+        return result;
+    }
 }
