@@ -76,7 +76,9 @@ public class ConfigLoaderTest {
     @Test
     public void getValueList() throws Exception {
 
-        String[] expected = {"first", "second", "third"};
+        String[] expected = {"first",
+                             "second",
+                             "third"};
 
         assertArrayEquals(expected, loader.getValueListStrings("key4").toArray(new String[0]));
 

@@ -16,6 +16,8 @@ import com.mags.librarian.config.Config;
 
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Processes the config file to actually move the files.
@@ -105,15 +107,19 @@ class Processor {
 
         // classify all input files
         LinkedHashMap<File, File[]> inputFiles = collectInputFiles();
-        logger.getLogger().info(String.format("Found %s input files.", inputFiles.size()));
+
+        // create an aux flat stream to get the total count
+        Long totalCount = ((Stream) inputFiles.values().stream().flatMap(Stream::of)).count();
+        logger.getLogger().info(String.format("Found %s input files.", totalCount));
+
+        // using array for lambda limitations
+        final int[] count = {0};
 
         inputFiles.forEach((File folder, File[] files) -> {
 
-            int count = 0;
-
             for (File inputFile : files) {
-                count++;
-                logger.getLogger().info(String.format("Processing file (%s/%s) '%s'.", count++, inputFiles.size(),
+                count[0]++;
+                logger.getLogger().info(String.format("Processing file (%s/%s) '%s'.", count[0], totalCount,
                                                       inputFile.getName()));
 
                 Classification fileClassification = classifier.classify(inputFile, folder);
@@ -137,21 +143,26 @@ class Processor {
                 // if something done, write it to feed
                 if (!mover.getActionPerformed().isEmpty()) {
                     String title = String.format(
-                            "File \"%s\" -> \"%s\" (action: %s)",
+                            "File \"%s\" -> \"%s\"",
                             mover.getSummary().inputFilename,
-                            mover.getSummary().outputFolder,
-                            mover.getSummary().action
+                            fileClassification.name
                     );
 
                     if (!fileClassification.tvShowName.isEmpty()) {
                         title = String.format(
-                                "Episode \"%s\" of TV show \"%s\" -> \"%s\" (action: %s)",
+                                "Episode \"%s\" of TV show \"%s\" -> \"%s\"",
                                 mover.getSummary().inputFilename,
                                 fileClassification.tvShowName,
-                                mover.getSummary().outputFolder,
-                                mover.getSummary().action
+                                fileClassification.name
                         );
 
+                    } else if (!fileClassification.albumName.isEmpty()) {
+                        title = String.format(
+                                "Track \"%s\" of album \"%s\" -> \"%s\"",
+                                mover.getSummary().inputFilename,
+                                fileClassification.albumName,
+                                fileClassification.name
+                        );
                     }
 
                     feedWriter.addEntry(title, mover.getActionPerformed());

@@ -12,6 +12,7 @@ package com.mags.librarian;
 import com.mags.librarian.config.Config;
 import com.mags.librarian.config.ConfigAdaptor;
 import com.mags.librarian.config.ConfigLoader;
+import com.mags.librarian.config.ConfigReader;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -191,17 +192,15 @@ public class Main {
      */
     private static void loadConfig() {
 
-        ConfigLoader configLoader = new ConfigLoader();
-
         try {
-            configLoader.load(configFile);
-            ConfigAdaptor adaptor = new ConfigAdaptor(configLoader);
-            config = adaptor.process();
+            ConfigReader reader = new ConfigReader();
+            config = reader.read(configFile);
 
         } catch (FileNotFoundException e) {
             logger.getLogger().severe(String.format("ERROR: Configuration file '%s' not found.", configFile));
             logger.getLogger().severe(
                     "HINT: You can generate a default configuration file with the provided command line option.");
+            logger.getLogger().finer(e.toString());
 
             System.exit(1);
         }

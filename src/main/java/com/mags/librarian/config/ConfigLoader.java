@@ -13,11 +13,13 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.*;
 import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Loads a configuration YAML file.
@@ -47,9 +49,9 @@ public class ConfigLoader {
     public void load(String fileName)
             throws FileNotFoundException {
 
+        // load the config file
         InputStream input = new FileInputStream(new File(fileName));
-
-        this.configObj = (LinkedHashMap) this.configYaml.load(input);
+        configObj = (LinkedHashMap) this.configYaml.load(input);
     }
 
     /**

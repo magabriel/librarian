@@ -50,6 +50,7 @@ class FeedWriter {
     void addEntry(String title, String description) {
 
         SyndEntry entry = new SyndEntryImpl();
+        entry.setLink("");
         entry.setTitle(title);
 
         entry.setPublishedDate(new Date());

@@ -12,8 +12,8 @@ The configuration is written in an easy-to-customize YAML file.
 
 ### Motivation
 
-I wanted a way to automatically move my downloaded files to certain folders. This project replaces a bash script
-I hacked together quite some time ago in a more elegant and efficient way (I hope). Also, it is a good excuse
+I wanted a way to automatically move my downloaded files to certain folders. This project replaces a bash script 
+I hacked together quite some time ago in a more elegant and efficient way (I hope). Also, it is a good excuse 
 to teach myself Java.
 
 ## Features
@@ -115,7 +115,8 @@ output:
 #### Customize `librarian.yaml`
 
 - `config.content_types`: A list of content types definitions, in the form `name: regular expression`. Feel free to use 
-   your own names except for the `tvshows` entry, which also requires an special format (see below).
+   your own names except for the special types `tvshows` and `music` entries, which may also requires an special format 
+   (see below).
     
 - `config.tvshows.numbering_schema`: The numbering schema to use for output TV shows episode files. The file will be 
    renamed using this pattern. You can use `{season:N}` and `{episode:N}` placeholders for season and episode numbers, 
@@ -124,7 +125,7 @@ output:
 - `config.tvshows.season_schema`: The nameing schema to use TV shows season folders. The folders will be created using 
    this pattern. `{season:N}` is available as explained above.
 
-- `config.tvshows.words_separator`: Contains the characters that will be used to replace word separators in show folders
+- `config.tvshows.words_separator`: Contains the characters that will be used to replace word separators in show folders 
    and the episode file itself.
 
 - `input.folders`: A list of paths to one or more input folders (i.e. where the input file will be found).
@@ -140,6 +141,8 @@ A content type definition has just a name and a regular expression that will be 
 ~~~
 
 will match files with `.mp3` or `.ogg` extensions and also files with "music", "album", "disco" or "cdrip" in its name.
+
+###### TV Shows
    
 **Tv shows** are special, because we need to capture the name of the show and the season and episode numbers. The following 
 two default definitions cover pretty much all the cases:
@@ -160,7 +163,12 @@ Things to remember:
     - `season`: the season number.
     - `episode`: the episode number.
     - `rest`: any other information left in the filename. 
- 
+
+###### Music albums
+
+Files matched by `music` content type are assumed to be individual tracks in an album if they are inside a subfolder. 
+The subfolder containing the files will be copied as is.
+
 ### Output folders definitions
  
 `output.folders` is a list of output folders definition, each one of the form:

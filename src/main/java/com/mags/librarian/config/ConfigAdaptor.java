@@ -32,6 +32,8 @@ public class ConfigAdaptor {
 
         Config config = new Config();
 
+        config.include = loader.getValueString("include", "");
+
         config.contentTypes = loader.getValueListMap("config.content_types").toArray(new Map[0]);
 
         config.tvShowsNumberingSchema = loader.getValueString(
