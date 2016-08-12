@@ -72,7 +72,7 @@ public class Log {
      */
     void initLogger() {
 
-        logger.setLevel(logLevel);
+        logger.setLevel(Level.ALL);
 
         /*
          * Create the console handler with reduced info and INFO level
@@ -115,6 +115,7 @@ public class Log {
                     );
                 }
             });
+            fileHandler.setLevel(logLevel);
             logger.addHandler(fileHandler);
 
         } catch (SecurityException e) {

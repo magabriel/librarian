@@ -151,7 +151,7 @@ public class Main {
                         try {
                             Level logLevel = Level.parse(level.toUpperCase());
                             options.logLevel = logLevel;
-                            logger.getLogger().setLevel(logLevel);
+                            logger.setLogLevel(logLevel);
                         } catch (IllegalArgumentException e) {
                             logger.getLogger().severe(String.format("Invalid log level \"%s\"", level));
 
