@@ -110,7 +110,11 @@ class Processor {
 
         // create an aux flat stream to get the total count
         Long totalCount = ((Stream) inputFiles.values().stream().flatMap(Stream::of)).count();
-        logger.getLogger().info(String.format("Found %s input files.", totalCount));
+        if (totalCount == 0) {
+            logger.getLogger().warning("No input files found");
+        } else {
+            logger.getLogger().info(String.format("Found %s input files.", totalCount));
+        }
 
         // using array for lambda limitations
         final int[] count = {0};
@@ -125,7 +129,8 @@ class Processor {
                 Classification fileClassification = classifier.classify(inputFile, folder);
 
                 if (fileClassification.name.isEmpty()) {
-                    logger.getLogger().warning("- File class not found, skipping.");
+                    logger.getLogger().warning(String.format("- File class not found for file '%s', skipping.",
+                                                             inputFile.getName()));
                     continue;
                 }
 
@@ -171,7 +176,10 @@ class Processor {
 
         });
 
-        feedWriter.writeFeed();
+        // only write feed if new entries added
+        if (feedWriter.hasEntries()) {
+            feedWriter.writeFeed();
+        }
     }
 
     /**

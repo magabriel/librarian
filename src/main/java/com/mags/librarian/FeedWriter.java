@@ -63,6 +63,10 @@ class FeedWriter {
         entries.add(entry);
     }
 
+    boolean hasEntries() {
+        return !entries.isEmpty();
+    }
+
     void writeFeed() {
 
         if (rssFilename.isEmpty()) {
