@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -84,16 +85,12 @@ class Mover {
         return newName;
     }
 
-    private String replaceWordsSeparatorsInFileName(String fileName) {
+    private String replaceWordsSeparatorsInFileName(String fileNameWithoutExtension) {
 
-        String fileNameWithoutExtension = getFilenameWithoutExtension(fileName);
-
-        String newName = fileNameWithoutExtension.
+        return fileNameWithoutExtension.
                 replace(" ", config.tvShowsWordsSeparatorFile).
                 replace("_", config.tvShowsWordsSeparatorFile).
                 replace(".", config.tvShowsWordsSeparatorFile);
-
-        return newName + "." + getFileExtension(fileName);
     }
 
     private String replaceWordsSeparatorsInTvShowName(String fileNameWithoutExtension) {
@@ -104,29 +101,29 @@ class Mover {
                 replace(".", config.tvShowsWordsSeparatorShow);
     }
 
-    private String getFileExtension(String fileName) {
-
-        String extension = "";
-
-        int i = fileName.lastIndexOf('.');
-        if (i > 0) {
-            extension = fileName.substring(i + 1);
-        }
-
-        return extension;
-    }
-
-    private String getFilenameWithoutExtension(String fileName) {
-
-        String extension = getFileExtension(fileName);
-
-        if (extension.isEmpty()) {
-            return fileName;
-        }
-
-        return fileName.substring(0, fileName.length() - extension.length() - 1);
-
-    }
+//    private String getFileExtension(String fileName) {
+//
+//        String extension = "";
+//
+//        int i = fileName.lastIndexOf('.');
+//        if (i > 0) {
+//            extension = fileName.substring(i + 1);
+//        }
+//
+//        return extension;
+//    }
+//
+//    private String getFilenameWithoutExtension(String fileName) {
+//
+//        String extension = getFileExtension(fileName);
+//
+//        if (extension.isEmpty()) {
+//            return fileName;
+//        }
+//
+//        return fileName.substring(0, fileName.length() - extension.length() - 1);
+//
+//    }
 
     /**
      * Find all the possible destinations for a file.
@@ -330,15 +327,19 @@ class Mover {
         seasonAndEpisode = replaceTag(seasonAndEpisode, "season", classification.season);
         seasonAndEpisode = replaceTag(seasonAndEpisode, "episode", classification.episode);
 
-        String newName = String.format("%s%s%s%s",
-                                       replaceWordsSeparatorsInFileNameFragment(classification.tvShowName),
-                                       classification.tvShowNamePostSeparator,
-                                       seasonAndEpisode,
-                                       replaceWordsSeparatorsInFileNameFragment(classification.tvShowRest));
+        List<String> newName = new ArrayList<>();
+        newName.add(replaceWordsSeparatorsInFileNameFragment(classification.tvShowName));
+        newName.add(config.tvShowsWordsSeparatorFile);
+        newName.add(seasonAndEpisode);
 
-        newName = replaceWordsSeparatorsInFileName(newName);
+        if (!classification.tvShowRest.isEmpty()) {
+            newName.add(config.tvShowsWordsSeparatorFile);
+            newName.add(replaceWordsSeparatorsInFileNameFragment(classification.tvShowRest));
+        }
 
-        return newName;
+        String baseName = String.join("", newName);
+
+        return replaceWordsSeparatorsInFileName(baseName) + "." + classification.extension;
     }
 
     /**

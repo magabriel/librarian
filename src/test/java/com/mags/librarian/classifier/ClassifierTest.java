@@ -35,35 +35,78 @@ public class ClassifierTest {
 
         Classification expected = new Classification();
         expected.name = "videos";
-
+        expected.extension = "avi";
         assertEquals(expected, classifier.classify(new File("test1.avi"), new File("/music")));
+
+        expected.extension = "mkv";
         assertEquals(expected, classifier.classify(new File("test2.mkv"), new File("/music")));
 
+        expected.extension = "mp3";
         assertNotEquals(expected, classifier.classify(new File("test3.mp3"), new File("/music")));
     }
 
     @Test
-    public void classifyTVShow() throws Exception {
+    public void classifyTVShow_nXnn() throws Exception {
 
         Classification expected = new Classification();
+        expected.fileName = "A_TV_show_2x10_something.avi";
+        expected.baseName = "A_TV_show_2x10_something";
+        expected.extension = "avi";
         expected.name = "tvshows";
         expected.season = 2;
         expected.episode = 10;
-        expected.tvShowRest = "_something.avi";
-        expected.tvShowNamePostSeparator = "_";
+        expected.tvShowRest = "something";
         expected.tvShowName = "A TV show";
 
-        assertEquals("TV show nXnn", expected, classifier.classify(new File("A_TV_show_2x10_something.avi"), new
-                File("/input1")));
-        assertEquals("TV show SnnEnn", expected, classifier.classify(new File("A_TV_show_S02E10_something.avi"), new
-                File("/input1")));
+        assertEquals(expected, classifier.classify(new File(expected.fileName), new File("/input1")));
+    }
 
-        expected.tvShowRest = ".something.avi";
-        expected.tvShowNamePostSeparator = ".";
-        assertEquals("TV show SnnEnn", expected, classifier.classify(new File("A.TV.show.S02E10.something.avi"), new
-                File("/input1")));
+    @Test
+    public void classifyTVShow_SnnEnn() throws Exception {
 
-        assertNotEquals(expected, classifier.classify(new File("test1.avi"), new
+        Classification expected = new Classification();
+        expected.fileName = "A_TV_show_S02E10_something.avi";
+        expected.baseName = "A_TV_show_S02E10_something";
+        expected.extension = "avi";
+        expected.name = "tvshows";
+        expected.season = 2;
+        expected.episode = 10;
+        expected.tvShowRest = "something";
+        expected.tvShowName = "A TV show";
+
+        assertEquals(expected, classifier.classify(new File(expected.fileName), new File("/input1")));
+    }
+
+    @Test
+    public void classifyTVShow_SnnEnn_Dots() throws Exception {
+
+        Classification expected = new Classification();
+        expected.fileName = "A.TV.show.S02E10.something.avi";
+        expected.baseName = "A.TV.show.S02E10.something";
+        expected.extension = "avi";
+        expected.name = "tvshows";
+        expected.season = 2;
+        expected.episode = 10;
+        expected.tvShowRest = "something";
+        expected.tvShowName = "A TV show";
+
+        assertEquals(expected, classifier.classify(new File(expected.fileName), new File("/input1")));
+    }
+
+    @Test
+    public void TVShowWithSpacesAndDashes() throws Exception {
+
+        Classification expected = new Classification();
+        expected.fileName = "A TV show - 2x10 something else.avi";
+        expected.baseName = "A TV show - 2x10 something else";
+        expected.extension = "avi";
+        expected.name = "tvshows";
+        expected.season = 2;
+        expected.episode = 10;
+        expected.tvShowRest = "something else";
+        expected.tvShowName = "A TV show";
+
+        assertEquals("TV show nXnn", expected, classifier.classify(new File(expected.fileName), new
                 File("/input1")));
     }
 

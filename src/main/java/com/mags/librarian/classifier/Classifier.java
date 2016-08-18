@@ -79,6 +79,8 @@ public class Classifier {
                     }
                 }
 
+                classification.extension = FileMatcher.getFileExtension(sourceFile.getName());
+
                 return classification;
             }
         }

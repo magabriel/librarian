@@ -16,10 +16,12 @@ package com.mags.librarian.classifier;
 public class Classification {
 
     public String name = "";
+    public String fileName = "";
+    public String baseName = "";
+    public String extension = "";
     public Integer season = 0;
     public Integer episode = 0;
     public String tvShowName = "";
-    public String tvShowNamePostSeparator = "";
     public String tvShowRest = "";
     public String tvShowFolderName = "";
     public String albumName = "";
@@ -40,13 +42,15 @@ public class Classification {
     }
 
     public String toString() {
+
         if (name.equals("")) {
             return super.toString();
         }
 
         if (name.equals("tvshows")) {
-            return String.format("%s: \"%s\" (%s/%s) %s %s (sep:%s)", name, tvShowName, season, episode,
-                                 tvShowFolderName, tvShowRest, tvShowNamePostSeparator);
+            return String.format("%s: \"%s\" (%s/%s) folder:%s rest:%s fname: \"%s\"",
+                                 name, tvShowName, season, episode,
+                                 tvShowFolderName, tvShowRest, fileName);
         }
 
         return String.format("%s", name);
@@ -56,10 +60,14 @@ public class Classification {
     public int hashCode() {
 
         int result = name.hashCode();
+
+        result = 31 * result + fileName.hashCode();
+        result = 31 * result + baseName.hashCode();
+        result = 31 * result + extension.hashCode();
+
         result = 31 * result + season.hashCode();
         result = 31 * result + episode.hashCode();
         result = 31 * result + tvShowName.hashCode();
-        result = 31 * result + tvShowNamePostSeparator.hashCode();
         result = 31 * result + tvShowRest.hashCode();
         result = 31 * result + tvShowFolderName.hashCode();
         result = 31 * result + albumName.hashCode();

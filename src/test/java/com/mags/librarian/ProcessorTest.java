@@ -64,13 +64,7 @@ public class ProcessorTest {
 
         logger.getLogger().log(Level.INFO, "Starting functional test");
 
-        // load configuration
-//        ConfigLoader configLoader = new ConfigLoader();
-//        configLoader.load(inputPath + "/librarian.yml");
-//
-//        ConfigAdaptor adaptor = new ConfigAdaptor(configLoader);
-//        Config config = adaptor.process();
-//
+        // read configuration
         ConfigReader reader = new ConfigReader();
         Config config = reader.read(inputPath + "/librarian.yml");
 
