@@ -15,8 +15,9 @@ import com.mags.librarian.classifier.Criterium;
 import com.mags.librarian.config.Config;
 
 import java.io.File;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -41,7 +42,7 @@ class Processor {
      */
     void run() {
 
-        logger.getLogger().info("Started");
+        logger.getLogger().fine("Started");
 
         logOptionsAndConfig();
 
@@ -54,7 +55,7 @@ class Processor {
 
         process();
 
-        logger.getLogger().info("Finished");
+        logger.getLogger().fine("Finished");
     }
 
     /**
@@ -111,7 +112,7 @@ class Processor {
         // create an aux flat stream to get the total count
         Long totalCount = ((Stream) inputFiles.values().stream().flatMap(Stream::of)).count();
         if (totalCount == 0) {
-            logger.getLogger().warning("No input files found");
+            logger.getLogger().info("No input files found");
         } else {
             logger.getLogger().info(String.format("Found %s input files.", totalCount));
         }
