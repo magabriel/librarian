@@ -9,19 +9,18 @@
 
 package com.mags.librarian.config;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.stream.Stream;
 
 /**
  * Stores the configuration values.
  */
 public class Config {
 
-    final private String DEFAULT_TVSHOWS_NUMBERING_SCHEMA = "S{season:2}E{episode:2}";
-    final private String DEFAULT_TVSHOWS_SEASON_SCHEMA = "Season_{season:2}";
-    final private String DEFAULT_WORDS_SEPARATOR = "_";
+    final public static String DEFAULT_TVSHOWS_NUMBERING_SCHEMA = "S{season:2}E{episode:2}";
+    final public static String DEFAULT_TVSHOWS_SEASON_SCHEMA = "Season_{season:2}";
+    final public static String DEFAULT_WORDS_SEPARATOR_SHOW = "_";
+    final public static String DEFAULT_WORDS_SEPARATOR_FILE = "_";
 
     public String include = "";
 
@@ -31,8 +30,23 @@ public class Config {
     public String tvShowsNumberingSchema = DEFAULT_TVSHOWS_NUMBERING_SCHEMA;
     public String tvShowsSeasonSchema = DEFAULT_TVSHOWS_SEASON_SCHEMA;
 
-    public String tvShowsWordsSeparatorShow = DEFAULT_WORDS_SEPARATOR;
-    public String tvShowsWordsSeparatorFile = DEFAULT_WORDS_SEPARATOR;
+    public String tvShowsWordsSeparatorShow = DEFAULT_WORDS_SEPARATOR_SHOW;
+    public String tvShowsWordsSeparatorFile = DEFAULT_WORDS_SEPARATOR_FILE;
+
+    @Override
+    public String toString() {
+
+        return "Config{" +
+                "include='" + include + '\'' +
+                ", contentTypes=" + Arrays.toString(contentTypes) +
+                ", inputFolders=" + Arrays.toString(inputFolders) +
+                ", outputFolders=" + Arrays.toString(outputFolders) +
+                ", tvShowsNumberingSchema='" + tvShowsNumberingSchema + '\'' +
+                ", tvShowsSeasonSchema='" + tvShowsSeasonSchema + '\'' +
+                ", tvShowsWordsSeparatorShow='" + tvShowsWordsSeparatorShow + '\'' +
+                ", tvShowsWordsSeparatorFile='" + tvShowsWordsSeparatorFile + '\'' +
+                '}';
+    }
 
     /**
      * Merge this object with another one
@@ -54,19 +68,19 @@ public class Config {
             outputFolders = otherConfig.outputFolders;
         }
 
-        if (!otherConfig.tvShowsNumberingSchema.isEmpty()) {
+        if (!otherConfig.tvShowsNumberingSchema.equals(DEFAULT_TVSHOWS_NUMBERING_SCHEMA)) {
             tvShowsNumberingSchema = otherConfig.tvShowsNumberingSchema;
         }
 
-        if (!otherConfig.tvShowsSeasonSchema.isEmpty()) {
+        if (!otherConfig.tvShowsSeasonSchema.equals(DEFAULT_TVSHOWS_SEASON_SCHEMA)) {
             tvShowsSeasonSchema = otherConfig.tvShowsSeasonSchema;
         }
 
-        if (!otherConfig.tvShowsWordsSeparatorShow.isEmpty()) {
+        if (!otherConfig.tvShowsWordsSeparatorShow.equals(DEFAULT_WORDS_SEPARATOR_SHOW)) {
             tvShowsWordsSeparatorShow = otherConfig.tvShowsWordsSeparatorShow;
         }
 
-        if (!otherConfig.tvShowsWordsSeparatorFile.isEmpty()) {
+        if (!otherConfig.tvShowsWordsSeparatorFile.equals(DEFAULT_WORDS_SEPARATOR_FILE)) {
             tvShowsWordsSeparatorFile = otherConfig.tvShowsWordsSeparatorFile;
         }
 

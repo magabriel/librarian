@@ -16,12 +16,10 @@ public class ConfigReader {
 
     public Config read(String configFile) throws FileNotFoundException {
 
-        Config config = new Config();
-
         ConfigLoader configLoader = new ConfigLoader();
         configLoader.load(configFile);
         ConfigAdaptor adaptor = new ConfigAdaptor(configLoader);
-        config = adaptor.process();
+        Config config = adaptor.process();
 
         if (!config.include.isEmpty()) {
 
@@ -31,14 +29,12 @@ public class ConfigReader {
                         String.format("Included file \"%s\" does not exist.", includeFile.toString()));
             }
 
-            ConfigLoader includedConfigLoader = new ConfigLoader();
             configLoader.load(includeFile.toString());
             Config includedConfig = adaptor.process();
 
-            // merge both
-            config = includedConfig.merge(config);
+            // merge the base over the included
+            return includedConfig.merge(config);
         }
-
 
         return config;
     }

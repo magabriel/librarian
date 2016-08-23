@@ -3,5 +3,4 @@ include: librarian-base.yml
 config:
   tvshows:
     words_separator:
-      show: "_"
       file: " "

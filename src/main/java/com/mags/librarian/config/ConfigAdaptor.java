@@ -36,19 +36,17 @@ public class ConfigAdaptor {
 
         config.contentTypes = loader.getValueListMap("config.content_types").toArray(new Map[0]);
 
-        config.tvShowsNumberingSchema = loader.getValueString(
-                "config.tvshows.numbering_schema",
-                config.tvShowsNumberingSchema);
-        config.tvShowsSeasonSchema = loader.getValueString(
-                "config.tvshows.season_schema",
-                config.tvShowsSeasonSchema);
+        config.tvShowsNumberingSchema =
+                loader.getValueString("config.tvshows.numbering_schema", config.tvShowsNumberingSchema);
 
-        config.tvShowsWordsSeparatorShow = loader.getValueString(
-                "config.tvshows.words_separator.show",
-                config.tvShowsWordsSeparatorShow);
-        config.tvShowsWordsSeparatorFile = loader.getValueString(
-                "config.tvshows.words_separator.file",
-                config.tvShowsWordsSeparatorFile);
+        config.tvShowsSeasonSchema =
+                loader.getValueString("config.tvshows.season_schema", config.tvShowsSeasonSchema);
+
+        config.tvShowsWordsSeparatorShow =
+                loader.getValueString("config.tvshows.words_separator.show", config.tvShowsWordsSeparatorShow);
+
+        config.tvShowsWordsSeparatorFile =
+                loader.getValueString("config.tvshows.words_separator.file", config.tvShowsWordsSeparatorFile);
 
         config.inputFolders = loader.getValueListStrings("input.folders").toArray(new String[0]);
         config.outputFolders = loader.getValueListMap("output.folders").toArray(new Map[0]);
