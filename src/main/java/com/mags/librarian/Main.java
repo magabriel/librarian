@@ -10,16 +10,12 @@
 package com.mags.librarian;
 
 import com.mags.librarian.config.Config;
-import com.mags.librarian.config.ConfigAdaptor;
 import com.mags.librarian.config.ConfigLoader;
 import com.mags.librarian.config.ConfigReader;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.logging.Level;
 
 public class Main {
@@ -176,7 +172,8 @@ public class Main {
         writeMessage("         --copy             : Copy instead of move the files.");
         writeMessage("         --create-config    : Create a default configuration file in current directory.");
         writeMessage("         --dry-run          : Do not change anything, just tell what would have been done.");
-        writeMessage("         --loglevel <level> : Loglevel (NONE, INFO, WARNING, SEVERE). Default INFO.");
+        writeMessage("         --loglevel <level> : Loglevel (ALL, FINEST, FINER, FINE, CONFIG, INFO, WARNING, " +
+                             "SEVERE, OFF). Default INFO.");
         writeMessage("         -c --config <file> : Use that config file instead of the one in execution directory.");
         writeMessage(
                 "         -l --log <file>    : Write to that log file instead of creating one in the execution directory.");
