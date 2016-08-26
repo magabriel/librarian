@@ -30,6 +30,10 @@ to teach myself Java.
 
 - First functional version.
 
+### 0.2
+
+- Many refactorings and fixes.
+
 ## Documentation
 
 ### Requirements
