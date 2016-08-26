@@ -69,6 +69,7 @@ config:
   content_types:
     - tvshows: "(?<name>.+)S(?<season>[0-9]{1,2})E(?<episode>[0-9]{1,3})(?<rest>.*)"
     - tvshows: "(?<name>.+(?:[^\\p{Alnum}]))(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)"
+    - tvshows: "(?<name>.+(?:[^\\p{Alnum}]))(?<season>[0-9])(?<episode>[0-9]{2})(?<rest>.*)"
     - music: '\.mp3|\.ogg|music|album|disco|cdrip'
     - videos: '\.avi|\.mpeg|\.mpg|\.mov|\.wmv|\.mp4|\.m4v|\.mkv'
     - books: 'ebook|\.pdf|\.epub|\.fb2'
@@ -150,9 +151,11 @@ two default definitions cover pretty much all the cases:
 ~~~YAML
 - tvshows: "(?<name>.+)S(?<season>[0-9]{1,2})E(?<episode>[0-9]{1,3})(?<rest>.*)"
 - tvshows: "(?<name>.+(?:[^\\p{Alnum}]))(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)"
+- tvshows: "(?<name>.+(?:[^\\p{Alnum}]))(?<season>[0-9])(?<episode>[0-9]{2})(?<rest>.*)"
 ~~~
 
-That two defintions will match files of the form `My tv show name S01E02 whatever.*` and `My tv show name 01x02 whatever.*`
+These defintions will match files of the form `My tv show name S01E02 whatever.*`, `My tv show name 01x02 whatever.*` and
+`My tv show name 102 whatever.*`
 
 Things to remember:
 
