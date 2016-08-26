@@ -25,19 +25,12 @@ import java.util.stream.Collectors;
 public class ConfigLoader {
 
     private final Yaml configYaml;
-    private LinkedHashMap configObj;
+    private LinkedHashMap<String, Object> configObj;
+    private Map<String, Object> configMap = new LinkedHashMap<String, Object>();
 
     public ConfigLoader() {
-        configYaml = new Yaml();
-    }
 
-    /**
-     * Return the raw configuration object.
-     *
-     * @return The raw configuration object.
-     */
-    LinkedHashMap getConfigRaw() {
-        return configObj;
+        configYaml = new Yaml();
     }
 
     /**
@@ -47,9 +40,11 @@ public class ConfigLoader {
     public void load(String fileName)
             throws FileNotFoundException {
 
+        // load the config file
         InputStream input = new FileInputStream(new File(fileName));
+        configObj = (LinkedHashMap<String, Object>) this.configYaml.load(input);
 
-        this.configObj = (LinkedHashMap) this.configYaml.load(input);
+        flatten("", configObj, configMap);
     }
 
     /**
@@ -58,7 +53,54 @@ public class ConfigLoader {
      * @param document
      */
     public void loadFromString(String document) {
-        this.configObj = (LinkedHashMap) this.configYaml.load(document);
+
+        configObj = (LinkedHashMap<String, Object>) this.configYaml.load(document);
+
+        flatten("", configObj, configMap);
+    }
+
+    /**
+     * Return the raw configuration object.
+     *
+     * @return The raw configuration object.
+     */
+    public Map<String, Object> getConfigRaw() {
+
+        return configObj;
+    }
+
+    /**
+     * Return the flattened configuration object.
+     *
+     * @return the flattened configuration object.
+     */
+    Map<String, Object> getConfigFlat() {
+
+        return configMap;
+    }
+
+    /**
+     * Flatten the config object (recursive hashmap) to a flat hasmap.
+     *
+     * @param baseKey      The base for the flattened keys.
+     * @param recursiveMap The config object being flattened.
+     * @param flatMap      The flattened config object.
+     */
+    private void flatten(String baseKey, Map<String, Object> recursiveMap, Map<String, Object> flatMap) {
+
+        recursiveMap.forEach((key, value) -> {
+                                 String flatKey = key;
+                                 if (!baseKey.isEmpty()) {
+                                     flatKey = baseKey + "." + key;
+                                 }
+
+                                 if (value.getClass().getName().equals("java.util.LinkedHashMap")) {
+                                     flatten(flatKey, (Map<String, Object>) value, flatMap);
+                                 } else {
+                                     flatMap.put(flatKey, value);
+                                 }
+                             }
+        );
     }
 
     /**
@@ -68,7 +110,8 @@ public class ConfigLoader {
      * @param fileName
      * @throws IOException
      */
-    public void createDefault(String templateFile, String fileName) throws IOException {
+    public void createDefault(String templateFile, String fileName)
+            throws IOException {
 
         File file = new File(fileName);
         if (file.exists()) {
@@ -94,6 +137,7 @@ public class ConfigLoader {
      * @return The value of the key or null if not found.
      */
     String getValueString(String key) {
+
         return getValueString(key, null);
     }
 
@@ -106,22 +150,7 @@ public class ConfigLoader {
      */
     String getValueString(String key, String defaultValue) {
 
-        String[] keyParts = key.split("\\.");
-
-        LinkedHashMap map = this.configObj;
-        String value = defaultValue;
-        for (String keyPart : keyParts) {
-            if (!map.containsKey(keyPart)) {
-                return defaultValue;
-            }
-
-            value = map.get(keyPart).toString();
-            if (map.get(keyPart).getClass().getName().equals("java.util.LinkedHashMap")) {
-                map = (LinkedHashMap) map.get(keyPart);
-            }
-        }
-
-        return value;
+        return (String) this.configMap.getOrDefault(key, defaultValue);
     }
 
     /**
@@ -131,6 +160,7 @@ public class ConfigLoader {
      * @return The value of the key or null if not found.
      */
     Integer getValueInt(String key) {
+
         return getValueInt(key, null);
     }
 
@@ -143,22 +173,7 @@ public class ConfigLoader {
      */
     Integer getValueInt(String key, Integer defaultValue) {
 
-        String[] keyParts = key.split("\\.");
-
-        LinkedHashMap map = this.configObj;
-        Integer value = defaultValue;
-        for (String keyPart : keyParts) {
-            if (!map.containsKey(keyPart)) {
-                return defaultValue;
-            }
-
-            value = Integer.parseInt(map.get(keyPart).toString());
-            if (map.get(keyPart).getClass().getName().equals("java.util.LinkedHashMap")) {
-                map = (LinkedHashMap) map.get(keyPart);
-            }
-        }
-
-        return value;
+        return (Integer) this.configMap.getOrDefault(key, defaultValue);
     }
 
     /**
@@ -169,22 +184,18 @@ public class ConfigLoader {
      */
     Boolean getValueBoolean(String key) {
 
-        String[] keyParts = key.split("\\.");
+        return getValueBoolean(key, false);
+    }
 
-        LinkedHashMap map = this.configObj;
-        boolean value = false;
-        for (String keyPart : keyParts) {
-            if (!map.containsKey(keyPart)) {
-                return false;
-            }
+    /**
+     * * Retrieve a Boolean value with default.
+     *
+     * @param key
+     * @return The value of the key or false if not found.
+     */
+    Boolean getValueBoolean(String key, Boolean defaultValue) {
 
-            value = Boolean.parseBoolean(map.get(keyPart).toString());
-            if (map.get(keyPart).getClass().getName().equals("java.util.LinkedHashMap")) {
-                map = (LinkedHashMap) map.get(keyPart);
-            }
-        }
-
-        return value;
+        return (Boolean) this.configMap.getOrDefault(key, defaultValue);
     }
 
     /**
@@ -195,26 +206,18 @@ public class ConfigLoader {
      */
     List<String> getValueListStrings(String key) {
 
-        String[] keyParts = key.split("\\.");
-        LinkedHashMap map = this.configObj;
-        List<String> value = Collections.emptyList();
-        for (String keyPart : keyParts) {
-            if (!map.containsKey(keyPart)) {
-                return Collections.emptyList();
-            }
+        return getValueListStrings(key, Collections.emptyList());
+    }
 
-            if (map.get(keyPart) != null) {
-                if (map.get(keyPart).getClass().getName().equals("java.util.ArrayList")) {
-                    value = (List<String>) map.get(keyPart);
-                }
+    /**
+     * Retrieve a list value (a list of Strings).
+     *
+     * @param key
+     * @return The value of the key as a List, or an empty List if not set.
+     */
+    List<String> getValueListStrings(String key, List<String> defaultValue) {
 
-                if (map.get(keyPart).getClass().getName().equals("java.util.LinkedHashMap")) {
-                    map = (LinkedHashMap) map.get(keyPart);
-                }
-            }
-        }
-
-        return value;
+        return (List<String>) this.configMap.getOrDefault(key, defaultValue);
     }
 
     /**
@@ -225,27 +228,18 @@ public class ConfigLoader {
      */
     List<Map> getValueListMap(String key) {
 
-        String[] keyParts = key.split("\\.");
-        LinkedHashMap map = this.configObj;
-        List<Map> value = Collections.emptyList();
-        for (String keyPart : keyParts) {
-            if (!map.containsKey(keyPart)) {
-                return Collections.emptyList();
-            }
-
-            if (map.get(keyPart) != null) {
-                if (map.get(keyPart).getClass().getName().equals("java.util.ArrayList")) {
-                    value = (List<Map>) map.get(keyPart);
-                }
-
-                if (map.get(keyPart).getClass().getName().equals("java.util.LinkedHashMap")) {
-                    map = (LinkedHashMap) map.get(keyPart);
-                }
-            }
-        }
-
-        return value;
+        return getValueListMap(key, Collections.emptyList());
     }
 
+    /**
+     * Retrieve a list value (a list of Maps)
+     *
+     * @param key
+     * @return The value of the key as a List, or an empty List if not set.
+     */
+    List<Map> getValueListMap(String key, List<Map> defaultValue) {
+
+        return (List<Map>) this.configMap.getOrDefault(key, defaultValue);
+    }
 }
 

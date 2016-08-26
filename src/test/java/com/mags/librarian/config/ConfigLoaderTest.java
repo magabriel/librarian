@@ -13,7 +13,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -37,7 +39,7 @@ public class ConfigLoaderTest {
     @Test
     public void loadFromString() throws Exception {
 
-        LinkedHashMap config = loader.getConfigRaw();
+        Map<String, Object> config = loader.getConfigRaw();
 
         // non-existent
         assertEquals(null, config.get("key0"));
@@ -76,13 +78,31 @@ public class ConfigLoaderTest {
     @Test
     public void getValueList() throws Exception {
 
-        String[] expected = {"first", "second", "third"};
+        String[] expected = {"first",
+                             "second",
+                             "third"};
 
         assertArrayEquals(expected, loader.getValueListStrings("key4").toArray(new String[0]));
 
         // empty arrray if key not found
         assertArrayEquals(new String[0], loader.getValueListStrings("key0").toArray(new String[0]));
         assertArrayEquals(new String[0], loader.getValueListStrings("key3.key0").toArray(new String[0]));
+    }
+
+    @Test
+    public void getConfigFlat() throws Exception {
+
+        Map expected = new LinkedHashMap<String, Object>();
+        expected.put("key1", "value1");
+        expected.put("key2", 123);
+        expected.put("key3.key3_1.key3_1_1", "abc");
+        expected.put("key3.key3_1.key3_1_2", true);
+        expected.put("key3.key3_1.key3_1_3", true);
+        expected.put("key4", Arrays.asList("first", "second", "third"));
+
+        Map actual = loader.getConfigFlat();
+
+        assertEquals(expected, actual);
     }
 
     private String getYamlSource() {

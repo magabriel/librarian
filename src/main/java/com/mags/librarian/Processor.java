@@ -16,9 +16,9 @@ import com.mags.librarian.config.Config;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.logging.Level;
+import java.util.stream.Stream;
 
 /**
  * Processes the config file to actually move the files.
@@ -42,7 +42,7 @@ class Processor {
      */
     void run() {
 
-        logger.getLogger().info("Started");
+        logger.getLogger().fine("Started");
 
         logOptionsAndConfig();
 
@@ -55,7 +55,7 @@ class Processor {
 
         process();
 
-        logger.getLogger().info("Finished");
+        logger.getLogger().fine("Finished");
     }
 
     /**
@@ -107,58 +107,80 @@ class Processor {
         Mover mover = new Mover(options, config, logger);
 
         // classify all input files
-        ArrayList<File> inputFiles = collectInputFiles();
-        logger.getLogger().info(String.format("Found %s input files.", inputFiles.size()));
+        LinkedHashMap<File, File[]> inputFiles = collectInputFiles();
 
-        int count = 0;
-        for (File inputFile : inputFiles) {
-            count++;
-            logger.getLogger().info(String.format("Processing file (%s/%s) '%s'.", count++, inputFiles.size(),
-                                               inputFile.getName()));
-
-            Classification fileClassification = classifier.classify(inputFile.getName());
-
-            if (fileClassification.name.isEmpty()) {
-                logger.getLogger().warning("- File class not found, skipping.");
-                continue;
-            }
-
-            logger.getLogger().info(String.format("- File class found: '%s'.", fileClassification.name));
-
-            if (fileClassification.name.equals("tvshows")) {
-                logger.getLogger().info(String.format("- TV show: '%s', season %s, episode %s.",
-                                                   fileClassification.tvshowName,
-                                                   fileClassification.season,
-                                                   fileClassification.episode));
-            }
-
-            mover.moveToDestination(inputFile, fileClassification);
-
-            // if something done, write it to feed
-            if (!mover.getActionPerformed().isEmpty()) {
-                String title = String.format(
-                        "File \"%s\" -> \"%s\" (action: %s)",
-                        mover.getSummary().inputFilename,
-                        mover.getSummary().outputFolder,
-                        mover.getSummary().action
-                );
-
-                if (!fileClassification.tvshowName.isEmpty()) {
-                    title = String.format(
-                            "Episode \"%s\" of TV show \"%s\" -> \"%s\" (action: %s)",
-                            mover.getSummary().inputFilename,
-                            fileClassification.tvshowName,
-                            mover.getSummary().outputFolder,
-                            mover.getSummary().action
-                    );
-
-                }
-
-                feedWriter.addEntry(title, mover.getActionPerformed());
-            }
+        // create an aux flat stream to get the total count
+        Long totalCount = ((Stream) inputFiles.values().stream().flatMap(Stream::of)).count();
+        if (totalCount == 0) {
+            logger.getLogger().info("No input files found");
+        } else {
+            logger.getLogger().info(String.format("Found %s input files.", totalCount));
         }
 
-        feedWriter.writeFeed();
+        // using array for lambda limitations
+        final int[] count = {0};
+
+        inputFiles.forEach((File folder, File[] files) -> {
+
+            for (File inputFile : files) {
+                count[0]++;
+                logger.getLogger().info(String.format("Processing file (%s/%s) '%s'.", count[0], totalCount,
+                                                      inputFile.getName()));
+
+                Classification fileClassification = classifier.classify(inputFile, folder);
+
+                if (fileClassification.name.isEmpty()) {
+                    logger.getLogger().warning(String.format("- File class not found for file '%s', skipping.",
+                                                             inputFile.getName()));
+                    continue;
+                }
+
+                logger.getLogger().info(String.format("- File class found: '%s'.", fileClassification.name));
+
+                if (fileClassification.name.equals("tvshows")) {
+                    logger.getLogger().info(String.format("- TV show: '%s', season %s, episode %s.",
+                                                          fileClassification.tvShowName,
+                                                          fileClassification.season,
+                                                          fileClassification.episode));
+                }
+
+                mover.moveToDestination(inputFile, fileClassification);
+
+                // if something done, write it to feed
+                if (!mover.getActionPerformed().isEmpty()) {
+                    String title = String.format(
+                            "File \"%s\" -> \"%s\"",
+                            mover.getSummary().inputFilename,
+                            fileClassification.name
+                    );
+
+                    if (!fileClassification.tvShowName.isEmpty()) {
+                        title = String.format(
+                                "Episode \"%s\" of TV show \"%s\" -> \"%s\"",
+                                mover.getSummary().inputFilename,
+                                fileClassification.tvShowName,
+                                fileClassification.name
+                        );
+
+                    } else if (!fileClassification.albumName.isEmpty()) {
+                        title = String.format(
+                                "Track \"%s\" of album \"%s\" -> \"%s\"",
+                                mover.getSummary().inputFilename,
+                                fileClassification.albumName,
+                                fileClassification.name
+                        );
+                    }
+
+                    feedWriter.addEntry(title, mover.getActionPerformed());
+                }
+            }
+
+        });
+
+        // only write feed if new entries added
+        if (feedWriter.hasEntries()) {
+            feedWriter.writeFeed();
+        }
     }
 
     /**
@@ -185,11 +207,13 @@ class Processor {
      *
      * @return List of files.
      */
-    private ArrayList<File> collectInputFiles() {
+    private LinkedHashMap<File, File[]> collectInputFiles() {
 
-        ArrayList<File> inputFiles = new ArrayList<>();
+        LinkedHashMap<File, File[]> collectedFiles = new LinkedHashMap<>();
 
         for (String inputFolder : config.inputFolders) {
+
+            ArrayList<File> inputFilesInFolder;
 
             File folder = new File(inputFolder);
 
@@ -197,10 +221,14 @@ class Processor {
                 logger.getLogger().warning(String.format("- Input folder '%s' does not exist.", inputFolder));
                 continue;
             }
-            Collections.addAll(inputFiles, collectFiles(folder).toArray(new File[0]));
+
+            inputFilesInFolder = collectFiles(folder);
+            File[] files = inputFilesInFolder.toArray(new File[0]);
+
+            collectedFiles.put(folder, files);
         }
 
-        return inputFiles;
+        return collectedFiles;
     }
 
     /**

@@ -12,6 +12,7 @@ package com.mags.librarian;
 import com.mags.librarian.config.Config;
 import com.mags.librarian.config.ConfigAdaptor;
 import com.mags.librarian.config.ConfigLoader;
+import com.mags.librarian.config.ConfigReader;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -63,12 +64,9 @@ public class ProcessorTest {
 
         logger.getLogger().log(Level.INFO, "Starting functional test");
 
-        // load configuration
-        ConfigLoader configLoader = new ConfigLoader();
-        configLoader.load(inputPath + "/librarian.yml");
-
-        ConfigAdaptor adaptor = new ConfigAdaptor(configLoader);
-        Config config = adaptor.process();
+        // read configuration
+        ConfigReader reader = new ConfigReader();
+        Config config = reader.read(inputPath + "/librarian.yml");
 
         // prepare output folder
         File outputdDir = new File(outputPath);

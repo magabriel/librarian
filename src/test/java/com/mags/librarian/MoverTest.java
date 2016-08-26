@@ -54,13 +54,16 @@ public class MoverTest {
     public void moveTvShow() throws Exception {
 
         Classification classification = new Classification();
+        classification.fileName = "My_Tvshow_S02E10_some_data.avi";
+        classification.baseName = "My_Tvshow_S02E10_some_data";
+        classification.extension = "avi";
         classification.name = "tvshows";
         classification.season = 2;
         classification.episode = 10;
-        classification.tvshowName = "My_Tvshow";
-        classification.tvshowRest = "_some_data.avi";
+        classification.tvShowName = "My_Tvshow";
+        classification.tvShowRest = "some_data";
 
-        mover.moveToDestination(new File("/input/My_Tvshow_S02E10_some_data.avi"), classification);
+        mover.moveToDestination(new File("/input/"+classification.fileName), classification);
 
         assertEquals(
                 "moved [/input/My_Tvshow_S02E10_some_data.avi] to [/output/tvshows/My_Tvshow/The.season.002] as [My_Tvshow_S=2E=010_some_data.avi]",

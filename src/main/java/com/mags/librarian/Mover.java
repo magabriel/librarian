@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -51,7 +52,7 @@ class Mover {
         summary = new Summary();
 
         // find all suitable destinations for this file
-        ArrayList<Map> suitableDestinations = findDestinations(fileClassification);
+        ArrayList<Map> suitableDestinations = findSuitableDestinations(fileClassification);
 
         // if it is a tvshow, move it (special treatment)
         if (fileClassification.name.equals("tvshows")) {
@@ -59,50 +60,70 @@ class Mover {
             return;
         }
 
+        // if it is a music file, move it (special treatment)
+        if (fileClassification.name.equals("music")) {
+            moveMusicToDestination(inputFile, fileClassification, suitableDestinations);
+            return;
+        }
+
         // move other file
-        moveFileToDestination(inputFile, suitableDestinations);
+        moveRegularFileToDestination(inputFile, suitableDestinations);
     }
 
-    private String replaceWordsSeparatorsInFileName(String fileName) {
+    private String replaceWordsSeparatorsInFileNameFragment(String fileName) {
 
-        String fileNameWithoutExtension = getFilenameWithoutExtension(fileName);
+        String existingSeparator = " ";
+        if (fileName.matches(" ")) {
+            existingSeparator = " ";
+        } else if (fileName.matches("_")) {
+            existingSeparator = "_";
+        } else if (fileName.matches("\\.")) {
+            existingSeparator = ".";
+        }
 
-        String newName = replaceWordsSeparators(fileNameWithoutExtension);
-
-        return newName + "." + getFileExtension(fileName);
+        String newName = fileName.replace(existingSeparator, config.tvShowsWordsSeparatorFile);
+        return newName;
     }
 
-    private String replaceWordsSeparators(String fileNameWithoutExtension) {
+    private String replaceWordsSeparatorsInFileName(String fileNameWithoutExtension) {
 
         return fileNameWithoutExtension.
-                replace(" ", config.wordsSeparator).
-                replace("_", config.wordsSeparator).
-                replace(".", config.wordsSeparator);
+                replace(" ", config.tvShowsWordsSeparatorFile).
+                replace("_", config.tvShowsWordsSeparatorFile).
+                replace(".", config.tvShowsWordsSeparatorFile);
     }
 
-    private String getFileExtension(String fileName) {
+    private String replaceWordsSeparatorsInTvShowName(String fileNameWithoutExtension) {
 
-        String extension = "";
-
-        int i = fileName.lastIndexOf('.');
-        if (i > 0) {
-            extension = fileName.substring(i + 1);
-        }
-
-        return extension;
+        return fileNameWithoutExtension.
+                replace(" ", config.tvShowsWordsSeparatorShow).
+                replace("_", config.tvShowsWordsSeparatorShow).
+                replace(".", config.tvShowsWordsSeparatorShow);
     }
 
-    private String getFilenameWithoutExtension(String fileName) {
-
-        String extension = getFileExtension(fileName);
-
-        if (extension.isEmpty()) {
-            return fileName;
-        }
-
-        return fileName.substring(0, fileName.length() - extension.length() - 1);
-
-    }
+//    private String getFileExtension(String fileName) {
+//
+//        String extension = "";
+//
+//        int i = fileName.lastIndexOf('.');
+//        if (i > 0) {
+//            extension = fileName.substring(i + 1);
+//        }
+//
+//        return extension;
+//    }
+//
+//    private String getFilenameWithoutExtension(String fileName) {
+//
+//        String extension = getFileExtension(fileName);
+//
+//        if (extension.isEmpty()) {
+//            return fileName;
+//        }
+//
+//        return fileName.substring(0, fileName.length() - extension.length() - 1);
+//
+//    }
 
     /**
      * Find all the possible destinations for a file.
@@ -110,13 +131,14 @@ class Mover {
      * @param fileClassification The file classification
      * @return A list of destinations
      */
-    private ArrayList<Map> findDestinations(Classification fileClassification) {
+    private ArrayList<Map> findSuitableDestinations(Classification fileClassification) {
 
         ArrayList<Map> destinations = new ArrayList<>();
 
         for (Map outputFolder : config.outputFolders) {
             if (outputFolder.get("contents").equals(fileClassification.name)) {
-                logger.getLogger().fine(String.format("- Output folder found: '%s'.", outputFolder.get("path")));
+                logger.getLogger().fine(String.format("- Suitable destination folder found: '%s'.", outputFolder.get
+                        ("path")));
 
                 destinations.add(outputFolder);
             }
@@ -131,7 +153,7 @@ class Mover {
      * @param inputFile
      * @param suitableDestinations
      */
-    private void moveFileToDestination(
+    private void moveRegularFileToDestination(
             File inputFile, ArrayList<Map> suitableDestinations) {
 
         if (suitableDestinations.isEmpty()) {
@@ -143,6 +165,32 @@ class Mover {
         File destinationFolder = new File(suitableDestinations.get(0).get("path").toString());
 
         moveTheFile(inputFile, destinationFolder);
+    }
+
+
+    /**
+     * Moves a music file to one of the suitable destinations.
+     *
+     * @param inputFile            The input file
+     * @param fileClassification   The file classification
+     * @param suitableDestinations List of suitable destinations
+     */
+    private void moveMusicToDestination(
+            File inputFile,
+            Classification fileClassification,
+            ArrayList<Map> suitableDestinations) {
+
+        if (fileClassification.albumName.isEmpty()) {
+            // no album, it is just a regular move
+            moveRegularFileToDestination(inputFile, suitableDestinations);
+            return;
+        }
+
+        // use the first suitable destination, adding the album as subfolder
+        File albumFolder = Paths.get(suitableDestinations.get(0).get("path").toString(),
+                                     fileClassification.albumName).toFile();
+
+        moveTheFile(inputFile, albumFolder);
     }
 
     /**
@@ -168,26 +216,29 @@ class Mover {
 
             logger.getLogger().fine(
                     String.format("- No suitable destination folder found, using '%s' as default.", path));
-
         }
 
         // apply season and numbering schemas
         String seasonName = applySeasonSchema(fileClassification);
         String tvShowFileName = applyTvShowNumberingSchema(fileClassification);
 
-        // replace separators in TV show name and season
-        fileClassification.tvshowName = replaceWordsSeparators(fileClassification.tvshowName);
+        // replace separators in TV show name
+        fileClassification.tvShowName = replaceWordsSeparatorsInTvShowName(fileClassification.tvShowName);
+
+        // ensure we have a valid folder name for the tv show, wheather preexisting or new
+        if (fileClassification.tvShowFolderName.isEmpty()) {
+            fileClassification.tvShowFolderName = fileClassification.tvShowName;
+        }
 
         // the real destination folder is a subfolder of the parent found
         File tvShowDestinationFolder = Paths.get(
                 parentDestinationFolder.getAbsolutePath(),
-                fileClassification.tvshowName,
+                fileClassification.tvShowFolderName,
                 seasonName).toFile();
-
 
         if (!tvShowDestinationFolder.exists()) {
             if (!options.dryRun) {
-                tvShowDestinationFolder.mkdir();
+                tvShowDestinationFolder.mkdirs();
             }
             logger.getLogger().fine(String.format("- Created folder for TV show/season: '%s'.",
                                                   tvShowDestinationFolder.getAbsolutePath()));
@@ -230,7 +281,10 @@ class Mover {
 
                 // for tvshows output folders, only accept it as a destination if
                 // a folder for the TV show already exists
-                if (FileMatcher.matchTVShowName(name, fileClassification.tvshowName)) {
+                if (FileMatcher.matchTVShowName(name, fileClassification.tvShowName)) {
+
+                    // save real folder name to avoid creating extra folders on case or separators change
+                    fileClassification.tvShowFolderName = name;
 
                     logger.getLogger().finer(String.format("- Matched folder name \"%s\"", name));
                     return true;
@@ -273,11 +327,19 @@ class Mover {
         seasonAndEpisode = replaceTag(seasonAndEpisode, "season", classification.season);
         seasonAndEpisode = replaceTag(seasonAndEpisode, "episode", classification.episode);
 
-        return String.format("%s%s%s%s",
-                             classification.tvshowName,
-                             config.wordsSeparator,
-                             seasonAndEpisode,
-                             classification.tvshowRest);
+        List<String> newName = new ArrayList<>();
+        newName.add(replaceWordsSeparatorsInFileNameFragment(classification.tvShowName));
+        newName.add(config.tvShowsWordsSeparatorFile);
+        newName.add(seasonAndEpisode);
+
+        if (!classification.tvShowRest.isEmpty()) {
+            newName.add(config.tvShowsWordsSeparatorFile);
+            newName.add(replaceWordsSeparatorsInFileNameFragment(classification.tvShowRest));
+        }
+
+        String baseName = String.join("", newName);
+
+        return replaceWordsSeparatorsInFileName(baseName) + "." + classification.extension;
     }
 
     /**
@@ -326,16 +388,17 @@ class Mover {
     private void moveTheFile(File inputFile, File destinationFolder, String newName) {
 
         try {
-            if (!options.dryRun) {
-                destinationFolder.mkdirs();
+            if (!destinationFolder.exists()) {
+                if (!options.dryRun) {
+                    destinationFolder.mkdirs();
+                    logger.getLogger().fine(String.format("- Created destination folder '%s'.",
+                                                          destinationFolder.getAbsolutePath()));
+                }
             }
 
             if (newName.isEmpty()) {
                 newName = inputFile.getName();
             }
-
-            // replace words separator in name
-            newName = replaceWordsSeparatorsInFileName(newName);
 
             // create summary
             summary.inputFolder = inputFile.getParent();

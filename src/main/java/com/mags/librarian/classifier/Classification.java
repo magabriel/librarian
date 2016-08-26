@@ -16,10 +16,15 @@ package com.mags.librarian.classifier;
 public class Classification {
 
     public String name = "";
+    public String fileName = "";
+    public String baseName = "";
+    public String extension = "";
     public Integer season = 0;
     public Integer episode = 0;
-    public String tvshowName = "";
-    public String tvshowRest = "";
+    public String tvShowName = "";
+    public String tvShowRest = "";
+    public String tvShowFolderName = "";
+    public String albumName = "";
 
     @Override
     public boolean equals(Object obj) {
@@ -33,19 +38,39 @@ public class Classification {
 
         Classification that = (Classification) obj;
 
-        return this.toString().equals(obj.toString());
+        return this.hashCode() == obj.hashCode();
     }
 
     public String toString() {
+
         if (name.equals("")) {
             return super.toString();
         }
 
         if (name.equals("tvshows")) {
-            return String.format("%s: \"%s\" (%s/%s)", name, tvshowName, season, episode);
+            return String.format("%s: \"%s\" (%s/%s) folder:%s rest:%s fname: \"%s\"",
+                                 name, tvShowName, season, episode,
+                                 tvShowFolderName, tvShowRest, fileName);
         }
 
         return String.format("%s", name);
     }
 
+    @Override
+    public int hashCode() {
+
+        int result = name.hashCode();
+
+        result = 31 * result + fileName.hashCode();
+        result = 31 * result + baseName.hashCode();
+        result = 31 * result + extension.hashCode();
+
+        result = 31 * result + season.hashCode();
+        result = 31 * result + episode.hashCode();
+        result = 31 * result + tvShowName.hashCode();
+        result = 31 * result + tvShowRest.hashCode();
+        result = 31 * result + tvShowFolderName.hashCode();
+        result = 31 * result + albumName.hashCode();
+        return result;
+    }
 }

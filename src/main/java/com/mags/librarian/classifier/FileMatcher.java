@@ -60,23 +60,30 @@ public class FileMatcher {
      */
     public static Classification matchTVShow(String fileName, Criterium criterium) {
 
+        String filenameNoExtension = getFilenameWithoutExtension(fileName);
+
         Pattern regExp = Pattern.compile(criterium.regExp, Pattern.CASE_INSENSITIVE);
-        Matcher matcher = regExp.matcher(fileName);
+        Matcher matcher = regExp.matcher(filenameNoExtension);
 
         Classification classification = new Classification();
 
         if (matcher.find()) {
 
             classification.name = criterium.name;
+            classification.fileName = fileName;
+            classification.baseName = getFilenameWithoutExtension(fileName);
+            classification.extension = getFileExtension(fileName);
 
             try {
-                // replace word separators with dots in captured TVshow name
-                String tvShowName = matcher.group("name")
+                String tvShowName = matcher.group("name").trim();
+
+                // replace word separators with spaces in captured TVshow name
+                tvShowName = matcher.group("name")
                         .replace("_", " ")
+                        .replace("-", " ")
                         .replace(".", " ")
-                        .trim()
-                        .replace(" ", ".");
-                classification.tvshowName = tvShowName;
+                        .trim();
+                classification.tvShowName = tvShowName;
             } catch (IllegalArgumentException e) {
             }
 
@@ -91,7 +98,12 @@ public class FileMatcher {
             }
 
             try {
-                classification.tvshowRest = matcher.group("rest");
+                // replace word separators with spaces in captured TVshow rest
+                classification.tvShowRest = matcher.group("rest")
+                        .replace("_", " ")
+                        .replace("-", " ")
+                        .replace(".", " ")
+                        .trim();
             } catch (IllegalArgumentException e) {
             }
 
@@ -99,5 +111,28 @@ public class FileMatcher {
         }
 
         return classification;
+    }
+
+    public static String getFileExtension(String fileName) {
+
+        String extension = "";
+
+        int i = fileName.lastIndexOf('.');
+        if (i > 0) {
+            extension = fileName.substring(i + 1);
+        }
+
+        return extension;
+    }
+
+    public static String getFilenameWithoutExtension(String fileName) {
+
+        String extension = getFileExtension(fileName);
+
+        if (extension.isEmpty()) {
+            return fileName;
+        }
+
+        return fileName.substring(0, fileName.length() - extension.length() - 1);
     }
 }

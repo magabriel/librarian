@@ -13,8 +13,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
-
 import static org.junit.Assert.*;
 
 public class FileMatcherTest {
@@ -57,23 +55,58 @@ public class FileMatcherTest {
         criterium.regExp = "(?<name>.+)S(?<season>[0-9]{1,2})E(?<episode>[0-9]{1,3})(?<rest>.*)";
 
         Classification expected = new Classification();
+        expected.fileName = "A.TV.Show.S01E02.mkv";
+        expected.baseName = "A.TV.Show.S01E02";
+        expected.extension = "mkv";
         expected.name = "tvshows";
         expected.season = 1;
         expected.episode = 2;
-        expected.tvshowName = "A.TV.Show";
+        expected.tvShowName = "A TV Show";
 
-        assertEquals(expected, FileMatcher.matchTVShow("A.TV.Show.S01E02.mkv", criterium));
+        assertEquals(expected, FileMatcher.matchTVShow(expected.fileName, criterium));
+    }
+
+    @Test
+    public void matchTVShowSeasonXTwoFigures() throws Exception {
+
+        Criterium criterium = new Criterium();
+        criterium.name = "tvshows";
+        criterium.regExp = "(?<name>.+(?:[^\\p{Alnum}]))(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)";
+
+        Classification expected = new Classification();
+        expected.fileName = "A.TV.Show.70x02.mkv";
+        expected.baseName = "A.TV.Show.70x02";
+        expected.extension = "mkv";
+        expected.name = "tvshows";
+        expected.season = 70;
+        expected.episode = 2;
+        expected.tvShowName = "A TV Show";
+
+        assertEquals(expected, FileMatcher.matchTVShow(expected.fileName, criterium));
+    }
+
+    @Test
+    public void matchTVShowSpacesAndDashes() throws Exception {
+
+        Criterium criterium = new Criterium();
+        criterium.name = "tvshows";
+        criterium.regExp = "(?<name>.+)S(?<season>[0-9]{1,2})E(?<episode>[0-9]{1,3})(?<rest>.*)";
+
+        Classification expected = new Classification();
+        expected.fileName = "A TV Show - S01E02 - The title.mkv";
+        expected.baseName = "A TV Show - S01E02 - The title";
+        expected.extension = "mkv";
+        expected.name = "tvshows";
+        expected.season = 1;
+        expected.episode = 2;
+        expected.tvShowName = "A TV Show";
+        expected.tvShowRest = "The title";
+
+        assertEquals(expected, FileMatcher.matchTVShow(expected.fileName, criterium));
     }
 
     @Test
     public void matchRegExp() throws Exception {
-        Criterium criterium = new Criterium();
-        criterium.name = "music";
-        criterium.regExp = "\\.mp3|\\.ogg|music|album|disco|cdrip'";
-
-        Classification expected = new Classification();
-        expected.name = "music";
-
-        assertEquals(expected, FileMatcher.matchTVShow("a.song.mp3", criterium));
+        assertTrue(FileMatcher.matchRegExp("a.song.mp3", "\\.mp3|\\.ogg|music|album|disco|cdrip'"));
     }
 }

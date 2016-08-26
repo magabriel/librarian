@@ -10,8 +10,8 @@
 package com.mags.librarian;
 
 import com.mags.librarian.config.Config;
-import com.mags.librarian.config.ConfigAdaptor;
 import com.mags.librarian.config.ConfigLoader;
+import com.mags.librarian.config.ConfigReader;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -147,7 +147,7 @@ public class Main {
                         try {
                             Level logLevel = Level.parse(level.toUpperCase());
                             options.logLevel = logLevel;
-                            logger.getLogger().setLevel(logLevel);
+                            logger.setLogLevel(logLevel);
                         } catch (IllegalArgumentException e) {
                             logger.getLogger().severe(String.format("Invalid log level \"%s\"", level));
 
@@ -172,7 +172,8 @@ public class Main {
         writeMessage("         --copy             : Copy instead of move the files.");
         writeMessage("         --create-config    : Create a default configuration file in current directory.");
         writeMessage("         --dry-run          : Do not change anything, just tell what would have been done.");
-        writeMessage("         --loglevel <level> : Loglevel (NONE, INFO, WARNING, SEVERE). Default INFO.");
+        writeMessage("         --loglevel <level> : Loglevel (ALL, FINEST, FINER, FINE, CONFIG, INFO, WARNING, " +
+                             "SEVERE, OFF). Default INFO.");
         writeMessage("         -c --config <file> : Use that config file instead of the one in execution directory.");
         writeMessage(
                 "         -l --log <file>    : Write to that log file instead of creating one in the execution directory.");
@@ -188,17 +189,15 @@ public class Main {
      */
     private static void loadConfig() {
 
-        ConfigLoader configLoader = new ConfigLoader();
-
         try {
-            configLoader.load(configFile);
-            ConfigAdaptor adaptor = new ConfigAdaptor(configLoader);
-            config = adaptor.process();
+            ConfigReader reader = new ConfigReader();
+            config = reader.read(configFile);
 
         } catch (FileNotFoundException e) {
             logger.getLogger().severe(String.format("ERROR: Configuration file '%s' not found.", configFile));
             logger.getLogger().severe(
                     "HINT: You can generate a default configuration file with the provided command line option.");
+            logger.getLogger().finer(e.toString());
 
             System.exit(1);
         }
