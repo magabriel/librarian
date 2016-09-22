@@ -15,6 +15,7 @@ package com.mags.librarian.classifier;
 public class Criterium {
 
     public String name;
-    public String regExp;
+    public String[] extensions = new String[0];
+    public String[] filters = new String[0];
 }
 

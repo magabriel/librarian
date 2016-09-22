@@ -10,6 +10,7 @@
 package com.mags.librarian.config;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -17,16 +18,37 @@ import java.util.Map;
  */
 public class Config {
 
-    final public static String DEFAULT_TVSHOWS_NUMBERING_SCHEMA = "S{season:2}E{episode:2}";
-    final public static String DEFAULT_TVSHOWS_SEASON_SCHEMA = "Season_{season:2}";
-    final public static String DEFAULT_WORDS_SEPARATOR_SHOW = "_";
-    final public static String DEFAULT_WORDS_SEPARATOR_FILE = "_";
+    public enum FilesAction {
+        IGNORE,
+        MOVE,
+        DELETE
+    }
 
+    /*
+     * Defaults
+     */
+    final static String DEFAULT_TVSHOWS_NUMBERING_SCHEMA = "S{season:2}E{episode:2}";
+    final static String DEFAULT_TVSHOWS_SEASON_SCHEMA = "Season_{season:2}";
+    final static String DEFAULT_WORDS_SEPARATOR_SHOW = "_";
+    final static String DEFAULT_WORDS_SEPARATOR_FILE = "_";
+    final static FilesAction DEFAULT_UNKNOWN_FILES_ACTION = FilesAction.IGNORE;
+    final static FilesAction DEFAULT_ERROR_FILES_ACTION = FilesAction.IGNORE;
+
+    /*
+     * Fields
+     */
     public String include = "";
 
-    public Map[] contentTypes = new Map[]{};
+    public Map<String, List<String>>[] extensions = new Map[]{};
+    public Map<String, List<String>>[] filters = new Map[]{};
+    public Map<String, Map>[] contentClasses = new Map[]{};
+    public FilesAction unknownFilesAction = DEFAULT_UNKNOWN_FILES_ACTION;
+    public String unknownFilesMovePath = "";
+    public FilesAction errorFilesAction = DEFAULT_UNKNOWN_FILES_ACTION;
+    public String errorFilesMovePath = "";
+
     public String[] inputFolders = new String[]{};
-    public Map[] outputFolders = new Map[]{};
+    public Map<String, Map>[] outputFolders = new Map[]{};
     public String tvShowsNumberingSchema = DEFAULT_TVSHOWS_NUMBERING_SCHEMA;
     public String tvShowsSeasonSchema = DEFAULT_TVSHOWS_SEASON_SCHEMA;
 
@@ -38,7 +60,13 @@ public class Config {
 
         return "Config{" +
                 "include='" + include + '\'' +
-                ", contentTypes=" + Arrays.toString(contentTypes) +
+                ", extensions=" + Arrays.toString(extensions) +
+                ", filters=" + Arrays.toString(filters) +
+                ", contentClasses=" + Arrays.toString(contentClasses) +
+                ", unknownFilesAction=" + unknownFilesAction +
+                ", unknownFilesMovePath=" + unknownFilesMovePath +
+                ", errorFilesAction=" + errorFilesAction +
+                ", errorFilesMovePath=" + errorFilesMovePath +
                 ", inputFolders=" + Arrays.toString(inputFolders) +
                 ", outputFolders=" + Arrays.toString(outputFolders) +
                 ", tvShowsNumberingSchema='" + tvShowsNumberingSchema + '\'' +
@@ -56,8 +84,32 @@ public class Config {
      */
     public Config merge(Config otherConfig) {
 
-        if (otherConfig.contentTypes.length > 0) {
-            contentTypes = otherConfig.contentTypes;
+        if (otherConfig.extensions.length > 0) {
+            extensions = otherConfig.extensions;
+        }
+
+        if (otherConfig.filters.length > 0) {
+            filters = otherConfig.filters;
+        }
+
+        if (otherConfig.contentClasses.length > 0) {
+            contentClasses = otherConfig.contentClasses;
+        }
+
+        if (!otherConfig.unknownFilesAction.equals(DEFAULT_UNKNOWN_FILES_ACTION)) {
+            unknownFilesAction = otherConfig.unknownFilesAction;
+        }
+
+        if (!otherConfig.unknownFilesMovePath.isEmpty()) {
+            unknownFilesMovePath = otherConfig.unknownFilesMovePath;
+        }
+
+        if (!otherConfig.errorFilesAction.equals(DEFAULT_UNKNOWN_FILES_ACTION)) {
+            errorFilesAction = otherConfig.errorFilesAction;
+        }
+
+        if (!otherConfig.errorFilesMovePath.isEmpty()) {
+            errorFilesMovePath = otherConfig.errorFilesMovePath;
         }
 
         if (otherConfig.inputFolders.length > 0) {

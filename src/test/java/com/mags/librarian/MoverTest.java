@@ -129,7 +129,7 @@ public class MoverTest {
                     }
                 }
         );
-        config.contentTypes = contentTypes.toArray(new Map[0]);
+//        config.contentTypes = contentTypes.toArray(new Map[0]);
 
         /*
          * Schemas

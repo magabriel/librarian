@@ -26,13 +26,17 @@ to teach myself Java.
 
 ## Changelog
 
-### 0.1
+### 0.3
 
-- First functional version.
+- Redesign of config to accomodate new functionality.
 
 ### 0.2
 
 - Many refactorings and fixes.
+
+### 0.1
+
+- First functional version.
 
 ## Documentation
 
@@ -67,16 +71,31 @@ To create a default `librarian.yaml`, run  `java -jar /path/to/librarian.jar --c
 configuration file will be created in the current folder.
 
 ~~~YAML
-# Default librarian configuration file
-
 config:
-  content_types:
-    - tvshows: "(?<name>.+)S(?<season>[0-9]{1,2})E(?<episode>[0-9]{1,3})(?<rest>.*)"
-    - tvshows: "(?<name>.+(?:[^\\p{Alnum}]))(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)"
-    - tvshows: "(?<name>.+(?:[^\\p{Alnum}]))(?<season>[0-9])(?<episode>[0-9]{2})(?<rest>.*)"
-    - music: '\.mp3|\.ogg|music|album|disco|cdrip'
-    - videos: '\.avi|\.mpeg|\.mpg|\.mov|\.wmv|\.mp4|\.m4v|\.mkv'
-    - books: 'ebook|\.pdf|\.epub|\.fb2'
+  extensions:
+    - video: [avi, mpeg, mpg, mov, wmv, mp4, m4v, mkv]
+    - audio: [mp3, ogg]
+    - book:  [pdf, epub, fb2, mobi, azw]
+
+  filters:
+    - tvshow:
+        # "name.S01E02.title.avi"
+        - "(?<name>.+)S(?<season>[0-9]{1,2})E(?<episode>[0-9]{1,3})(?<rest>.*)"
+        # "name.1x02.title.avi"
+        - "(?<name>.+(?:[^\\p{Alnum}]))(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)"
+        # "name.102.title.avi" (avoid matching movies with year)
+        - "(?<name>.+(?:[^\\p{Alnum}\\(]))(?<season>[0-9])(?<episode>[0-9]{2})([^[0-9]]?<rest>.*)"
+
+  content_classes:
+    - tvshows:
+        extension: video
+        filter: tvshow
+    - videos:
+        extension: video
+    - music:
+        extension: audio
+    - books:
+        extension: book
 
   tvshows:
     numbering_schema: "S{season:2}E{episode:2}"
@@ -85,6 +104,14 @@ config:
     words_separator:
       show: "_"
       file: "_"
+
+  unknown_files:
+    action: ignore # ignore, move, delete
+    move_path: unknown
+
+  error_files:
+    action: ignore # ignore, move, delete
+    move_path: errors
 
 input:
   folders:
@@ -96,12 +123,10 @@ output:
     -
       path: /my/output/folder/tvshows
       contents: tvshows
-      auto_create: false
 
     -
       path: /my/output/folder/tvshows2
       contents: tvshows
-      auto_create: true
 
     -
       path: /my/output/folder/movies
@@ -119,9 +144,15 @@ output:
 
 #### Customize `librarian.yaml`
 
-- `config.content_types`: A list of content types definitions, in the form `name: regular expression`. Feel free to use 
+- `config.extensions`: A list of extensions, in the form `extension_type: list_of_extensions`. Each filetype can be
+   use later to define a content class.
+   
+- `filters`: A list of filter definitions in the form `filter_name: list_of_regular_expressions`. Feel free to use 
    your own names except for the special types `tvshows` and `music` entries, which may also requires an special format 
-   (see below).
+   (see below). Filters can be used to define content classes.
+
+- `config.content_classes`: A list of content classes, each one having one extension type and one filter name. The name
+   of the content class can be later used when defining input folders.
     
 - `config.tvshows.numbering_schema`: The numbering schema to use for output TV shows episode files. The file will be 
    renamed using this pattern. You can use `{season:N}` and `{episode:N}` placeholders for season and episode numbers, 
@@ -133,29 +164,28 @@ output:
 - `config.tvshows.words_separator`: Contains the characters that will be used to replace word separators in show folders 
    and the episode file itself.
 
+- `unknown_files`: Define what to do with unrecognized files. The default action is `ignore`, so they will be left in 
+   the input folder. Action `move` will move them to the `move_path` while action `delete` will delete them.
+   
+- `error_files`: Same as `unknown_files` for files with processing errors.
+
 - `input.folders`: A list of paths to one or more input folders (i.e. where the input file will be found).
 
 - `output.folders`: A list of output folders definitions (where the files will be copied to). See below for format.
 
-##### Content types
-
-A content type definition has just a name and a regular expression that will be tested against each input file. 
-
-~~~YAML
-- music: '\.mp3|\.ogg|music|album|disco|cdrip' 
-~~~
-
-will match files with `.mp3` or `.ogg` extensions and also files with "music", "album", "disco" or "cdrip" in its name.
-
 ###### TV Shows
    
-**Tv shows** are special, because we need to capture the name of the show and the season and episode numbers. The following 
-two default definitions cover pretty much all the cases:
+**Tv shows** are special, because we need to capture the name of the show and the season and episode numbers. 
 
 ~~~YAML
-- tvshows: "(?<name>.+)S(?<season>[0-9]{1,2})E(?<episode>[0-9]{1,3})(?<rest>.*)"
-- tvshows: "(?<name>.+(?:[^\\p{Alnum}]))(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)"
-- tvshows: "(?<name>.+(?:[^\\p{Alnum}]))(?<season>[0-9])(?<episode>[0-9]{2})(?<rest>.*)"
+  filters:
+    - tvshow:
+        # "name.S01E02.title.avi"
+        - "(?<name>.+)S(?<season>[0-9]{1,2})E(?<episode>[0-9]{1,3})(?<rest>.*)"
+        # "name.1x02.title.avi"
+        - "(?<name>.+(?:[^\\p{Alnum}]))(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)"
+        # "name.102.title.avi" (avoid matching movies with year)
+        - "(?<name>.+(?:[^\\p{Alnum}\\(]))(?<season>[0-9])(?<episode>[0-9]{2})([^[0-9]]?<rest>.*)"
 ~~~
 
 These defintions will match files of the form `My tv show name S01E02 whatever.*`, `My tv show name 01x02 whatever.*` and
@@ -163,7 +193,6 @@ These defintions will match files of the form `My tv show name S01E02 whatever.*
 
 Things to remember:
 
-- The definition name **must** be `tvshows`.
 - There can be several defintions with the same name.
 - Each of the regexes **must** have the following capture groups:
     - `name`: the name of the TV show.
@@ -171,9 +200,11 @@ Things to remember:
     - `episode`: the episode number.
     - `rest`: any other information left in the filename. 
 
+Finally, the content class name for tvshows **must** be `tvshows`.
+
 ###### Music albums
 
-Files matched by `music` content type are assumed to be individual tracks in an album if they are inside a subfolder. 
+Files matched by `music` content class are assumed to be individual tracks in an album if they are inside a subfolder. 
 The subfolder containing the files will be copied as is.
 
 ### Output folders definitions

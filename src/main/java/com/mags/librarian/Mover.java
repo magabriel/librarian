@@ -41,7 +41,7 @@ class Mover {
     }
 
     /**
-     * Move a file to its destination folder.
+     * Move a file to its destination folder depending on its classification.
      *
      * @param inputFile          The input file
      * @param fileClassification The file classification
@@ -68,6 +68,114 @@ class Mover {
 
         // move other file
         moveRegularFileToDestination(inputFile, suitableDestinations);
+
+        if (this.actionPerformed.isEmpty()) {
+            processErroredFile(inputFile);
+        }
+    }
+
+    /**
+     * Process an unknown file.
+     *
+     * @param inputFile The file to process.
+     */
+    public void processUnknownFile(File inputFile) {
+
+        switch (config.unknownFilesAction) {
+            case IGNORE:
+                logger.getLogger().fine(String.format("- File '%s' ignored (left in place).", inputFile.getName()));
+                break;
+
+            case DELETE:
+                deleteFile(inputFile);
+                break;
+
+            case MOVE:
+                if (config.unknownFilesMovePath.isEmpty()) {
+                    logger.getLogger().warning(String.format("- Unknown files move path is empty, cannot move file '%s'.",
+                                                             inputFile.getName()));
+                    return;
+                }
+
+                moveFile(inputFile, new File(config.unknownFilesMovePath));
+                break;
+        }
+
+    }
+
+    /**
+     * Process an errored file.
+     *
+     * @param inputFile The file.
+     */
+    private void processErroredFile(File inputFile) {
+
+        switch (config.errorFilesAction) {
+            case IGNORE:
+                logger.getLogger().fine(String.format("- File '%s' ignored (left in place).", inputFile.getName()));
+                break;
+
+            case DELETE:
+                deleteFile(inputFile);
+                break;
+
+            case MOVE:
+                if (config.errorFilesMovePath.isEmpty()) {
+                    logger.getLogger().warning(String.format("- Error files move path is empty, cannot move file '%s'.",
+                                                             inputFile.getName()));
+                    return;
+                }
+
+                moveFile(inputFile, new File(config.errorFilesMovePath));
+                break;
+        }
+
+    }
+
+    /**
+     * Delete a file.
+     *
+     * @param inputFile The file to delete.
+     */
+    private void deleteFile(File inputFile) {
+
+        try {
+            if (!options.dryRun) {
+                Files.delete(inputFile.toPath());
+            }
+            logger.getLogger().fine(String.format("- File '%s' deleted.", inputFile.getName()));
+        } catch (IOException e) {
+            logger.getLogger().warning(String.format(" - Error: %s", e.getMessage()));
+        }
+
+    }
+
+    /**
+     * Move a file to a destination folder.
+     *
+     * @param inputFile         The file to move
+     * @param destinationFolder The folder where to move it
+     */
+    private void moveFile(File inputFile, File destinationFolder) {
+
+        if (!destinationFolder.exists()) {
+            if (!options.dryRun) {
+                destinationFolder.mkdirs();
+            }
+            logger.getLogger().fine(String.format("- Created folder '%s'.", destinationFolder.getAbsolutePath()));
+        }
+
+        try {
+            if (!options.dryRun) {
+                Files.move(inputFile.toPath(), destinationFolder.toPath().resolve(inputFile.getName()));
+            }
+            logger.getLogger().fine(String.format("- File '%s' moved to '%s'.",
+                                                  inputFile.getName(),
+                                                  destinationFolder));
+        } catch (IOException e) {
+            logger.getLogger().severe(String.format(" - Error: %s", e.getMessage()));
+        }
+
     }
 
     private String replaceWordsSeparatorsInFileNameFragment(String fileName) {
@@ -101,30 +209,6 @@ class Mover {
                 replace(".", config.tvShowsWordsSeparatorShow);
     }
 
-//    private String getFileExtension(String fileName) {
-//
-//        String extension = "";
-//
-//        int i = fileName.lastIndexOf('.');
-//        if (i > 0) {
-//            extension = fileName.substring(i + 1);
-//        }
-//
-//        return extension;
-//    }
-//
-//    private String getFilenameWithoutExtension(String fileName) {
-//
-//        String extension = getFileExtension(fileName);
-//
-//        if (extension.isEmpty()) {
-//            return fileName;
-//        }
-//
-//        return fileName.substring(0, fileName.length() - extension.length() - 1);
-//
-//    }
-
     /**
      * Find all the possible destinations for a file.
      *
@@ -137,8 +221,8 @@ class Mover {
 
         for (Map outputFolder : config.outputFolders) {
             if (outputFolder.get("contents").equals(fileClassification.name)) {
-                logger.getLogger().fine(String.format("- Suitable destination folder found: '%s'.", outputFolder.get
-                        ("path")));
+                logger.getLogger().fine(
+                        String.format("- Suitable destination folder found: '%s'.", outputFolder.get("path")));
 
                 destinations.add(outputFolder);
             }

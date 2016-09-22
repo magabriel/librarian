@@ -10,16 +10,17 @@
 package com.mags.librarian;
 
 import com.mags.librarian.config.Config;
-import com.mags.librarian.config.ConfigAdaptor;
-import com.mags.librarian.config.ConfigLoader;
 import com.mags.librarian.config.ConfigReader;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
-import java.nio.file.Files;
+import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -43,9 +44,16 @@ public class ProcessorTest {
         executionFolder.delete();
         executionFolder.mkdir();
 
+        // base execution path
         executionPath = executionFolder.getAbsolutePath();
 
-        inputPath = new File("src/test/resources/functional/input").getAbsolutePath();
+        // copy the input folder to the execution folder
+        File sourceInputpath = new File("src/test/resources/functional/input");
+        File inputPathFolder = new File(executionPath + "/input");
+        copyFolder(sourceInputpath.toPath(), inputPathFolder.toPath());
+
+        // set all the paths
+        inputPath = inputPathFolder.getAbsolutePath();
         outputPath = new File(executionPath + "/output").getAbsolutePath();
         expectedPath = new File("src/test/resources/functional/expected").getAbsolutePath();
 
@@ -57,6 +65,37 @@ public class ProcessorTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
+
+    }
+
+    /**
+     * Copy one folder to another destination.
+     *
+     * @param sourcePath
+     * @param targetPath
+     * @throws IOException
+     */
+    private static void copyFolder(Path sourcePath, Path targetPath) throws IOException {
+
+        Files.walkFileTree(sourcePath, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult preVisitDirectory(
+                    final Path dir,
+                    final BasicFileAttributes attrs) throws IOException {
+
+                Files.createDirectories(targetPath.resolve(sourcePath.relativize(dir)));
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(
+                    final Path file,
+                    final BasicFileAttributes attrs) throws IOException {
+
+                Files.copy(file, targetPath.resolve(sourcePath.relativize(file)));
+                return FileVisitResult.CONTINUE;
+            }
+        });
     }
 
     @Test
@@ -86,9 +125,18 @@ public class ProcessorTest {
             folder.put("path", newPath);
         }
 
+        // make ignore and error folders relative to the temp directory
+        if (!config.unknownFilesMovePath.isEmpty()) {
+            config.unknownFilesMovePath = Paths.get(outputPath, config.unknownFilesMovePath).toString();
+        }
+
+        if (!config.errorFilesMovePath.isEmpty()) {
+            config.errorFilesMovePath = Paths.get(outputPath, config.errorFilesMovePath).toString();
+        }
+
         // set options
         Options options = new Options();
-        options.copyOnly = true;
+        options.copyOnly = false;
         options.rssFileName = executionPath + "/librarian.rss";
 
         // execute
@@ -96,17 +144,28 @@ public class ProcessorTest {
         proc.run();
 
         // get actual output files
-        ArrayList<File> outputFiles = collectFiles(outputdDir);
-        ArrayList<String> outputFilePaths = relativizePaths(outputFiles, outputdDir.getAbsolutePath());
+        List<File> outputFiles = collectFiles(outputdDir);
+        List<String> outputFilePaths = relativizePaths(outputFiles, outputdDir.getAbsolutePath());
         outputFilePaths.sort(String::compareTo);
 
         // and expected files
         File expectedDir = new File(expectedPath);
-        ArrayList<File> expectedFiles = collectFiles(expectedDir);
-        ArrayList<String> expectedFilePaths = relativizePaths(expectedFiles, expectedDir.getAbsolutePath());
+        List<File> expectedFiles = collectFiles(expectedDir);
+        List<String> expectedFilePaths = relativizePaths(expectedFiles, expectedDir.getAbsolutePath());
         expectedFilePaths.sort(String::compareTo);
 
-        assertArrayEquals("All files moved", expectedFilePaths.toArray(), outputFilePaths.toArray());
+        // get input files (after) to check everything moved
+        File inputFoldersDir = new File(inputPath + "/inputfolders");
+        List<File> inputFilesAfter = collectFiles(inputFoldersDir);
+        List<String> inputFilePathsAfter = relativizePaths(inputFilesAfter, inputFoldersDir.getAbsolutePath());
+        inputFilePathsAfter.sort(String::compareTo);
+
+        // get input folders' subfolders (after) to check everything moved
+        List<File> inputSubfoldersAfter = collectSubfoldersOfInputFolders(config.inputFolders);
+
+        assertArrayEquals("All files moved to output", expectedFilePaths.toArray(), outputFilePaths.toArray());
+        assertArrayEquals("All files removed from input", new String[0], inputFilePathsAfter.toArray());
+        assertArrayEquals("All subfolders removed from input", new String[0], inputSubfoldersAfter.toArray());
 
         assertTrue("RSS file created", Files.exists(executionFolder.toPath().resolve("librarian.rss")));
         assertTrue("Log file created", Files.exists(executionFolder.toPath().resolve("librarian.log")));
@@ -114,7 +173,7 @@ public class ProcessorTest {
         logger.getLogger().log(Level.INFO, "Ended functional test");
     }
 
-    private ArrayList<String> relativizePaths(ArrayList<File> outputFiles, String absolutePath) {
+    private ArrayList<String> relativizePaths(List<File> outputFiles, String absolutePath) {
 
         ArrayList<String> files = new ArrayList<>();
 
@@ -128,21 +187,57 @@ public class ProcessorTest {
      *
      * @return List of files.
      */
-    private ArrayList<File> collectFiles(File inputFolder) {
+    private List<File> collectFiles(File inputFolder) {
 
-        ArrayList<File> inputFiles = new ArrayList<>();
+        ArrayList<File> allFiles = new ArrayList<>();
 
         File[] files = inputFolder.listFiles();
         if (files != null) {
             for (File file : files) {
                 if (file.isDirectory()) {
-                    inputFiles.addAll(collectFiles(file));
+                    allFiles.addAll(collectFiles(file));
                 } else {
-                    inputFiles.add(file);
+                    allFiles.add(file);
                 }
             }
         }
 
-        return inputFiles;
+        return allFiles;
     }
+
+    private List<File> collectSubfoldersOfInputFolders(String[] inputFolders) {
+
+        List<File> allSubFolders = new ArrayList<>();
+
+        for (String inputFolder : inputFolders) {
+            allSubFolders.addAll(collectFolders(new File(inputFolder)));
+        }
+
+        return allSubFolders;
+    }
+
+    /**
+     * Construct a list of folders in the folder
+     *
+     * @return List of folders.
+     */
+    private List<File> collectFolders(File inputFolder) {
+
+        List<File> allFolders = new ArrayList<>();
+
+        File[] files = inputFolder.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (!file.isDirectory()) {
+                    allFolders.addAll(collectFolders(file));
+                } else {
+                    allFolders.add(file);
+                }
+            }
+        }
+
+        return allFolders;
+    }
+
+
 }

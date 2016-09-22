@@ -37,13 +37,21 @@ public class ConfigTest {
 
         Config config = new Config();
 
-        // contentTypes
-        List<Map> contentTypes = new ArrayList<>();
-        LinkedHashMap<String, String> contenTypesItems = new LinkedHashMap<>();
-        contenTypesItems.put("contenTypes.key.1", "contenTypes.value.1");
-        contenTypesItems.put("contenTypes.key.2", "contenTypes.value.2");
-        contentTypes.add(contenTypesItems);
-        config.contentTypes = contentTypes.toArray(new Map[0]);
+        // extensions
+        List<Map> extensions = new ArrayList<>();
+        LinkedHashMap<String, String> extensionsItems = new LinkedHashMap<>();
+        extensionsItems.put("extensions.key.1", "extensions.value.1");
+        extensionsItems.put("extensions.key.2", "extensions.value.2");
+        extensions.add(extensionsItems);
+        config.extensions = extensions.toArray(new Map[0]);
+
+        // filters
+        List<Map> filters = new ArrayList<>();
+        LinkedHashMap<String, String> filterItems= new LinkedHashMap<>();
+        filterItems.put("filters.key.1", "filters.value.1");
+        filterItems.put("filters.key.2", "filters.value.2");
+        filters.add(filterItems);
+        config.filters = filters.toArray(new Map[0]);
 
         // inputFolders
         config.inputFolders = new String[]{
@@ -68,13 +76,15 @@ public class ConfigTest {
 
         Config config = new Config();
 
-        // contentTypes
-        List<Map> contentTypes = new ArrayList<>();
-        LinkedHashMap<String, String> contenTypesItems = new LinkedHashMap<>();
-        contenTypesItems.put("contenTypes.key.1", "contenTypes.value.1b");
-        contenTypesItems.put("contenTypes.key.3", "contenTypes.value.3");
-        contentTypes.add(contenTypesItems);
-        config.contentTypes = contentTypes.toArray(new Map[0]);
+        // extensions
+        List<Map> extensions = new ArrayList<>();
+        LinkedHashMap<String, String> extensionsItems = new LinkedHashMap<>();
+        extensionsItems.put("extensions.key.1", "extensions.value.1b");
+        extensionsItems.put("extensions.key.3", "extensions.value.3");
+        extensions.add(extensionsItems);
+        config.extensions = extensions.toArray(new Map[0]);
+
+        // filters not provided
 
         // inputFolders not provided
 
@@ -83,7 +93,7 @@ public class ConfigTest {
         LinkedHashMap<String, String> outputFoldersItems = new LinkedHashMap<>();
         outputFoldersItems.put("outputFolders.key.1", "outputFolders.value.1b");
         outputFoldersItems.put("outputFolders.key.3", "outputFolders.value.3");
-        contentTypes.add(outputFoldersItems);
+        outputFolders.add(outputFoldersItems);
         config.outputFolders = outputFolders.toArray(new Map[0]);
 
         // tvShowsNumberingSchema not provided
@@ -100,13 +110,21 @@ public class ConfigTest {
 
         Config config = new Config();
 
-        // contentTypes
-        List<Map> contentTypes = new ArrayList<>();
-        LinkedHashMap<String, String> contenTypesItems = new LinkedHashMap<>();
-        contenTypesItems.put("contenTypes.key.1", "contenTypes.value.1b");
-        contenTypesItems.put("contenTypes.key.3", "contenTypes.value.3");
-        contentTypes.add(contenTypesItems);
-        config.contentTypes = contentTypes.toArray(new Map[0]);
+        // extensions
+        List<Map> extensions = new ArrayList<>();
+        LinkedHashMap<String, String> extensionsItems = new LinkedHashMap<>();
+        extensionsItems.put("extensions.key.1", "extensions.value.1b");
+        extensionsItems.put("extensions.key.3", "extensions.value.3");
+        extensions.add(extensionsItems);
+        config.extensions = extensions.toArray(new Map[0]);
+
+        // filters
+        List<Map> filters = new ArrayList<>();
+        LinkedHashMap<String, String> filterItems= new LinkedHashMap<>();
+        filterItems.put("filters.key.1", "filters.value.1");
+        filterItems.put("filters.key.2", "filters.value.2");
+        filters.add(filterItems);
+        config.filters = filters.toArray(new Map[0]);
 
         // inputFolders
         config.inputFolders = new String[]{
@@ -119,7 +137,7 @@ public class ConfigTest {
         LinkedHashMap<String, String> outputFoldersItems = new LinkedHashMap<>();
         outputFoldersItems.put("outputFolders.key.1", "outputFolders.value.1b");
         outputFoldersItems.put("outputFolders.key.3", "outputFolders.value.3");
-        contentTypes.add(outputFoldersItems);
+        outputFolders.add(outputFoldersItems);
         config.outputFolders = outputFolders.toArray(new Map[0]);
 
         // tvShowsNumberingSchema
