@@ -34,19 +34,32 @@ public class ConfigAdaptor {
 
         config.include = loader.getValueString("include", "");
 
-        config.contentTypes = loader.getValueListMap("config.content_types").toArray(new Map[0]);
+        config.extensions = loader.getValueListMap("config.extensions").toArray(new Map[0]);
+        config.filters = loader.getValueListMap("config.filters").toArray(new Map[0]);
+        config.contentClasses = loader.getValueListMap("config.content_classes").toArray(new Map[0]);
+
+        config.unknownFilesAction = Config.FilesAction.valueOf(
+                loader.getValueString("config.unknown_files.action",
+                                      config.unknownFilesAction.toString()).toUpperCase());
+        config.unknownFilesMovePath =
+                loader.getValueString("config.unknown_files.move_path",
+                                                            config.unknownFilesMovePath);
 
         config.tvShowsNumberingSchema =
-                loader.getValueString("config.tvshows.numbering_schema", config.tvShowsNumberingSchema);
+                loader.getValueString("config.tvshows.numbering_schema",
+                                      config.tvShowsNumberingSchema);
 
         config.tvShowsSeasonSchema =
-                loader.getValueString("config.tvshows.season_schema", config.tvShowsSeasonSchema);
+                loader.getValueString("config.tvshows.season_schema",
+                                      config.tvShowsSeasonSchema);
 
         config.tvShowsWordsSeparatorShow =
-                loader.getValueString("config.tvshows.words_separator.show", config.tvShowsWordsSeparatorShow);
+                loader.getValueString("config.tvshows.words_separator.show",
+                                      config.tvShowsWordsSeparatorShow);
 
         config.tvShowsWordsSeparatorFile =
-                loader.getValueString("config.tvshows.words_separator.file", config.tvShowsWordsSeparatorFile);
+                loader.getValueString("config.tvshows.words_separator.file",
+                                      config.tvShowsWordsSeparatorFile);
 
         config.inputFolders = loader.getValueListStrings("input.folders").toArray(new String[0]);
         config.outputFolders = loader.getValueListMap("output.folders").toArray(new Map[0]);

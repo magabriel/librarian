@@ -13,6 +13,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.List;
+
 import static org.junit.Assert.*;
 
 public class FileMatcherTest {
@@ -52,7 +55,11 @@ public class FileMatcherTest {
 
         Criterium criterium = new Criterium();
         criterium.name = "tvshows";
-        criterium.regExp = "(?<name>.+)S(?<season>[0-9]{1,2})E(?<episode>[0-9]{1,3})(?<rest>.*)";
+
+        criterium.extensions = Arrays.asList("avi", "mkv").toArray(new String[0]);
+        criterium.filters = Arrays.asList(
+                "(?<name>.+)S(?<season>[0-9]{1,2})E(?<episode>[0-9]{1,3})(?<rest>.*)"
+        ).toArray(new String[0]);
 
         Classification expected = new Classification();
         expected.fileName = "A.TV.Show.S01E02.mkv";
@@ -67,11 +74,31 @@ public class FileMatcherTest {
     }
 
     @Test
+    public void doesNotMatchTVShowBecauseOfExtension() throws Exception {
+
+        Criterium criterium = new Criterium();
+        criterium.name = "tvshows";
+
+        criterium.extensions = Arrays.asList("avi", "mkv").toArray(new String[0]);
+        criterium.filters = Arrays.asList(
+                "(?<name>.+)S(?<season>[0-9]{1,2})E(?<episode>[0-9]{1,3})(?<rest>.*)"
+        ).toArray(new String[0]);
+
+        Classification expected = new Classification();
+
+        assertEquals(expected, FileMatcher.matchTVShow(expected.fileName, criterium));
+    }
+
+    @Test
     public void matchTVShowSeasonXTwoFigures() throws Exception {
 
         Criterium criterium = new Criterium();
         criterium.name = "tvshows";
-        criterium.regExp = "(?<name>.+(?:[^\\p{Alnum}]))(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)";
+
+        criterium.extensions = Arrays.asList("avi", "mkv").toArray(new String[0]);
+        criterium.filters = Arrays.asList(
+                "(?<name>.+(?:[^\\p{Alnum}]))(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)"
+        ).toArray(new String[0]);
 
         Classification expected = new Classification();
         expected.fileName = "A.TV.Show.70x02.mkv";
@@ -90,7 +117,11 @@ public class FileMatcherTest {
 
         Criterium criterium = new Criterium();
         criterium.name = "tvshows";
-        criterium.regExp = "(?<name>.+)S(?<season>[0-9]{1,2})E(?<episode>[0-9]{1,3})(?<rest>.*)";
+
+        criterium.extensions = Arrays.asList("avi", "mkv").toArray(new String[0]);
+        criterium.filters = Arrays.asList(
+                "(?<name>.+)S(?<season>[0-9]{1,2})E(?<episode>[0-9]{1,3})(?<rest>.*)"
+        ).toArray(new String[0]);
 
         Classification expected = new Classification();
         expected.fileName = "A TV Show - S01E02 - The title.mkv";
@@ -107,6 +138,7 @@ public class FileMatcherTest {
 
     @Test
     public void matchRegExp() throws Exception {
+
         assertTrue(FileMatcher.matchRegExp("a.song.mp3", "\\.mp3|\\.ogg|music|album|disco|cdrip'"));
     }
 }

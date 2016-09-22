@@ -13,6 +13,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.Arrays;
 
 import static org.junit.Assert.*;
 
@@ -24,10 +25,14 @@ public class ClassifierTest {
     public static void setUpBeforeClass() throws Exception {
 
         classifier = new Classifier();
-        classifier.addCriterium("videos", "\\.avi$|\\.mkv$");
-        classifier.addCriterium("music", "\\.mp3$|\\.ogg");
-        classifier.addCriterium("tvshows", "(?<name>.+)S(?<season>[0-9]{1,2})E(?<episode>[0-9]{1,3})(?<rest>.*)");
-        classifier.addCriterium("tvshows", "(?<name>.+)(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)");
+        classifier.addCriterium("videos", new String[]{"avi", "mkv"}, new String[]{});
+        classifier.addCriterium("music", new String[]{"mp3", "ogg"}, new String[]{});
+        classifier.addCriterium("tvshows",
+                                new String[]{"avi", "mkv"},
+                                new String[]{"(?<name>.+)S(?<season>[0-9]{1,3})E(?<episode>[0-9]{1,3})(?<rest>.*)"});
+        classifier.addCriterium("tvshows",
+                                new String[]{"avi", "mkv"},
+                                new String[]{"(?<name>.+)(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)"});
     }
 
     @Test
@@ -35,12 +40,18 @@ public class ClassifierTest {
 
         Classification expected = new Classification();
         expected.name = "videos";
+        expected.fileName = "test1.avi";
+        expected.baseName = "test1";
         expected.extension = "avi";
         assertEquals(expected, classifier.classify(new File("test1.avi"), new File("/music")));
 
+        expected.fileName = "test2.mkv";
+        expected.baseName = "test2";
         expected.extension = "mkv";
         assertEquals(expected, classifier.classify(new File("test2.mkv"), new File("/music")));
 
+        expected.fileName = "test3.mp3";
+        expected.baseName = "test3";
         expected.extension = "mp3";
         assertNotEquals(expected, classifier.classify(new File("test3.mp3"), new File("/music")));
     }
