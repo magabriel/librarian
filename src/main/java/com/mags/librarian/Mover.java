@@ -15,9 +15,12 @@ import com.mags.librarian.config.Config;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -28,6 +31,7 @@ class Mover {
     private final Config config;
     private final Log logger;
     private final Options options;
+    private boolean isDuplicated = false;
 
     // for testing purposes
     private String actionPerformed = "";
@@ -54,22 +58,24 @@ class Mover {
         // find all suitable destinations for this file
         ArrayList<Map> suitableDestinations = findSuitableDestinations(fileClassification);
 
-        // if it is a tvshow, move it (special treatment)
         if (fileClassification.name.equals("tvshows")) {
+            // if it is a tvshow, move it (special treatment)
             moveTvShowToDestination(inputFile, fileClassification, suitableDestinations);
-            return;
-        }
 
-        // if it is a music file, move it (special treatment)
-        if (fileClassification.name.equals("music")) {
+        } else if (fileClassification.name.equals("music")) {
+            // if it is a music file, move it (special treatment)
             moveMusicToDestination(inputFile, fileClassification, suitableDestinations);
-            return;
+
+        } else {
+            // move other file
+            moveRegularFileToDestination(inputFile, suitableDestinations);
         }
 
-        // move other file
-        moveRegularFileToDestination(inputFile, suitableDestinations);
-
-        if (this.actionPerformed.isEmpty()) {
+        if (actionPerformed.isEmpty()) {
+            if (isDuplicated) {
+                processDuplicateFile(inputFile);
+                return;
+            }
             processErroredFile(inputFile);
         }
     }
@@ -83,7 +89,7 @@ class Mover {
 
         switch (config.unknownFilesAction) {
             case IGNORE:
-                logger.getLogger().fine(String.format("- File '%s' ignored (left in place).", inputFile.getName()));
+                logger.getLogger().warning(String.format("- File '%s' ignored (left in place).", inputFile.getName()));
                 break;
 
             case DELETE:
@@ -92,12 +98,43 @@ class Mover {
 
             case MOVE:
                 if (config.unknownFilesMovePath.isEmpty()) {
-                    logger.getLogger().warning(String.format("- Unknown files move path is empty, cannot move file '%s'.",
-                                                             inputFile.getName()));
+                    logger.getLogger().warning(
+                            String.format("- Unknown files move path is empty, cannot move file '%s'.",
+                                          inputFile.getName()));
                     return;
                 }
 
-                moveFile(inputFile, new File(config.unknownFilesMovePath));
+                moveFile(inputFile, new File(config.unknownFilesMovePath), true);
+                break;
+        }
+
+    }
+
+    /**
+     * Process a duplicate file.
+     *
+     * @param inputFile The file.
+     */
+    private void processDuplicateFile(File inputFile) {
+
+        switch (config.duplicateFilesAction) {
+            case IGNORE:
+                logger.getLogger().warning(String.format("- File '%s' ignored (left in place).", inputFile.getName()));
+                break;
+
+            case DELETE:
+                deleteFile(inputFile);
+                break;
+
+            case MOVE:
+                if (config.duplicateFilesMovePath.isEmpty()) {
+                    logger.getLogger().warning(
+                            String.format("- Duplicate files move path is empty, cannot move file '%s'.",
+                                          inputFile.getName()));
+                    return;
+                }
+
+                moveFile(inputFile, new File(config.duplicateFilesMovePath), true);
                 break;
         }
 
@@ -112,7 +149,7 @@ class Mover {
 
         switch (config.errorFilesAction) {
             case IGNORE:
-                logger.getLogger().fine(String.format("- File '%s' ignored (left in place).", inputFile.getName()));
+                logger.getLogger().warning(String.format("- File '%s' ignored (left in place).", inputFile.getName()));
                 break;
 
             case DELETE:
@@ -126,7 +163,7 @@ class Mover {
                     return;
                 }
 
-                moveFile(inputFile, new File(config.errorFilesMovePath));
+                moveFile(inputFile, new File(config.errorFilesMovePath), true);
                 break;
         }
 
@@ -145,7 +182,7 @@ class Mover {
             }
             logger.getLogger().fine(String.format("- File '%s' deleted.", inputFile.getName()));
         } catch (IOException e) {
-            logger.getLogger().warning(String.format(" - Error: %s", e.getMessage()));
+            logger.getLogger().warning(String.format("- Error deleting file: %s", e));
         }
 
     }
@@ -156,7 +193,7 @@ class Mover {
      * @param inputFile         The file to move
      * @param destinationFolder The folder where to move it
      */
-    private void moveFile(File inputFile, File destinationFolder) {
+    private void moveFile(File inputFile, File destinationFolder, boolean autoRenameIfExisting) {
 
         if (!destinationFolder.exists()) {
             if (!options.dryRun) {
@@ -166,14 +203,20 @@ class Mover {
         }
 
         try {
+            Path destination = destinationFolder.toPath().resolve(inputFile.getName());
+            if (Files.exists(destination)) {
+                String time = String.valueOf(new Date().getTime());
+                destination = destinationFolder.toPath().resolve(inputFile.getName() + '-' + time);
+            }
+
             if (!options.dryRun) {
-                Files.move(inputFile.toPath(), destinationFolder.toPath().resolve(inputFile.getName()));
+                Files.move(inputFile.toPath(), destination);
             }
             logger.getLogger().fine(String.format("- File '%s' moved to '%s'.",
                                                   inputFile.getName(),
                                                   destinationFolder));
         } catch (IOException e) {
-            logger.getLogger().severe(String.format(" - Error: %s", e.getMessage()));
+            logger.getLogger().severe(String.format("- Error moving file: %s", e));
         }
 
     }
@@ -511,12 +554,24 @@ class Mover {
                 summary.action = "move";
             }
 
+        } catch (FileAlreadyExistsException e) {
+
+            isDuplicated = true;
+
+            String msg = "- Cannot move already existing file '%s' to '%s': %s";
+            if (options.copyOnly) {
+                msg = "- Cannot copy already existing file '%s' to '%s': %s";
+            }
+            logger.getLogger().severe(String.format(msg,
+                                                    inputFile.getName(),
+                                                    destinationFolder.getAbsolutePath(),
+                                                    e.toString()));
         } catch (IOException e) {
+
             String msg = "- Cannot move file '%s' to '%s': %s";
             if (options.copyOnly) {
-                msg = "- Cannot move file '%s' to '%s': %s";
+                msg = "- Cannot copy file '%s' to '%s': %s";
             }
-
             logger.getLogger().severe(String.format(msg,
                                                     inputFile.getName(),
                                                     destinationFolder.getAbsolutePath(),

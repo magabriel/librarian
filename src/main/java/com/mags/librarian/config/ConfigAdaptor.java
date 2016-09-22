@@ -39,11 +39,25 @@ public class ConfigAdaptor {
         config.contentClasses = loader.getValueListMap("config.content_classes").toArray(new Map[0]);
 
         config.unknownFilesAction = Config.FilesAction.valueOf(
-                loader.getValueString("config.unknown_files.action",
+                loader.getValueString("config.errors.unknown_files.action",
                                       config.unknownFilesAction.toString()).toUpperCase());
         config.unknownFilesMovePath =
-                loader.getValueString("config.unknown_files.move_path",
-                                                            config.unknownFilesMovePath);
+                loader.getValueString("config.errors.unknown_files.move_path",
+                                      config.unknownFilesMovePath);
+
+        config.duplicateFilesAction = Config.FilesAction.valueOf(
+                loader.getValueString("config.errors.duplicate_files.action",
+                                      config.duplicateFilesAction.toString()).toUpperCase());
+        config.duplicateFilesMovePath =
+                loader.getValueString("config.errors.duplicate_files.move_path",
+                                      config.duplicateFilesMovePath);
+
+        config.errorFilesAction = Config.FilesAction.valueOf(
+                loader.getValueString("config.errors.error_files.action",
+                                      config.errorFilesAction.toString()).toUpperCase());
+        config.errorFilesMovePath =
+                loader.getValueString("config.errors.error_files.move_path",
+                                      config.errorFilesMovePath);
 
         config.tvShowsNumberingSchema =
                 loader.getValueString("config.tvshows.numbering_schema",

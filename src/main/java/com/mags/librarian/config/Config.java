@@ -33,6 +33,7 @@ public class Config {
     final static String DEFAULT_WORDS_SEPARATOR_FILE = "_";
     final static FilesAction DEFAULT_UNKNOWN_FILES_ACTION = FilesAction.IGNORE;
     final static FilesAction DEFAULT_ERROR_FILES_ACTION = FilesAction.IGNORE;
+    final static FilesAction DEFAULT_DUPLICATE_FILES_ACTION = FilesAction.IGNORE;
 
     /*
      * Fields
@@ -44,7 +45,9 @@ public class Config {
     public Map<String, Map>[] contentClasses = new Map[]{};
     public FilesAction unknownFilesAction = DEFAULT_UNKNOWN_FILES_ACTION;
     public String unknownFilesMovePath = "";
-    public FilesAction errorFilesAction = DEFAULT_UNKNOWN_FILES_ACTION;
+    public FilesAction duplicateFilesAction = DEFAULT_DUPLICATE_FILES_ACTION;
+    public String duplicateFilesMovePath = "";
+    public FilesAction errorFilesAction = DEFAULT_ERROR_FILES_ACTION;
     public String errorFilesMovePath = "";
 
     public String[] inputFolders = new String[]{};
@@ -65,6 +68,8 @@ public class Config {
                 ", contentClasses=" + Arrays.toString(contentClasses) +
                 ", unknownFilesAction=" + unknownFilesAction +
                 ", unknownFilesMovePath=" + unknownFilesMovePath +
+                ", duplicateFilesAction=" + duplicateFilesAction +
+                ", duplicateFilesMovePath=" + duplicateFilesMovePath +
                 ", errorFilesAction=" + errorFilesAction +
                 ", errorFilesMovePath=" + errorFilesMovePath +
                 ", inputFolders=" + Arrays.toString(inputFolders) +
@@ -104,7 +109,15 @@ public class Config {
             unknownFilesMovePath = otherConfig.unknownFilesMovePath;
         }
 
-        if (!otherConfig.errorFilesAction.equals(DEFAULT_UNKNOWN_FILES_ACTION)) {
+        if (!otherConfig.duplicateFilesAction.equals(DEFAULT_DUPLICATE_FILES_ACTION)) {
+            duplicateFilesAction = otherConfig.duplicateFilesAction;
+        }
+
+        if (!otherConfig.duplicateFilesMovePath.isEmpty()) {
+            duplicateFilesMovePath = otherConfig.duplicateFilesMovePath;
+        }
+
+        if (!otherConfig.errorFilesAction.equals(DEFAULT_ERROR_FILES_ACTION)) {
             errorFilesAction = otherConfig.errorFilesAction;
         }
 

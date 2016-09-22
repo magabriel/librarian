@@ -105,14 +105,19 @@ config:
       show: "_"
       file: "_"
 
-  unknown_files:
-    action: ignore # ignore, move, delete
-    move_path: unknown
+  errors:
+    unknown_files:
+      action: move # ignore, move, delete
+      move_path: unknown
 
-  error_files:
-    action: ignore # ignore, move, delete
-    move_path: errors
+    duplicate_files:
+      action: move # ignore, move, delete
+      move_path: duplicates
 
+    error_files:
+      action: move # ignore, move, delete
+      move_path: errors
+      
 input:
   folders:
     - /my/input/folder1
@@ -164,10 +169,13 @@ output:
 - `config.tvshows.words_separator`: Contains the characters that will be used to replace word separators in show folders 
    and the episode file itself.
 
-- `unknown_files`: Define what to do with unrecognized files. The default action is `ignore`, so they will be left in 
-   the input folder. Action `move` will move them to the `move_path` while action `delete` will delete them.
-   
-- `error_files`: Same as `unknown_files` for files with processing errors.
+- `config.errors.unknown_files`: Define what to do with unrecognized files. The default action is `ignore`, so they 
+   will be left in the input folder. Action `move` will move them to the `move_path` while action `delete` will delete 
+   them.
+
+- `config.duplicate.error_files`: Same as `unknown_files` for files with duplicate files errors.
+
+- `config.errors.error_files`: Same as `unknown_files` for files with processing errors.
 
 - `input.folders`: A list of paths to one or more input folders (i.e. where the input file will be found).
 

@@ -21,7 +21,7 @@ import java.util.logging.Level;
 public class Main {
 
     private static final String NAME = "librarian";
-    private static final String VERSION = "0.3";
+    private static final String VERSION = "0.3.1";
     private static final String COPYRIGHT = "(C) magabriel@gmail.com";
 
     private static final String CONFIG_FILE = "librarian.yml";

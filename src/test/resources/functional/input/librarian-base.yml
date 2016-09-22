@@ -31,13 +31,18 @@ config:
     words_separator:
       file: "@"
 
-  unknown_files:
-    action: move # ignore, move, delete
-    move_path: unknown
+  errors:
+    unknown_files:
+      action: move # ignore, move, delete
+      move_path: unknown
 
-  error_files:
-    action: move # ignore, move, delete
-    move_path: errors
+    duplicate_files:
+      action: move # ignore, move, delete
+      move_path: duplicates
+
+    error_files:
+      action: move # ignore, move, delete
+      move_path: errors
 
 input:
   folders:

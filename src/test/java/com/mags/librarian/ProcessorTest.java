@@ -125,9 +125,13 @@ public class ProcessorTest {
             folder.put("path", newPath);
         }
 
-        // make ignore and error folders relative to the temp directory
+        // make ignore, duplicates and error folders relative to the temp directory
         if (!config.unknownFilesMovePath.isEmpty()) {
             config.unknownFilesMovePath = Paths.get(outputPath, config.unknownFilesMovePath).toString();
+        }
+
+        if (!config.duplicateFilesMovePath.isEmpty()) {
+            config.duplicateFilesMovePath = Paths.get(outputPath, config.duplicateFilesMovePath).toString();
         }
 
         if (!config.errorFilesMovePath.isEmpty()) {
