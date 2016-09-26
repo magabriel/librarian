@@ -73,7 +73,7 @@ configuration file will be created in the current folder.
 ~~~YAML
 config:
   extensions:
-    - video: [avi, mpeg, mpg, mov, wmv, mp4, m4v, mkv]
+    - video: [avi, mpeg, mpg, mov, wmv, mp4, m4v, mkv, srt, sub]
     - audio: [mp3, ogg]
     - book:  [pdf, epub, fb2, mobi, azw]
 
@@ -108,15 +108,15 @@ config:
   errors:
     unknown_files:
       action: move # ignore, move, delete
-      move_path: unknown
+      move_path: /my/errors/folder/unknown
 
     duplicate_files:
       action: move # ignore, move, delete
-      move_path: duplicates
+      move_path: /my/errors/folder/duplicates
 
     error_files:
       action: move # ignore, move, delete
-      move_path: errors
+      move_path: /my/errors/folder/errors
       
 input:
   folders:
