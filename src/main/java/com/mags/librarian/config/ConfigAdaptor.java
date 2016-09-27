@@ -75,6 +75,14 @@ public class ConfigAdaptor {
                 loader.getValueString("config.tvshows.words_separator.file",
                                       config.tvShowsWordsSeparatorFile);
 
+        config.executeSuccess =
+                loader.getValueString("config.execute.success",
+                                      config.executeSuccess);
+
+        config.executeError=
+                loader.getValueString("config.execute.error",
+                                      config.executeError);
+
         config.inputFolders = loader.getValueListStrings("input.folders").toArray(new String[0]);
         config.outputFolders = loader.getValueListMap("output.folders").toArray(new Map[0]);
 

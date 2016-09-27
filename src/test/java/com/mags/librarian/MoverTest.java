@@ -11,6 +11,7 @@ package com.mags.librarian;
 
 import com.mags.librarian.classifier.Classification;
 import com.mags.librarian.config.Config;
+import com.mags.librarian.event.EventDispatcher;
 import org.junit.*;
 
 import java.io.File;
@@ -24,9 +25,11 @@ public class MoverTest {
 
     private static Mover mover;
     private static Log logger;
+    private static EventDispatcher eventDispatcher;
 
     @Before
     public void setUp() throws Exception {
+        eventDispatcher = getEventDispatcher();
         mover = getMover();
     }
 
@@ -78,7 +81,12 @@ public class MoverTest {
         Config config = setUpConfig();
 
         logger = new Log(System.getProperty("java.io.tmpdir") + "/librarian.log");
-        return new Mover(options, config, logger);
+        return new Mover(options, config, logger, eventDispatcher);
+    }
+
+    private static EventDispatcher getEventDispatcher() {
+
+        return new EventDispatcher();
     }
 
     private static Config setUpConfig() {

@@ -12,6 +12,7 @@ package com.mags.librarian;
 import com.mags.librarian.classifier.Classification;
 import com.mags.librarian.classifier.FileMatcher;
 import com.mags.librarian.config.Config;
+import com.mags.librarian.event.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,17 +32,19 @@ class Mover {
     private final Config config;
     private final Log logger;
     private final Options options;
+    private final EventDispatcher eventDispatcher;
     private boolean isDuplicated = false;
 
     // for testing purposes
     private String actionPerformed = "";
     private Summary summary;
 
-    Mover(Options options, Config config, Log logger) {
+    Mover(Options options, Config config, Log logger, EventDispatcher eventDispatcher) {
 
         this.options = options;
         this.config = config;
         this.logger = logger;
+        this.eventDispatcher = eventDispatcher;
     }
 
     /**
@@ -71,13 +74,26 @@ class Mover {
             moveRegularFileToDestination(inputFile, suitableDestinations);
         }
 
-        if (actionPerformed.isEmpty()) {
-            if (isDuplicated) {
-                processDuplicateFile(inputFile);
-                return;
-            }
-            processErroredFile(inputFile);
+        if (!actionPerformed.isEmpty()) {
+            // notify listener
+            FileProcessedEventData eventData = new FileProcessedEventData();
+            eventData.inputFolder = summary.inputFolder;
+            eventData.inputFilename = summary.inputFilename;
+            eventData.outputFolder = summary.outputFolder;
+            eventData.outputFilename = summary.outputFilename;
+            eventData.fileClassification = fileClassification;
+            eventData.action = summary.action;
+            eventData.actionPerformed = actionPerformed;
+            eventDispatcher.fireEvent(Event.FILE_PROCESSED, eventData);
+            return;
         }
+
+        if (isDuplicated) {
+            processDuplicateFile(inputFile);
+            return;
+        }
+
+        processErroredFile(inputFile);
     }
 
     /**
@@ -87,13 +103,21 @@ class Mover {
      */
     public void processUnknownFile(File inputFile) {
 
+        actionPerformed = "";
+        summary = new Summary();
+
+        summary.inputFilename = inputFile.getName();
+        summary.inputFolder = inputFile.getParent();
+
         switch (config.unknownFilesAction) {
             case IGNORE:
                 logger.getLogger().warning(String.format("- File '%s' ignored (left in place).", inputFile.getName()));
+                summary.action = "ignore";
                 break;
 
             case DELETE:
                 deleteFile(inputFile);
+                summary.action = "delete";
                 break;
 
             case MOVE:
@@ -105,9 +129,19 @@ class Mover {
                 }
 
                 moveFile(inputFile, new File(config.unknownFilesMovePath), true);
+                summary.outputFolder = config.unknownFilesMovePath;
+                summary.action = "move";
                 break;
         }
 
+        // notify listeners
+        FileUnknownEventData eventData = new FileUnknownEventData();
+        eventData.inputFolder = summary.inputFolder;
+        eventData.inputFilename = summary.inputFilename;
+        eventData.outputFolder = summary.outputFolder;
+        eventData.outputFilename = summary.outputFilename;
+        eventData.action = summary.action;
+        eventDispatcher.fireEvent(Event.FILE_UNKNOWN, eventData);
     }
 
     /**
@@ -117,13 +151,21 @@ class Mover {
      */
     private void processDuplicateFile(File inputFile) {
 
+        actionPerformed = "";
+        summary = new Summary();
+
+        summary.inputFilename = inputFile.getName();
+        summary.inputFolder = inputFile.getParent();
+
         switch (config.duplicateFilesAction) {
             case IGNORE:
                 logger.getLogger().warning(String.format("- File '%s' ignored (left in place).", inputFile.getName()));
+                summary.action = "ignore";
                 break;
 
             case DELETE:
                 deleteFile(inputFile);
+                summary.action = "delete";
                 break;
 
             case MOVE:
@@ -135,9 +177,19 @@ class Mover {
                 }
 
                 moveFile(inputFile, new File(config.duplicateFilesMovePath), true);
+                summary.outputFolder = config.duplicateFilesMovePath;
+                summary.action = "move";
                 break;
         }
 
+        // notify listeners
+        FileErrorEventData eventData = new FileErrorEventData();
+        eventData.inputFolder = summary.inputFolder;
+        eventData.inputFilename = summary.inputFilename;
+        eventData.outputFolder = summary.outputFolder;
+        eventData.outputFilename = summary.outputFilename;
+        eventData.action = summary.action;
+        eventDispatcher.fireEvent(Event.FILE_ERROR, eventData);
     }
 
     /**
@@ -147,13 +199,21 @@ class Mover {
      */
     private void processErroredFile(File inputFile) {
 
+        actionPerformed = "";
+        summary = new Summary();
+
+        summary.inputFilename = inputFile.getName();
+        summary.inputFolder = inputFile.getParent();
+
         switch (config.errorFilesAction) {
             case IGNORE:
                 logger.getLogger().warning(String.format("- File '%s' ignored (left in place).", inputFile.getName()));
+                summary.action = "ignore";
                 break;
 
             case DELETE:
                 deleteFile(inputFile);
+                summary.action = "delete";
                 break;
 
             case MOVE:
@@ -164,9 +224,19 @@ class Mover {
                 }
 
                 moveFile(inputFile, new File(config.errorFilesMovePath), true);
+                summary.outputFolder = config.errorFilesMovePath;
+                summary.action = "move";
                 break;
         }
 
+        // notify listeners
+        FileUnknownEventData eventData = new FileUnknownEventData();
+        eventData.inputFolder = summary.inputFolder;
+        eventData.inputFilename = summary.inputFilename;
+        eventData.outputFolder = summary.outputFolder;
+        eventData.outputFilename = summary.outputFilename;
+        eventData.action = summary.action;
+        eventDispatcher.fireEvent(Event.FILE_ERROR, eventData);
     }
 
     /**
@@ -591,10 +661,10 @@ class Mover {
 
     class Summary {
 
-        String inputFolder;
-        String inputFilename;
-        String outputFolder;
-        String outputFilename;
-        String action;
+        String inputFolder = "";
+        String inputFilename = "";
+        String outputFolder = "";
+        String outputFilename = "";
+        String action = "";
     }
 }

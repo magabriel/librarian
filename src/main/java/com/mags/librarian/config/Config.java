@@ -58,6 +58,9 @@ public class Config {
     public String tvShowsWordsSeparatorShow = DEFAULT_WORDS_SEPARATOR_SHOW;
     public String tvShowsWordsSeparatorFile = DEFAULT_WORDS_SEPARATOR_FILE;
 
+    public String executeSuccess = "";
+    public String executeError = "";
+
     @Override
     public String toString() {
 
@@ -72,6 +75,8 @@ public class Config {
                 ", duplicateFilesMovePath=" + duplicateFilesMovePath +
                 ", errorFilesAction=" + errorFilesAction +
                 ", errorFilesMovePath=" + errorFilesMovePath +
+                ", executeSuccess=" + executeSuccess +
+                ", executeError=" + executeError +
                 ", inputFolders=" + Arrays.toString(inputFolders) +
                 ", outputFolders=" + Arrays.toString(outputFolders) +
                 ", tvShowsNumberingSchema='" + tvShowsNumberingSchema + '\'' +
@@ -123,6 +128,14 @@ public class Config {
 
         if (!otherConfig.errorFilesMovePath.isEmpty()) {
             errorFilesMovePath = otherConfig.errorFilesMovePath;
+        }
+
+        if (!otherConfig.executeSuccess.isEmpty()) {
+            executeSuccess = otherConfig.executeSuccess;
+        }
+
+        if (!otherConfig.executeError.isEmpty()) {
+            executeError= otherConfig.executeError;
         }
 
         if (otherConfig.inputFolders.length > 0) {

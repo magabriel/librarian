@@ -12,6 +12,7 @@ package com.mags.librarian;
 import com.mags.librarian.config.Config;
 import com.mags.librarian.config.ConfigLoader;
 import com.mags.librarian.config.ConfigReader;
+import com.mags.librarian.event.EventDispatcher;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -21,7 +22,7 @@ import java.util.logging.Level;
 public class Main {
 
     private static final String NAME = "librarian";
-    private static final String VERSION = "0.3.1";
+    private static final String VERSION = "0.4";
     private static final String COPYRIGHT = "(C) magabriel@gmail.com";
 
     private static final String CONFIG_FILE = "librarian.yml";
@@ -35,12 +36,16 @@ public class Main {
     private static Config config;
     private static Options options;
     private static Log logger;
+    private static EventDispatcher eventDispatcher;
 
     public static void main(String[] args) {
 
         configFile = (new File(System.getProperty("user.dir"))).toPath().resolve(CONFIG_FILE).toString();
         logFile = (new File(System.getProperty("user.dir"))).toPath().resolve(LOG_FILE).toString();
         rssFile = (new File(System.getProperty("user.dir"))).toPath().resolve(RSS_FILE).toString();
+
+        // our eventDispatcher
+        eventDispatcher = new EventDispatcher();
 
         // create logger but no logging allowed yet
         logger = new Log(logFile);
@@ -54,7 +59,7 @@ public class Main {
 
         loadConfig();
 
-        Processor processor = new Processor(options, config, logger);
+        Processor processor = new Processor(options, config, logger, eventDispatcher);
         processor.run();
     }
 

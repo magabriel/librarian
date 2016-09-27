@@ -34,15 +34,19 @@ config:
   errors:
     unknown_files:
       action: move # ignore, move, delete
-      move_path: /my/errors/folder/unknown
+      move_path: unknown
 
     duplicate_files:
       action: move # ignore, move, delete
-      move_path: /my/errors/folder/duplicates
+      move_path: duplicates
 
     error_files:
       action: move # ignore, move, delete
-      move_path: /my/errors/folder/errors
+      move_path: errors
+
+  execute:
+    success: "success_script.sh"
+    error: "error_script.sh"
 
 input:
   folders:

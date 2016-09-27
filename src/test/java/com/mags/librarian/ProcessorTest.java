@@ -11,6 +11,8 @@ package com.mags.librarian;
 
 import com.mags.librarian.config.Config;
 import com.mags.librarian.config.ConfigReader;
+import com.mags.librarian.event.EventData;
+import com.mags.librarian.event.EventDispatcher;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -25,6 +27,7 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class ProcessorTest {
@@ -34,7 +37,9 @@ public class ProcessorTest {
     private static String inputPath;
     private static String outputPath;
     private static String expectedPath;
+    private static String logFilename;
     private static Log logger;
+    private static EventDispatcher eventDispatcher;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -57,10 +62,12 @@ public class ProcessorTest {
         outputPath = new File(executionPath + "/output").getAbsolutePath();
         expectedPath = new File("src/test/resources/functional/expected").getAbsolutePath();
 
-        logger = new Log(executionPath + "/librarian.log");
+        logFilename = executionPath + "/librarian.log";
+        logger = new Log(logFilename);
         logger.setLogLevel(Level.ALL);
         logger.start();
 
+        eventDispatcher = new EventDispatcher();
     }
 
     @AfterClass
@@ -138,13 +145,22 @@ public class ProcessorTest {
             config.errorFilesMovePath = Paths.get(outputPath, config.errorFilesMovePath).toString();
         }
 
+        // make exec paths relative to the input directory
+        if (!config.executeSuccess.isEmpty()) {
+            config.executeSuccess= Paths.get(inputPath, config.executeSuccess).toString();
+        }
+
+        if (!config.executeError.isEmpty()) {
+            config.executeError= Paths.get(inputPath, config.executeError).toString();
+        }
+
         // set options
         Options options = new Options();
         options.copyOnly = false;
         options.rssFileName = executionPath + "/librarian.rss";
 
         // execute
-        Processor proc = new Processor(options, config, logger);
+        Processor proc = new Processor(options, config, logger, eventDispatcher);
         proc.run();
 
         // get actual output files
@@ -173,6 +189,14 @@ public class ProcessorTest {
 
         assertTrue("RSS file created", Files.exists(executionFolder.toPath().resolve("librarian.rss")));
         assertTrue("Log file created", Files.exists(executionFolder.toPath().resolve("librarian.log")));
+
+        // check success and error script invocation
+        List logLines = Files.readAllLines(Paths.get(logFilename));
+        long countSuccess = logLines.stream().filter(s-> s.toString().contains("SUCCESS:")).count();
+        assertEquals("Success script executed for each file", 17, countSuccess);
+
+        long countError = logLines.stream().filter(s-> s.toString().contains("ERROR:")).count();
+        assertEquals("Error script executed for each file", 3, countError);
 
         logger.getLogger().log(Level.INFO, "Ended functional test");
     }
@@ -242,6 +266,5 @@ public class ProcessorTest {
 
         return allFolders;
     }
-
 
 }

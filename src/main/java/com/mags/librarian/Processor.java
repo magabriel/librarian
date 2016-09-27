@@ -13,14 +13,10 @@ import com.mags.librarian.classifier.Classification;
 import com.mags.librarian.classifier.Classifier;
 import com.mags.librarian.classifier.Criterium;
 import com.mags.librarian.config.Config;
+import com.mags.librarian.event.*;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -32,12 +28,15 @@ class Processor {
     private final Config config;
     private Log logger;
     private FeedWriter feedWriter;
+    private EventDispatcher eventDispatcher;
+    private Command command;
 
-    Processor(Options options, Config config, Log logger) {
+    Processor(Options options, Config config, Log logger, EventDispatcher eventDispatcher) {
 
         this.options = options;
         this.config = config;
         this.logger = logger;
+        this.eventDispatcher = eventDispatcher;
     }
 
     /**
@@ -56,9 +55,73 @@ class Processor {
 
         feedWriter = new FeedWriter(options.rssFileName, logger);
 
+        command = new Command(logger);
+
+        addListeners();
+
         process();
 
         logger.getLogger().fine("Finished");
+    }
+
+    /**
+     * Add all listeners for several events
+     */
+    private void addListeners() {
+
+        eventDispatcher.addListener(Event.FILE_PROCESSED, eventData -> {
+
+            FileProcessedEventData data = (FileProcessedEventData) eventData;
+
+            List<String> arguments = Arrays.asList(
+                    data.inputFolder,
+                    data.inputFilename,
+                    data.outputFolder,
+                    data.outputFilename,
+                    data.fileClassification.name,
+                    data.action
+            );
+
+            if (!config.executeSuccess.isEmpty()) {
+                command.execute(config.executeSuccess, arguments);
+            }
+
+            addMovedToFeed(data.fileClassification, data.actionPerformed);
+        });
+
+        eventDispatcher.addListener(Event.FILE_UNKNOWN, eventData -> {
+
+            FileUnknownEventData data = (FileUnknownEventData) eventData;
+
+            List<String> arguments = Arrays.asList(
+                    data.inputFolder,
+                    data.inputFilename,
+                    data.outputFolder,
+                    data.outputFilename,
+                    data.action
+            );
+
+            if (!config.executeError.isEmpty()) {
+                command.execute(config.executeError, arguments);
+            }
+        });
+
+        eventDispatcher.addListener(Event.FILE_ERROR, eventData -> {
+
+            FileErrorEventData data = (FileErrorEventData) eventData;
+
+            List<String> arguments = Arrays.asList(
+                    data.inputFolder,
+                    data.inputFilename,
+                    data.outputFolder,
+                    data.outputFilename,
+                    data.action
+            );
+
+            if (!config.executeError.isEmpty()) {
+                command.execute(config.executeError, arguments);
+            }
+        });
     }
 
     /**
@@ -112,8 +175,10 @@ class Processor {
         logger.getLogger().config("- TV shows : ");
         logger.getLogger().config(String.format("    - Numbering schema: %s", config.tvShowsNumberingSchema));
         logger.getLogger().config(String.format("    - Season schema: %s", config.tvShowsSeasonSchema));
-        logger.getLogger().config(String.format("    - Wrods separators for show: %s", config.tvShowsWordsSeparatorShow));
-        logger.getLogger().config(String.format("    - Wrods separators for file: %s", config.tvShowsWordsSeparatorFile));
+        logger.getLogger().config(
+                String.format("    - Wrods separators for show: %s", config.tvShowsWordsSeparatorShow));
+        logger.getLogger().config(
+                String.format("    - Wrods separators for file: %s", config.tvShowsWordsSeparatorFile));
 
         logger.getLogger().config("- Input folders: ");
         for (String folder : config.inputFolders) {
@@ -148,7 +213,7 @@ class Processor {
         Classifier classifier = new Classifier(criteria);
 
         // get a mover
-        Mover mover = new Mover(options, config, logger);
+        Mover mover = new Mover(options, config, logger, eventDispatcher);
 
         // classify all input files
         Map<File, File[]> inputFiles = collectInputFiles();
@@ -192,11 +257,6 @@ class Processor {
 
                 // perform the actual move
                 mover.moveToDestination(inputFile, fileClassification);
-
-                // if something done, write it to feed
-                if (!mover.getActionPerformed().isEmpty()) {
-                    addMovedToFeed(mover, fileClassification);
-                }
             }
 
         });
@@ -210,21 +270,20 @@ class Processor {
     /**
      * Write performed action to feed.
      *
-     * @param mover
      * @param fileClassification
      */
-    private void addMovedToFeed(Mover mover, Classification fileClassification) {
+    private void addMovedToFeed(Classification fileClassification, String actionPerformed) {
 
         String title = String.format(
                 "File \"%s\" -> \"%s\"",
-                mover.getSummary().inputFilename,
+                fileClassification.fileName,
                 fileClassification.name
         );
 
         if (!fileClassification.tvShowName.isEmpty()) {
             title = String.format(
                     "Episode \"%s\" of TV show \"%s\" -> \"%s\"",
-                    mover.getSummary().inputFilename,
+                    fileClassification.fileName,
                     fileClassification.tvShowName,
                     fileClassification.name
             );
@@ -232,13 +291,13 @@ class Processor {
         } else if (!fileClassification.albumName.isEmpty()) {
             title = String.format(
                     "Track \"%s\" of album \"%s\" -> \"%s\"",
-                    mover.getSummary().inputFilename,
+                    fileClassification.fileName,
                     fileClassification.albumName,
                     fileClassification.name
             );
         }
 
-        feedWriter.addEntry(title, mover.getActionPerformed());
+        feedWriter.addEntry(title, actionPerformed);
     }
 
     /**
@@ -409,4 +468,8 @@ class Processor {
     }
 
 
+    public Log getLogger() {
+
+        return logger;
+    }
 }

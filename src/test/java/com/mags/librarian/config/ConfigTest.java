@@ -69,6 +69,11 @@ public class ConfigTest {
         // tvShowsWordsSeparatorShow
         config.tvShowsWordsSeparatorShow = "tvShowsWordsSeparatorShow.base";
 
+        // executeSuccess
+        config.executeSuccess = "executeSuccess.base";
+
+        // executeError not provided
+
         return config;
     }
 
@@ -102,6 +107,11 @@ public class ConfigTest {
 
         // tvShowsWordsSeparatorShow
         config.tvShowsWordsSeparatorShow = "tvShowsWordsSeparatorShow.other";
+
+        // executeSuccess not provided
+
+        // executeError
+        config.executeError = "executeError.other";
 
         return config;
     }
@@ -148,6 +158,12 @@ public class ConfigTest {
 
         // tvShowsWordsSeparatorShow
         config.tvShowsWordsSeparatorShow = "tvShowsWordsSeparatorShow.other";
+
+        // executeSuccess
+        config.executeSuccess = "executeSuccess.base";
+
+        // executeError
+        config.executeError = "executeError.other";
 
         return config;
     }
