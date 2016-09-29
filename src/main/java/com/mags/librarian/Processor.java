@@ -176,9 +176,9 @@ class Processor {
         logger.getLogger().config(String.format("    - Numbering schema: %s", config.tvShowsNumberingSchema));
         logger.getLogger().config(String.format("    - Season schema: %s", config.tvShowsSeasonSchema));
         logger.getLogger().config(
-                String.format("    - Wrods separators for show: %s", config.tvShowsWordsSeparatorShow));
+                String.format("    - Words separators for show: %s", config.tvShowsWordsSeparatorShow));
         logger.getLogger().config(
-                String.format("    - Wrods separators for file: %s", config.tvShowsWordsSeparatorFile));
+                String.format("    - Words separators for file: %s", config.tvShowsWordsSeparatorFile));
 
         logger.getLogger().config("- Input folders: ");
         for (String folder : config.inputFolders) {
