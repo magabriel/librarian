@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class Command {
 
-    public static final int DEFAULT_TIMEOUT = 5000;
+    public static final int DEFAULT_TIMEOUT = 10000;
     private final Log logger;
     private int timeout = DEFAULT_TIMEOUT;
 
@@ -83,7 +83,11 @@ public class Command {
 
             auxLog.delete();
 
-            return p.exitValue();
+            if (!p.isAlive()) {
+                return p.exitValue();
+            }
+
+            return -1;
 
         } catch (InterruptedException e) {
             logger.getLogger().warning(
