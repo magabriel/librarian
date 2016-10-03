@@ -113,12 +113,15 @@ public class FileMatcher {
                     }
 
                     try {
-                        // replace word separators with spaces in captured TVshow rest
-                        classification.tvShowRest = matcher.group("rest")
-                                .replace("_", " ")
-                                .replace("-", " ")
-                                .replace(".", " ")
-                                .trim();
+                        // optional
+                        if ( matcher.group("rest") != null) {
+                            // replace word separators with spaces in captured TVshow rest
+                            classification.tvShowRest = matcher.group("rest")
+                                    .replace("_", " ")
+                                    .replace("-", " ")
+                                    .replace(".", " ")
+                                    .trim();
+                        }
                     } catch (IllegalArgumentException e) {
                     }
 

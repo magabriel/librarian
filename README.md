@@ -84,7 +84,7 @@ config:
         # "name.1x02.title.avi"
         - "(?<name>.+(?:[^\\p{Alnum}]))(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)"
         # "name.102.title.avi" (avoid matching movies with year)
-        - "(?<name>.+(?:[^\\p{Alnum}\\(]))(?<season>[0-9])(?<episode>[0-9]{2})([^[0-9]]?<rest>.*)"
+        - "(?<name>.+(?:[^\\p{Alnum}\\(]))(?<season>[0-9]{1,2})(?<episode>[0-9]{2})(?<rest>[^0-9].*)?"
 
   content_classes:
     - tvshows:
@@ -117,6 +117,10 @@ config:
     error_files:
       action: move # ignore, move, delete
       move_path: /my/errors/folder/errors
+
+  execute:
+    success: "success_script.sh"
+    error: "error_script.sh"
       
 input:
   folders:
@@ -177,6 +181,35 @@ output:
 
 - `config.errors.error_files`: Same as `unknown_files` for files with processing errors.
 
+- `config.execute.success`: A command or script to execute for each successfully processed file. Example:
+
+    ~~~.bash
+    #!/bin/bash
+    
+    INPUTFOLDER=$1
+    INPUTFILENAME=$2
+    OUTPUTFOLDER=$3
+    OUTPUTFILENAME=$4
+    CLASS=$5
+    ACTION=$6
+    
+    echo "SUCCESS: $INPUTFOLDER; $INPUTFILENAME; $OUTPUTFOLDER; $OUTPUTFILENAME; $ACTION; $CLASS"
+    ~~~   
+
+- `config.execute.error`: A command or script to execute for each errored file. Example:
+
+    ~~~.bash
+    #!/bin/bash
+    
+    INPUTFOLDER=$1
+    INPUTFILENAME=$2
+    OUTPUTFOLDER=$3
+    OUTPUTFILENAME=$4
+    ACTION=$5
+    
+    echo "ERROR: $INPUTFOLDER; $INPUTFILENAME; $OUTPUTFOLDER; $OUTPUTFILENAME; $ACTION"
+    ~~~
+
 - `input.folders`: A list of paths to one or more input folders (i.e. where the input file will be found).
 
 - `output.folders`: A list of output folders definitions (where the files will be copied to). See below for format.
@@ -193,7 +226,7 @@ output:
         # "name.1x02.title.avi"
         - "(?<name>.+(?:[^\\p{Alnum}]))(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)"
         # "name.102.title.avi" (avoid matching movies with year)
-        - "(?<name>.+(?:[^\\p{Alnum}\\(]))(?<season>[0-9])(?<episode>[0-9]{2})([^[0-9]]?<rest>.*)"
+        - "(?<name>.+(?:[^\\p{Alnum}\\(]))(?<season>[0-9]{1,2})(?<episode>[0-9]{2})(?<rest>[^0-9].*)?"
 ~~~
 
 These defintions will match files of the form `My tv show name S01E02 whatever.*`, `My tv show name 01x02 whatever.*` and

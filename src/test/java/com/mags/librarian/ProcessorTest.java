@@ -11,7 +11,6 @@ package com.mags.librarian;
 
 import com.mags.librarian.config.Config;
 import com.mags.librarian.config.ConfigReader;
-import com.mags.librarian.event.EventData;
 import com.mags.librarian.event.EventDispatcher;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -31,6 +30,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class ProcessorTest {
+
+    /**
+     * Expected number of files processed OK
+     */
+    public static final int EXPECTED_FILES_OK = 19;
+
+    /**
+     * Expected number of files processed with error
+     */
+    public static final int EXPECTED_FILES_ERROR = 3;
 
     private static File executionFolder;
     private static String executionPath;
@@ -193,10 +202,10 @@ public class ProcessorTest {
         // check success and error script invocation
         List logLines = Files.readAllLines(Paths.get(logFilename));
         long countSuccess = logLines.stream().filter(s-> s.toString().contains("SUCCESS:")).count();
-        assertEquals("Success script executed for each file", 17, countSuccess);
+        assertEquals("Success script executed for each file", EXPECTED_FILES_OK, countSuccess);
 
         long countError = logLines.stream().filter(s-> s.toString().contains("ERROR:")).count();
-        assertEquals("Error script executed for each file", 3, countError);
+        assertEquals("Error script executed for each file", EXPECTED_FILES_ERROR, countError);
 
         logger.getLogger().log(Level.INFO, "Ended functional test");
     }
