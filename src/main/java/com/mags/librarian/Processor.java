@@ -11,6 +11,7 @@ package com.mags.librarian;
 
 import com.mags.librarian.classifier.Classification;
 import com.mags.librarian.classifier.Classifier;
+import com.mags.librarian.classifier.Criteria;
 import com.mags.librarian.classifier.Criterium;
 import com.mags.librarian.config.Config;
 import com.mags.librarian.event.*;
@@ -206,11 +207,12 @@ class Processor {
      */
     private void processInputFiles() {
 
-        // extract classification criteria
-        List<Criterium> criteria = constructCriteria();
+        // create criteria from config
+        Criteria criteria = new Criteria(config);
+        List<Criterium> criteriumList = criteria.getCriteriumList();
 
-        // get a classifier
-        Classifier classifier = new Classifier(criteria);
+        // get a classifier for the criterium list
+        Classifier classifier = new Classifier(criteriumList);
 
         // get a mover
         Mover mover = new Mover(options, config, logger, eventDispatcher);
@@ -298,45 +300,6 @@ class Processor {
         }
 
         feedWriter.addEntry(title, actionPerformed);
-    }
-
-    /**
-     * Join all the criterium objects to form the criteria.
-     *
-     * @return Criteria (list of criterium objects)
-     */
-    private List<Criterium> constructCriteria() {
-
-        List<Criterium> criteria = new ArrayList<>();
-
-        for (Map<String, Map> contentClass : config.contentClasses) {
-            Criterium criterium = new Criterium();
-            criterium.name = contentClass.keySet().toArray()[0].toString();
-
-            if (contentClass.get(criterium.name).containsKey("extension")) {
-                String extensionName = contentClass.get(criterium.name).get("extension").toString();
-                for (Map<String, List<String>> extensionItems : config.extensions) {
-                    String currentExtensionName = extensionItems.keySet().toArray()[0].toString();
-                    if (extensionName.equals(currentExtensionName)) {
-                        criterium.extensions = extensionItems.get(currentExtensionName).toArray(new String[0]);
-                    }
-                }
-            }
-
-            if (contentClass.get(criterium.name).containsKey("filter")) {
-                String filterName = contentClass.get(criterium.name).get("filter").toString();
-                for (Map<String, List<String>> filterItems : config.filters) {
-                    String currentFilterName = filterItems.keySet().toArray()[0].toString();
-                    if (filterName.equals(currentFilterName)) {
-                        criterium.filters = filterItems.get(currentFilterName).toArray(new String[0]);
-                    }
-                }
-            }
-
-            criteria.add(criterium);
-        }
-
-        return criteria;
     }
 
     /**
