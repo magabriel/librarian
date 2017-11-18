@@ -26,17 +26,9 @@ to teach myself Java.
 
 ## Changelog
 
-### 0.3
+### 0.x
 
-- Redesign of config to accomodate new functionality.
-
-### 0.2
-
-- Many refactorings and fixes.
-
-### 0.1
-
-- First functional version.
+- Work in progress.
 
 ## Documentation
 
