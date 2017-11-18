@@ -25,16 +25,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class ProcessorTest {
 
     /**
      * Expected number of files processed OK
      */
-    public static final int EXPECTED_FILES_OK = 19;
+    public static final int EXPECTED_FILES_OK = 21;
 
     /**
      * Expected number of files processed with error

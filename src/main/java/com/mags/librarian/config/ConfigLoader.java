@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 public class ConfigLoader {
 
     private final Yaml configYaml;
-    private LinkedHashMap<String, Object> configObj;
+    private Map<String, Object> configObj;
     private Map<String, Object> configMap = new LinkedHashMap<String, Object>();
 
     public ConfigLoader() {
@@ -37,12 +37,13 @@ public class ConfigLoader {
      * @param fileName
      * @throws FileNotFoundException
      */
+    @SuppressWarnings("unchecked")
     public void load(String fileName)
             throws FileNotFoundException {
 
         // load the config file
         InputStream input = new FileInputStream(new File(fileName));
-        configObj = (LinkedHashMap<String, Object>) this.configYaml.load(input);
+        configObj = (Map<String, Object>) this.configYaml.load(input);
 
         flatten("", configObj, configMap);
     }
@@ -52,9 +53,10 @@ public class ConfigLoader {
      *
      * @param document
      */
+    @SuppressWarnings("unchecked")
     public void loadFromString(String document) {
 
-        configObj = (LinkedHashMap<String, Object>) this.configYaml.load(document);
+        configObj = (Map<String, Object>) this.configYaml.load(document);
 
         flatten("", configObj, configMap);
     }
@@ -86,6 +88,7 @@ public class ConfigLoader {
      * @param recursiveMap The config object being flattened.
      * @param flatMap      The flattened config object.
      */
+    @SuppressWarnings("unchecked")
     private void flatten(String baseKey, Map<String, Object> recursiveMap, Map<String, Object> flatMap) {
 
         recursiveMap.forEach((key, value) -> {
@@ -215,6 +218,7 @@ public class ConfigLoader {
      * @param key
      * @return The value of the key as a List, or an empty List if not set.
      */
+    @SuppressWarnings("unchecked")
     List<String> getValueListStrings(String key, List<String> defaultValue) {
 
         return (List<String>) this.configMap.getOrDefault(key, defaultValue);
@@ -237,6 +241,7 @@ public class ConfigLoader {
      * @param key
      * @return The value of the key as a List, or an empty List if not set.
      */
+    @SuppressWarnings("unchecked")
     List<Map> getValueListMap(String key, List<Map> defaultValue) {
 
         return (List<Map>) this.configMap.getOrDefault(key, defaultValue);

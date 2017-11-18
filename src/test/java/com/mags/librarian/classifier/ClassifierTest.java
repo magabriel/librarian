@@ -13,9 +13,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.Arrays;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 public class ClassifierTest {
 
@@ -27,16 +27,23 @@ public class ClassifierTest {
         classifier = new Classifier();
         classifier.addCriterium("videos", new String[]{"avi", "mkv"}, new String[]{});
         classifier.addCriterium("music", new String[]{"mp3", "ogg"}, new String[]{});
+        // SssEee
         classifier.addCriterium("tvshows",
                                 new String[]{"avi", "mkv"},
                                 new String[]{"(?<name>.+)S(?<season>[0-9]{1,3})E(?<episode>[0-9]{1,3})(?<rest>.*)"});
+        // ssxee
         classifier.addCriterium("tvshows",
                                 new String[]{"avi", "mkv"},
                                 new String[]{"(?<name>.+)(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)"});
+        // see
+        classifier.addCriterium("tvshows",
+                                new String[]{"avi", "mkv"},
+                                new String[]{"(?<name>.+(?:[^\\p{Alnum}\\(]))(?<season>[0-9]{1})(?<episode>[0-9]{2})"
+                                        + "(?:(?<rest>[^0-9].*)|\\z)"});
     }
 
     @Test
-    public void classify() throws Exception {
+    public void classifyVideos() throws Exception {
 
         Classification expected = new Classification();
         expected.name = "videos";
@@ -105,7 +112,7 @@ public class ClassifierTest {
     }
 
     @Test
-    public void TVShowWithSpacesAndDashes() throws Exception {
+    public void classifyTVShow_WithSpacesAndDashes() throws Exception {
 
         Classification expected = new Classification();
         expected.fileName = "A TV show - 2x10 something else.avi";
@@ -117,8 +124,82 @@ public class ClassifierTest {
         expected.tvShowRest = "something else";
         expected.tvShowName = "A TV show";
 
-        assertEquals("TV show nXnn", expected, classifier.classify(new File(expected.fileName), new
-                File("/input1")));
+        assertEquals("TV show nXnn", expected, classifier.classify(new File(expected.fileName), new File("/input1")));
     }
 
+    @Test
+    public void classifyTVShow_SEE_withoutRest() throws Exception {
+
+        Classification expected = new Classification();
+        expected.fileName = "A TV show 123.avi";
+        expected.baseName = "A TV show 123";
+        expected.extension = "avi";
+        expected.name = "tvshows";
+        expected.season = 1;
+        expected.episode = 23;
+        expected.tvShowRest = "";
+        expected.tvShowName = "A TV show";
+
+        assertEquals("TV show SEE", expected, classifier.classify(new File(expected.fileName), new File("/input1")));
+    }
+
+    @Test
+    public void classifyTVShow_SEE_withRest() throws Exception {
+
+        Classification expected = new Classification();
+        expected.fileName = "A TV show 123 something.avi";
+        expected.baseName = "A TV show 123 something";
+        expected.extension = "avi";
+        expected.name = "tvshows";
+        expected.season = 1;
+        expected.episode = 23;
+        expected.tvShowRest = "something";
+        expected.tvShowName = "A TV show";
+
+        assertEquals("TV show SEE with rest",
+                     expected,
+                     classifier.classify(new File(expected.fileName), new File("/input1")));
+    }
+
+    @Test
+    public void classifyMovie_WithYear() throws Exception {
+
+        Classification expected = new Classification();
+        expected.fileName = "A movie (1945) something.avi";
+        expected.baseName = "A movie (1945) something";
+        expected.extension = "avi";
+        expected.name = "videos";
+
+        assertEquals("Movie with year",
+                     expected,
+                     classifier.classify(new File(expected.fileName), new File("/input1")));
+    }
+
+    @Test
+    public void classifyMovie_WithYear_WithoutParenthesis() throws Exception {
+
+        Classification expected = new Classification();
+        expected.fileName = "A movie 1945 something.avi";
+        expected.baseName = "A movie 1945 something";
+        expected.extension = "avi";
+        expected.name = "videos";
+
+        assertEquals("Movie with year without parenthesis",
+                     expected,
+                     classifier.classify(new File(expected.fileName), new File("/input1")));
+    }
+
+    @Test
+    public void classifyMovie_WithYear_WithoutParenthesis_WithoutRest() throws Exception {
+
+        Classification expected = new Classification();
+        expected.fileName = "A movie 1945.avi";
+        expected.baseName = "A movie 1945";
+        expected.extension = "avi";
+        expected.name = "videos";
+
+        assertEquals("Movie with year without parenthesis without rest",
+                     expected,
+                     classifier.classify(new File(expected.fileName), new File("/input1")));
+    }
 }

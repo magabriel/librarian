@@ -21,9 +21,10 @@ import java.util.logging.Level;
 
 public class Main {
 
-    private static final String NAME = "librarian";
-    private static final String VERSION = "0.4";
-    private static final String COPYRIGHT = "(C) magabriel@gmail.com";
+    private static final String NAME = getApplicationName();
+    private static final String VERSION = getApplicationVersion();
+
+    private static final String COPYRIGHT = "(c) magabriel@gmail.com";
 
     private static final String CONFIG_FILE = "librarian.yml";
     private static final String LOG_FILE = "librarian.log";
@@ -252,4 +253,19 @@ public class Main {
         System.err.println();
     }
 
+    private static String getApplicationName() {
+        if (Main.class.getPackage().getImplementationTitle() != null) {
+            return Main.class.getPackage().getImplementationTitle();
+        }
+
+        return "application.name";
+    }
+
+    private static String getApplicationVersion() {
+        if (Main.class.getPackage().getImplementationVersion() != null) {
+            return Main.class.getPackage().getImplementationVersion();
+        }
+
+        return "?.?.?";
+    }
 }
