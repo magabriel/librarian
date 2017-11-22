@@ -7,9 +7,10 @@
  * file that was distributed with this source code
  */
 
-package com.mags.librarian.event;
+package com.mags.librarian.event
 
-public interface Listener<T extends EventData> {
-
-    void onEvent(EventData eventData);
+enum class Event {
+    FILE_PROCESSED,
+    FILE_UNKNOWN,
+    FILE_ERROR
 }

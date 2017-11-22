@@ -7,8 +7,14 @@
  * file that was distributed with this source code
  */
 
-package com.mags.librarian.event;
+package com.mags.librarian.event
 
-public interface EventData {
+class FileUnknownEventData : EventData {
+
+    var inputFolder: String? = null
+    var inputFilename: String? = null
+    var outputFolder: String? = null
+    var outputFilename: String? = null
+    var action: String? = null
 
 }

@@ -7,14 +7,8 @@
  * file that was distributed with this source code
  */
 
-package com.mags.librarian.event;
+package com.mags.librarian.event
 
-public class FileUnknownEventData implements EventData {
-
-    public String inputFolder;
-    public String inputFilename;
-    public String outputFolder;
-    public String outputFilename;
-    public String action;
-
+interface Listener<in T : EventData> {
+    fun onEvent(eventData: T)
 }

@@ -7,15 +7,13 @@
  * file that was distributed with this source code.
  */
 
-package com.mags.librarian.classifier;
+package com.mags.librarian.classifier
 
 /**
  * Stores a single classification criterium.
  */
-public class Criterium {
-
-    public String name;
-    public String[] extensions = new String[0];
-    public String[] filters = new String[0];
+data class Criterium(var name: String = "",
+                     var extensions: Array<String> = arrayOf<String>(),
+                     var filters: Array<String> = arrayOf<String>()) {
 }
 
