@@ -9,11 +9,8 @@
 
 package com.mags.librarian.event
 
-class FileErrorEventData : EventData {
-
-    var inputFolder: String? = null
-    var inputFilename: String? = null
-    var outputFolder: String? = null
-    var outputFilename: String? = null
-    var action: String? = null
-}
+data class FileErrorEventData(var inputFolder: String = "",
+                              var inputFilename: String = "",
+                              var outputFolder: String = "",
+                              var outputFilename: String = "",
+                              var action: String = "") : EventData

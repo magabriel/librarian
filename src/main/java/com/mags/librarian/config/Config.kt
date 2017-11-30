@@ -9,8 +9,6 @@
 
 package com.mags.librarian.config
 
-import java.util.*
-
 /**
  * Stores the configuration values.
  */
@@ -46,14 +44,40 @@ class Config {
         IGNORE, MOVE, DELETE
     }
 
-    override fun toString(): String {
+    companion object {
+        const val DEFAULT_TVSHOWS_NUMBERING_SCHEMA = "S{season:2}E{episode:2}"
+        const val DEFAULT_TVSHOWS_SEASON_SCHEMA = "Season_{season:2}"
+        const val DEFAULT_WORDS_SEPARATOR_SHOW = "_"
+        const val DEFAULT_WORDS_SEPARATOR_FILE = "_"
 
-        return "Config{" + "include='" + include + '\'' + ", extensions=" + Arrays.toString(
-                extensions) + ", filters=" + Arrays.toString(
-                filters) + ", contentClasses=" + Arrays.toString(
-                contentClasses) + ", unknownFilesAction=" + unknownFilesAction + ", unknownFilesMovePath=" + unknownFilesMovePath + ", duplicateFilesAction=" + duplicateFilesAction + ", duplicateFilesMovePath=" + duplicateFilesMovePath + ", errorFilesAction=" + errorFilesAction + ", errorFilesMovePath=" + errorFilesMovePath + ", executeSuccess=" + executeSuccess + ", executeError=" + executeError + ", inputFolders=" + Arrays.toString(
-                inputFolders) + ", outputFolders=" + Arrays.toString(
-                outputFolders) + ", tvShowsNumberingSchema='" + tvShowsNumberingSchema + '\'' + ", tvShowsSeasonSchema='" + tvShowsSeasonSchema + '\'' + ", tvShowsWordsSeparatorShow='" + tvShowsWordsSeparatorShow + '\'' + ", tvShowsWordsSeparatorFile='" + tvShowsWordsSeparatorFile + '\'' + '}'
+        val DEFAULT_UNKNOWN_FILES_ACTION = FilesAction.IGNORE
+        val DEFAULT_ERROR_FILES_ACTION = FilesAction.IGNORE
+        val DEFAULT_DUPLICATE_FILES_ACTION = FilesAction.IGNORE
+    }
+
+    override fun toString(): String {
+        var str = "Config{"
+        str += "include='$include'"
+        str += ", extensions=${extensions.toList().toString()}"
+        str += ", filters=${filters.toList().toString()}"
+        str += ", contentClasses=${contentClasses.toList().toString()}"
+        str += ", unknownFilesAction=$unknownFilesAction"
+        str += ", unknownFilesMovePath=$unknownFilesMovePath"
+        str += ", duplicateFilesAction=$duplicateFilesAction"
+        str += ", duplicateFilesMovePath=$duplicateFilesMovePath"
+        str += ", errorFilesAction=$errorFilesAction"
+        str += ", errorFilesMovePath=$errorFilesMovePath"
+        str += ", executeSuccess=$executeSuccess"
+        str += ", executeError=$executeError"
+        str += ", inputFolders=${inputFolders.toList().toString()}"
+        str += ", outputFolders=${outputFolders.toList().toString()}"
+        str += ", tvShowsNumberingSchema='$tvShowsNumberingSchema'"
+        str += ", tvShowsSeasonSchema='$tvShowsSeasonSchema'"
+        str += ", tvShowsWordsSeparatorShow='$tvShowsWordsSeparatorShow'"
+        str += ", tvShowsWordsSeparatorFile='$tvShowsWordsSeparatorFile'"
+        str += '}'
+
+        return str
     }
 
     /**
@@ -133,21 +157,6 @@ class Config {
         }
 
         return this
-    }
-
-    companion object {
-
-        /*
-        * Defaults
-        */
-        const val DEFAULT_TVSHOWS_NUMBERING_SCHEMA = "S{season:2}E{episode:2}"
-        const val DEFAULT_TVSHOWS_SEASON_SCHEMA = "Season_{season:2}"
-        const val DEFAULT_WORDS_SEPARATOR_SHOW = "_"
-        const val DEFAULT_WORDS_SEPARATOR_FILE = "_"
-
-        val DEFAULT_UNKNOWN_FILES_ACTION = FilesAction.IGNORE
-        val DEFAULT_ERROR_FILES_ACTION = FilesAction.IGNORE
-        val DEFAULT_DUPLICATE_FILES_ACTION = FilesAction.IGNORE
     }
 
 }

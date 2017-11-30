@@ -13,7 +13,6 @@ package com.mags.librarian.classifier
  * Stores a single classification criterium.
  */
 data class Criterium(var name: String = "",
-                     var extensions: Array<String> = arrayOf<String>(),
-                     var filters: Array<String> = arrayOf<String>()) {
-}
+                     var extensions: List<String> = listOf<String>(),
+                     var filters: List<String> = listOf<String>())
 

@@ -42,9 +42,12 @@ object Main {
     @JvmStatic
     fun main(args: Array<String>) {
 
-        configFile = File(System.getProperty("user.dir")).toPath().resolve(CONFIG_FILE).toString()
-        logFile = File(System.getProperty("user.dir")).toPath().resolve(LOG_FILE).toString()
-        rssFile = File(System.getProperty("user.dir")).toPath().resolve(RSS_FILE).toString()
+        // set file defaults
+        with(File(System.getProperty("user.dir")).toPath()) {
+            configFile = resolve(CONFIG_FILE).toString()
+            logFile = resolve(LOG_FILE).toString()
+            rssFile = resolve(RSS_FILE).toString()
+        }
 
         // our eventDispatcher
         eventDispatcher = EventDispatcher()
@@ -89,27 +92,27 @@ object Main {
 
                 "--dry-run"       -> opt.dryRun = true
 
-                "-v"              -> {
+                "-v"             -> {
                     opt.verbosity = Options.Verbosity.NORMAL
                     logger.consoleLogLevel = Level.INFO
                 }
 
-                "-vv"             -> {
+                "-vv"            -> {
                     opt.verbosity = Options.Verbosity.HIGH
                     logger.consoleLogLevel = Level.CONFIG
                 }
 
-                "--quiet"         -> {
+                "--quiet"        -> {
                     opt.verbosity = Options.Verbosity.NONE
                     logger.consoleLogLevel = Level.OFF
                 }
 
-                "--config", "-c"  -> if (i < args.size - 1) {
+                "--config", "-c" -> if (i < args.lastIndex) {
                     i++
                     configFile = args[i]
                 }
 
-                "--log", "-l"     -> if (i < args.size - 1) {
+                "--log", "-l"    -> if (i < args.lastIndex) {
                     i++
                     logFile = args[i]
                     try {
@@ -117,19 +120,18 @@ object Main {
                         opt.logFileName = logFile
                     } catch (e: IOException) {
                         logger.logger.severe(e.message)
-
                         System.exit(1)
                     }
 
                 }
 
-                "--rss", "-r"     -> if (i < args.size - 1) {
+                "--rss", "-r"    -> if (i < args.lastIndex) {
                     i++
                     rssFile = args[i]
                     opt.rssFileName = rssFile
                 }
 
-                "--loglevel"      -> if (i < args.size - 1) {
+                "--loglevel"     -> if (i < args.lastIndex) {
                     i++
                     val level = args[i]
 
@@ -139,13 +141,12 @@ object Main {
                         logger.logLevel = logLevel
                     } catch (e: IllegalArgumentException) {
                         logger.logger.severe(String.format("Invalid log level \"%s\"", level))
-
                         System.exit(1)
                     }
 
                 }
 
-                else              -> showUsage()
+                else             -> showUsage()
             }
             i++
         }
@@ -160,18 +161,12 @@ object Main {
         writeMessage()
         writeMessage("Options: -h | --help        : Show this help.")
         writeMessage("         --copy             : Copy instead of move the files.")
-        writeMessage(
-                "         --create-config    : Create a default configuration file in current directory.")
-        writeMessage(
-                "         --dry-run          : Do not change anything, just tell what would have been done.")
-        writeMessage(
-                "         --loglevel <level> : Loglevel (ALL, FINEST, FINER, FINE, CONFIG, INFO, WARNING, " + "SEVERE, OFF). Default INFO.")
-        writeMessage(
-                "         -c --config <file> : Use that config file instead of the one in execution directory.")
-        writeMessage(
-                "         -l --log <file>    : Write to that log file instead of creating one in the execution directory.")
-        writeMessage(
-                "         -r --rss<file>     : Write to that rss file instead of the one in execution directory.")
+        writeMessage("         --create-config    : Create a default configuration file in current directory.")
+        writeMessage("         --dry-run          : Do not change anything, just tell what would have been done.")
+        writeMessage("         --loglevel <level> : Loglevel (ALL, FINEST, FINER, FINE, CONFIG, INFO, WARNING, " + "SEVERE, OFF). Default INFO.")
+        writeMessage("         -c --config <file> : Use that config file instead of the one in execution directory.")
+        writeMessage("         -l --log <file>    : Write to that log file instead of creating one in the execution directory.")
+        writeMessage("         -r --rss<file>     : Write to that rss file instead of the one in execution directory.")
         writeMessage("         -v, -vv            : Verbosity normal (default) or high.")
         writeMessage("         --quiet            : Do not write messages.")
 
@@ -190,10 +185,8 @@ object Main {
             conf = reader.read(configFile)
 
         } catch (e: FileNotFoundException) {
-            logger.logger.severe(
-                    String.format("ERROR: Configuration file '%s' not found.", configFile))
-            logger.logger.severe(
-                    "HINT: You can generate a default configuration file with the provided command line option.")
+            logger.logger.severe("ERROR: Configuration file '${configFile}' not found.")
+            logger.logger.severe("HINT: You can generate a default configuration file with the provided command line option.")
             logger.logger.finer(e.toString())
 
             System.exit(1)
@@ -208,33 +201,28 @@ object Main {
 
         try {
             configLoader.createDefault("/librarian-default.yml", configFile)
-            logger.logger.info(
-                    String.format("Default configuration file created as '%s'", configFile))
+            logger.logger.info("Default configuration file created as '$configFile'")
 
         } catch (e: FileNotFoundException) {
-            logger.logger.severe(String.format(
-                    "ERROR: Configuration file '%s' could not be created. Check intermediate folders exist.",
-                    configFile))
+            logger.logger.severe("ERROR: Configuration file '$configFile' could not be created. Check intermediate folders exist.")
             System.exit(1)
 
         } catch (e: IOException) {
-            logger.logger.severe(
-                    String.format("ERROR: Configuration file '%s' could not be created: '%s'",
-                                  configFile, e.message))
+            logger.logger.severe("ERROR: Configuration file '$configFile' could not be created: '${e.message}'")
             System.exit(1)
         }
 
     }
 
     private fun writeMessage(msg: String) {
-        if (options.verbosity === Options.Verbosity.NONE) {
+        if (options.verbosity == Options.Verbosity.NONE) {
             return
         }
         System.err.println(msg)
     }
 
     private fun writeMessage() {
-        if (options.verbosity === Options.Verbosity.NONE) {
+        if (options.verbosity == Options.Verbosity.NONE) {
             return
         }
         System.err.println()

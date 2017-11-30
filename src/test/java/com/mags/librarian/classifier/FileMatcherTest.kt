@@ -14,7 +14,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.util.*
 
 class FileMatcherTest {
 
@@ -58,9 +57,8 @@ class FileMatcherTest {
         val criterium = Criterium()
         criterium.name = "tvshows"
 
-        criterium.extensions = Arrays.asList("avi", "mkv").toTypedArray()
-        criterium.filters = Arrays.asList(
-                "(?<name>.+)S(?<season>[0-9]{1,2})E(?<episode>[0-9]{1,3})(?<rest>.*)").toTypedArray()
+        criterium.extensions = listOf("avi", "mkv")
+        criterium.filters = listOf("(?<name>.+)S(?<season>[0-9]{1,2})E(?<episode>[0-9]{1,3})(?<rest>.*)")
 
         val expected = Classification()
         expected.fileName = "A.TV.Show.S01E02.mkv"
@@ -81,9 +79,8 @@ class FileMatcherTest {
         val criterium = Criterium()
         criterium.name = "tvshows"
 
-        criterium.extensions = Arrays.asList("avi", "mkv").toTypedArray()
-        criterium.filters = Arrays.asList(
-                "(?<name>.+)S(?<season>[0-9]{1,2})E(?<episode>[0-9]{1,3})(?<rest>.*)").toTypedArray()
+        criterium.extensions = listOf("avi", "mkv")
+        criterium.filters = listOf("(?<name>.+)S(?<season>[0-9]{1,2})E(?<episode>[0-9]{1,3})(?<rest>.*)")
 
         val expected = Classification()
 
@@ -97,9 +94,8 @@ class FileMatcherTest {
         val criterium = Criterium()
         criterium.name = "tvshows"
 
-        criterium.extensions = Arrays.asList("avi", "mkv").toTypedArray()
-        criterium.filters = Arrays.asList(
-                "(?<name>.+(?:[^\\p{Alnum}]))(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)").toTypedArray()
+        criterium.extensions = listOf("avi", "mkv")
+        criterium.filters = listOf("(?<name>.+(?:[^\\p{Alnum}]))(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)")
 
         val expected = Classification()
         expected.fileName = "A.TV.Show.70x02.mkv"
@@ -120,9 +116,8 @@ class FileMatcherTest {
         val criterium = Criterium()
         criterium.name = "tvshows"
 
-        criterium.extensions = Arrays.asList("avi", "mkv").toTypedArray()
-        criterium.filters = Arrays.asList(
-                "(?<name>.+)S(?<season>[0-9]{1,2})E(?<episode>[0-9]{1,3})(?<rest>.*)").toTypedArray()
+        criterium.extensions = listOf("avi", "mkv")
+        criterium.filters = listOf("(?<name>.+)S(?<season>[0-9]{1,2})E(?<episode>[0-9]{1,3})(?<rest>.*)")
 
         val expected = Classification()
         expected.fileName = "A TV Show - S01E02 - The title.mkv"

@@ -10,7 +10,6 @@
 package com.mags.librarian.classifier
 
 import com.mags.librarian.config.Config
-import java.util.*
 
 class Criteria(private val config: Config) {
 
@@ -22,17 +21,14 @@ class Criteria(private val config: Config) {
 
     /**
      * Create the list of criterium objects.
-     *
-     * @return Criteria (list of criterium objects)
      */
     private fun processContentClasses() {
 
         for (contentClass in config.contentClasses) {
-
-            val criterium = Criterium()
-            criterium.name = contentClass.keys.toTypedArray()[0].toString()
-            criterium.extensions = extractExtensions(contentClass, criterium.name).toTypedArray()
-            criterium.filters = extractFilters(contentClass, criterium.name).toTypedArray()
+            val name = contentClass.keys.toTypedArray()[0]
+            val criterium = Criterium(name,
+                                      extractExtensions(contentClass, name),
+                                      extractFilters(contentClass, name))
 
             criteriumList.add(criterium)
         }
@@ -40,15 +36,11 @@ class Criteria(private val config: Config) {
 
     /**
      * Extract the extensions for the criterium.
-     *
-     * @param contentClass  The ContentClass being processed
-     * @param criteriumName The name of the criterium being processed
-     * @return A list of extensions
      */
     private fun extractExtensions(contentClass: Map<String, Map<*, *>>,
                                   criteriumName: String): List<String> {
 
-        val extensions = ArrayList<String>()
+        val extensions = listOf<String>()
 
         if (!contentClass[criteriumName]?.containsKey("extension")!!) {
             return extensions
@@ -57,7 +49,7 @@ class Criteria(private val config: Config) {
         val extensionName = contentClass[criteriumName]!!["extension"].toString()
 
         for (extensionItems in config.extensions) {
-            val currentExtensionName = extensionItems.keys.toTypedArray()[0].toString()
+            val currentExtensionName = extensionItems.keys.toTypedArray()[0]
             if (extensionName == currentExtensionName) {
                 // found
                 return extensionItems[currentExtensionName] as List<String>
@@ -69,15 +61,11 @@ class Criteria(private val config: Config) {
 
     /**
      * Extract the filters for the criterium.
-     *
-     * @param contentClass  The ContentClass being processed
-     * @param criteriumName The name of the criterium being processed
-     * @return A list of filters
      */
     private fun extractFilters(contentClass: Map<String, Map<*, *>>,
                                criteriumName: String): List<String> {
 
-        val filters = ArrayList<String>()
+        val filters = listOf<String>()
 
         if (!contentClass[criteriumName]?.containsKey("filter")!!) {
             return filters

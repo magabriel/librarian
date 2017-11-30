@@ -9,7 +9,6 @@
 
 package com.mags.librarian.classifier
 
-import java.util.*
 import java.util.regex.Pattern
 
 object FileMatcher {
@@ -17,8 +16,6 @@ object FileMatcher {
     /**
      * Try to match a TV show name against a filename.
      *
-     * @param fileName   The filename
-     * @param tvshowName The TV show name
      * @return True if match
      */
     fun matchTVShowName(fileName: String,
@@ -26,9 +23,12 @@ object FileMatcher {
         var tvshowName = tvshowName
 
         // transform word separators to match any of them
-        tvshowName = tvshowName.replace("_", " ").replace(".", " ").trim { it <= ' ' }.replace(" ",
-                                                                                               "[ _\\.]").replace(
-                "(", "\\(").replace(")", "\\)")
+        tvshowName = tvshowName.replace("_", " ")
+        tvshowName = tvshowName.replace(".", " ")
+        tvshowName = tvshowName.trim { it <= ' ' }
+        tvshowName = tvshowName.replace(" ", "[ _\\.]")
+        tvshowName = tvshowName.replace("(", "\\(")
+        tvshowName = tvshowName.replace(")", "\\)")
 
         val regExp = Pattern.compile(tvshowName, Pattern.CASE_INSENSITIVE)
         val matcher = regExp.matcher(fileName)
@@ -39,8 +39,6 @@ object FileMatcher {
     /**
      * Try to match a TV show name against a filename.
      *
-     * @param fileName          The filename
-     * @param regularExpression The regExp to match against
      * @return True if match
      */
     fun matchRegExp(fileName: String,
@@ -55,8 +53,6 @@ object FileMatcher {
     /**
      * Try to match a filename against a criterium defining a TV show.
      *
-     * @param fileName  The filename
-     * @param criterium The criteriumm of a TV show
      * @return The corresponding Classification object if match, or empty if not
      */
     fun matchTVShow(fileName: String,
@@ -66,7 +62,7 @@ object FileMatcher {
 
         // check extension first, if specified
         if (criterium.extensions.isNotEmpty()) {
-            if (!Arrays.asList(*criterium.extensions).contains(getFileExtension(fileName))) {
+            if (!criterium.extensions.contains(getFileExtension(fileName))) {
                 return classification
             }
         }
@@ -87,11 +83,12 @@ object FileMatcher {
                 classification.extension = getFileExtension(fileName)
 
                 try {
-                    var tvShowName = matcher.group("name").trim { it <= ' ' }
-
                     // replace word separators with spaces in captured TVshow name
-                    tvShowName = matcher.group("name").replace("_", " ").replace("-", " ").replace(
-                            ".", " ").trim { it <= ' ' }
+                    var tvShowName = matcher.group("name")
+                    tvShowName = tvShowName.replace("_", " ")
+                    tvShowName = tvShowName.replace("-", " ")
+                    tvShowName = tvShowName.replace(".", " ")
+                    tvShowName = tvShowName.trim { it <= ' ' }
                     classification.tvShowName = tvShowName
                 } catch (e: IllegalArgumentException) {
                 }
@@ -110,8 +107,12 @@ object FileMatcher {
                     // optional
                     if (matcher.group("rest") != null) {
                         // replace word separators with spaces in captured TVshow rest
-                        classification.tvShowRest = matcher.group("rest").replace("_", " ").replace(
-                                "-", " ").replace(".", " ").trim { it <= ' ' }
+                        var tvShowRest = matcher.group("rest")
+                        tvShowRest = tvShowRest.replace("_", " ")
+                        tvShowRest = tvShowRest.replace("-", " ")
+                        tvShowRest = tvShowRest.replace(".", " ")
+                        tvShowRest = tvShowRest.trim { it <= ' ' }
+                        classification.tvShowRest = tvShowRest
                     }
                 } catch (e: IllegalArgumentException) {
                 }
@@ -127,8 +128,6 @@ object FileMatcher {
     /**
      * Try to match a filename against a criterium.
      *
-     * @param fileName  The filename
-     * @param criterium The criteriumm
      * @return The corresponding Classification object if match, or empty if not
      */
     fun matchOtherFiles(fileName: String,
@@ -141,7 +140,7 @@ object FileMatcher {
 
         // check extension if specified
         if (criterium.extensions.isNotEmpty()) {
-            if (Arrays.asList(*criterium.extensions).contains(getFileExtension(fileName))) {
+            if (criterium.extensions.contains(getFileExtension(fileName))) {
                 matchExtensions = true
             }
         }
@@ -173,24 +172,19 @@ object FileMatcher {
     }
 
     private fun getFileExtension(fileName: String): String {
-
         var extension = ""
-
         val i = fileName.lastIndexOf('.')
         if (i > 0) {
             extension = fileName.substring(i + 1)
         }
-
         return extension
     }
 
     private fun getFilenameWithoutExtension(fileName: String): String {
-
         val extension = getFileExtension(fileName)
-
-        return if (extension.isEmpty()) {
-            fileName
-        } else fileName.substring(0, fileName.length - extension.length - 1)
-
+        if (extension.isEmpty()) {
+            return fileName
+        }
+        return fileName.substring(0, fileName.length - extension.length - 1)
     }
 }

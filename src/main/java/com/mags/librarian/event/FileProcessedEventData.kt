@@ -11,14 +11,10 @@ package com.mags.librarian.event
 
 import com.mags.librarian.classifier.Classification
 
-class FileProcessedEventData : EventData {
-
-    var inputFolder: String? = null
-    var inputFilename: String? = null
-    var outputFolder: String? = null
-    var outputFilename: String? = null
-    var fileClassification: Classification? = null
-    var action: String? = null
-    var actionPerformed: String? = null
-
-}
+data class FileProcessedEventData(var inputFolder: String = "",
+                                  var inputFilename: String = "",
+                                  var outputFolder: String = "",
+                                  var outputFilename: String = "",
+                                  var fileClassification: Classification? = null,
+                                  var action: String = "",
+                                  var actionPerformed: String = "") : EventData

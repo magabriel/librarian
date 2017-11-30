@@ -21,11 +21,13 @@ import java.util.concurrent.TimeUnit
 class Command(private val logger: Log) {
     public var timeout = DEFAULT_TIMEOUT
 
+    companion object {
+        val DEFAULT_TIMEOUT = 10000
+    }
+
     /**
      * Executes a given command with arguments regarding one processed file.
      *
-     * @param commandToExecute The command (line) to execute
-     * @param arguments        The arguments
      * @return The exit value of the command
      */
     fun execute(commandToExecute: String,
@@ -63,19 +65,12 @@ class Command(private val logger: Log) {
             } else -1
 
         } catch (e: InterruptedException) {
-            logger.logger.warning(
-                    String.format("- Error executing command '%s': %s", commandToExecute,
-                                  e.message))
+            logger.logger.warning("- Error executing command '$commandToExecute': ${e.message}")
         } catch (e: IOException) {
-            logger.logger.warning(
-                    String.format("- Cannot execute command '%s': %s", commandToExecute, e.message))
+            logger.logger.warning("- Cannot execute command '$commandToExecute': ${e.message}")
         }
 
         return -1
     }
 
-    companion object {
-
-        val DEFAULT_TIMEOUT = 10000
-    }
 }

@@ -15,9 +15,9 @@ import java.util.logging.Level
  * Stores the user options.
  */
 internal class Options(var verbosity: Verbosity = Verbosity.NORMAL,
-                       var logLevel: Level? = Level.INFO,
-                       var dryRun: Boolean? = false,
-                       var copyOnly: Boolean? = false,
+                       var logLevel: Level = Level.INFO,
+                       var dryRun: Boolean = false,
+                       var copyOnly: Boolean = false,
                        var logFileName: String = "",
                        var rssFileName: String = "") {
 

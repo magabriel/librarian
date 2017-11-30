@@ -28,7 +28,6 @@ class Log internal constructor(var logFileName: String?) {
     private var fileHandler: Handler? = null
 
     init {
-
         logger = java.util.logging.Logger.getLogger(this.javaClass.name)
         logger.useParentHandlers = false
     }
@@ -38,7 +37,6 @@ class Log internal constructor(var logFileName: String?) {
     }
 
     fun close() {
-
         for (handler in logger.handlers) {
             logger.removeHandler(handler)
         }
@@ -48,16 +46,13 @@ class Log internal constructor(var logFileName: String?) {
      * Initializations.
      */
     internal fun initLogger() {
-
         logger.level = Level.ALL
-
         /*
          * Create the console handler with reduced info and INFO level
          */
         consoleHandler = ConsoleHandler()
         consoleHandler!!.formatter = object : Formatter() {
             override fun format(record: LogRecord): String {
-
                 return String.format("%s\n", record.message)
             }
         }
@@ -76,12 +71,11 @@ class Log internal constructor(var logFileName: String?) {
             fileHandler = FileHandler(logFileName!!, true)
             fileHandler!!.formatter = object : Formatter() {
                 override fun format(record: LogRecord): String {
-
                     val dt = SimpleDateFormat("yyyy-MM-dd HH.mm:ss")
-
-                    return String.format("%s [%s] %s\n", dt.format(Date()),
-                                         (record.level.toString() + "      ").substring(0, 6),
-                                         record.message)
+                    return "%s [%s] %s\n".format(dt.format(Date()),
+                                                 (record.level.toString() + "      ").substring(0,
+                                                                                                6),
+                                                 record.message)
                 }
             }
             fileHandler!!.level = logLevel

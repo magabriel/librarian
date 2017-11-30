@@ -183,17 +183,20 @@ class ClassifierTest {
         @JvmStatic
         fun setUpBeforeClass() {
             classifier = Classifier()
-            classifier.addCriterium("videos", arrayOf("avi", "mkv"), arrayOf())
-            classifier.addCriterium("music", arrayOf("mp3", "ogg"), arrayOf())
+            classifier.addCriterium("videos", listOf("avi", "mkv"), listOf())
+            classifier.addCriterium("music", listOf("mp3", "ogg"), listOf())
             // SssEee
-            classifier.addCriterium("tvshows", arrayOf("avi", "mkv"),
-                                    arrayOf("(?<name>.+)S(?<season>[0-9]{1,3})E(?<episode>[0-9]{1,3})(?<rest>.*)"))
+            classifier.addCriterium("tvshows",
+                                    listOf("avi", "mkv"),
+                                    listOf("(?<name>.+)S(?<season>[0-9]{1,3})E(?<episode>[0-9]{1,3})(?<rest>.*)"))
             // ssxee
-            classifier.addCriterium("tvshows", arrayOf("avi", "mkv"),
-                                    arrayOf("(?<name>.+)(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)"))
+            classifier.addCriterium("tvshows",
+                                    listOf("avi", "mkv"),
+                                    listOf("(?<name>.+)(?<season>[0-9]{1,2})x(?<episode>[0-9]{1,3})(?<rest>.*)"))
             // see
-            classifier.addCriterium("tvshows", arrayOf("avi", "mkv"),
-                                    arrayOf("(?<name>.+(?:[^\\p{Alnum}\\(]))(?<season>[0-9]{1})(?<episode>[0-9]{2})" + "(?:(?<rest>[^0-9].*)|\\z)"))
+            classifier.addCriterium("tvshows",
+                                    listOf("avi", "mkv"),
+                                    listOf("(?<name>.+(?:[^\\p{Alnum}\\(]))(?<season>[0-9]{1})(?<episode>[0-9]{2})" + "(?:(?<rest>[^0-9].*)|\\z)"))
         }
     }
 }

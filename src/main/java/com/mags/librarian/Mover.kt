@@ -15,9 +15,6 @@ import com.mags.librarian.config.Config
 import com.mags.librarian.event.*
 import java.io.File
 import java.io.IOException
-import java.nio.file.FileAlreadyExistsException
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.util.*
 import java.util.regex.Pattern
 
@@ -35,9 +32,6 @@ internal class Mover(private val options: Options,
 
     /**
      * Move a file to its destination folder depending on its classification.
-     *
-     * @param inputFile          The input file
-     * @param fileClassification The file classification
      */
     fun moveToDestination(inputFile: File,
                           fileClassification: Classification) {
@@ -48,29 +42,27 @@ internal class Mover(private val options: Options,
         // find all suitable destinations for this file
         val suitableDestinations = findSuitableDestinations(fileClassification)
 
-        if (fileClassification.name == "tvshows") {
-            // if it is a tvshow, move it (special treatment)
-            moveTvShowToDestination(inputFile, fileClassification, suitableDestinations)
-
-        } else if (fileClassification.name == "music") {
-            // if it is a music file, move it (special treatment)
-            moveMusicToDestination(inputFile, fileClassification, suitableDestinations)
-
-        } else {
-            // move other file
-            moveRegularFileToDestination(inputFile, suitableDestinations)
+        when {
+            fileClassification.name == "tvshows" ->
+                // if it is a tvshow, move it (special treatment)
+                moveTvShowToDestination(inputFile, fileClassification, suitableDestinations)
+            fileClassification.name == "music"   ->
+                // if it is a music file, move it (special treatment)
+                moveMusicToDestination(inputFile, fileClassification, suitableDestinations)
+            else                                 ->
+                // move other file
+                moveRegularFileToDestination(inputFile, suitableDestinations)
         }
 
         if (!actionPerformed.isEmpty()) {
             // notify listener
-            val eventData = FileProcessedEventData()
-            eventData.inputFolder = summary!!.inputFolder
-            eventData.inputFilename = summary!!.inputFilename
-            eventData.outputFolder = summary!!.outputFolder
-            eventData.outputFilename = summary!!.outputFilename
-            eventData.fileClassification = fileClassification
-            eventData.action = summary!!.action
-            eventData.actionPerformed = actionPerformed
+            val eventData = FileProcessedEventData(summary!!.inputFolder,
+                                                   summary!!.inputFilename,
+                                                   summary!!.outputFolder,
+                                                   summary!!.outputFilename,
+                                                   fileClassification,
+                                                   summary!!.action,
+                                                   actionPerformed)
             eventDispatcher.fireEvent(Event.FILE_PROCESSED, eventData)
             return
         }
@@ -85,8 +77,6 @@ internal class Mover(private val options: Options,
 
     /**
      * Process an unknown file.
-     *
-     * @param inputFile The file to process.
      */
     fun processUnknownFile(inputFile: File) {
 
@@ -98,8 +88,7 @@ internal class Mover(private val options: Options,
 
         when (config.unknownFilesAction) {
             Config.FilesAction.IGNORE -> {
-                logger.logger.warning(
-                        String.format("- File '%s' ignored (left in place).", inputFile.name))
+                logger.logger.warning("- File '${inputFile.name}' ignored (left in place).")
                 summary!!.action = "ignore"
             }
 
@@ -110,9 +99,7 @@ internal class Mover(private val options: Options,
 
             Config.FilesAction.MOVE   -> {
                 if (config.unknownFilesMovePath.isEmpty()) {
-                    logger.logger.warning(String.format(
-                            "- Unknown files move path is empty, cannot move file '%s'.",
-                            inputFile.name))
+                    logger.logger.warning("- Unknown files move path is empty, cannot move file '${inputFile.name}'.")
                     return
                 }
 
@@ -123,19 +110,16 @@ internal class Mover(private val options: Options,
         }
 
         // notify listeners
-        val eventData = FileUnknownEventData()
-        eventData.inputFolder = summary!!.inputFolder
-        eventData.inputFilename = summary!!.inputFilename
-        eventData.outputFolder = summary!!.outputFolder
-        eventData.outputFilename = summary!!.outputFilename
-        eventData.action = summary!!.action
-        eventDispatcher.fireEvent(Event.FILE_UNKNOWN, eventData)
+        eventDispatcher.fireEvent(Event.FILE_UNKNOWN,
+                                  FileUnknownEventData(summary!!.inputFolder,
+                                                       summary!!.inputFilename,
+                                                       summary!!.outputFolder,
+                                                       summary!!.outputFilename,
+                                                       summary!!.action))
     }
 
     /**
      * Process a duplicate file.
-     *
-     * @param inputFile The file.
      */
     private fun processDuplicateFile(inputFile: File) {
 
@@ -147,8 +131,7 @@ internal class Mover(private val options: Options,
 
         when (config.duplicateFilesAction) {
             Config.FilesAction.IGNORE -> {
-                logger.logger.warning(
-                        String.format("- File '%s' ignored (left in place).", inputFile.name))
+                logger.logger.warning("- File '${inputFile.name}' ignored (left in place).")
                 summary!!.action = "ignore"
             }
 
@@ -159,9 +142,7 @@ internal class Mover(private val options: Options,
 
             Config.FilesAction.MOVE   -> {
                 if (config.duplicateFilesMovePath.isEmpty()) {
-                    logger.logger.warning(String.format(
-                            "- Duplicate files move path is empty, cannot move file '%s'.",
-                            inputFile.name))
+                    logger.logger.warning("- Duplicate files move path is empty, cannot move file '${inputFile.name}'.")
                     return
                 }
 
@@ -172,19 +153,16 @@ internal class Mover(private val options: Options,
         }
 
         // notify listeners
-        val eventData = FileErrorEventData()
-        eventData.inputFolder = summary!!.inputFolder
-        eventData.inputFilename = summary!!.inputFilename
-        eventData.outputFolder = summary!!.outputFolder
-        eventData.outputFilename = summary!!.outputFilename
-        eventData.action = summary!!.action
-        eventDispatcher.fireEvent(Event.FILE_ERROR, eventData)
+        eventDispatcher.fireEvent(Event.FILE_ERROR,
+                                  FileErrorEventData(summary!!.inputFolder,
+                                                     summary!!.inputFilename,
+                                                     summary!!.outputFolder,
+                                                     summary!!.outputFilename,
+                                                     summary!!.action))
     }
 
     /**
      * Process an errored file.
-     *
-     * @param inputFile The file.
      */
     private fun processErroredFile(inputFile: File) {
 
@@ -196,8 +174,7 @@ internal class Mover(private val options: Options,
 
         when (config.errorFilesAction) {
             Config.FilesAction.IGNORE -> {
-                logger.logger.warning(
-                        String.format("- File '%s' ignored (left in place).", inputFile.name))
+                logger.logger.warning("- File '${inputFile.name}' ignored (left in place).")
                 summary!!.action = "ignore"
             }
 
@@ -208,9 +185,7 @@ internal class Mover(private val options: Options,
 
             Config.FilesAction.MOVE   -> {
                 if (config.errorFilesMovePath.isEmpty()) {
-                    logger.logger.warning(String.format(
-                            "- Error files move path is empty, cannot move file '%s'.",
-                            inputFile.name))
+                    logger.logger.warning("- Error files move path is empty, cannot move file '${inputFile.name}'.")
                     return
                 }
 
@@ -221,65 +196,57 @@ internal class Mover(private val options: Options,
         }
 
         // notify listeners
-        val eventData = FileUnknownEventData()
-        eventData.inputFolder = summary!!.inputFolder
-        eventData.inputFilename = summary!!.inputFilename
-        eventData.outputFolder = summary!!.outputFolder
-        eventData.outputFilename = summary!!.outputFilename
-        eventData.action = summary!!.action
-        eventDispatcher.fireEvent(Event.FILE_ERROR, eventData)
+        eventDispatcher.fireEvent(Event.FILE_ERROR,
+                                  FileErrorEventData(summary!!.inputFolder,
+                                                     summary!!.inputFilename,
+                                                     summary!!.outputFolder,
+                                                     summary!!.outputFilename,
+                                                     summary!!.action))
     }
 
     /**
      * Delete a file.
-     *
-     * @param inputFile The file to delete.
      */
     private fun deleteFile(inputFile: File) {
 
         try {
-            if ((!options.dryRun!!)) {
-                Files.delete(inputFile.toPath())
+            if ((!options.dryRun)) {
+                inputFile.delete()
             }
-            logger.logger.fine(String.format("- File '%s' deleted.", inputFile.name))
+            logger.logger.fine("- File '${inputFile.name}' deleted.")
         } catch (e: IOException) {
-            logger.logger.warning(String.format("- Error deleting file: %s", e))
+            logger.logger.warning("- Error deleting file: $e")
         }
-
     }
 
     /**
      * Move a file to a destination folder.
-     *
-     * @param inputFile         The file to move
-     * @param destinationFolder The folder where to move it
      */
     private fun moveFile(inputFile: File,
                          destinationFolder: File,
                          autoRenameIfExisting: Boolean) {
 
         if (!destinationFolder.exists()) {
-            if ((!options.dryRun!!)) {
+            if ((!options.dryRun)) {
                 destinationFolder.mkdirs()
             }
-            logger.logger.fine(
-                    String.format("- Created folder '%s'.", destinationFolder.absolutePath))
+            logger.logger.fine("- Created folder '${destinationFolder.absolutePath}'.")
         }
 
         try {
-            var destination = destinationFolder.toPath().resolve(inputFile.name)
-            if (Files.exists(destination)) {
+            var destination = destinationFolder.resolve(inputFile.name)
+            if (destination.exists()) {
                 val time = Date().time.toString()
-                destination = destinationFolder.toPath().resolve(inputFile.name + '-' + time)
+                destination = destinationFolder.resolve(inputFile.name + '-' + time)
             }
 
-            if ((!options.dryRun!!)) {
-                Files.move(inputFile.toPath(), destination)
+            if ((!options.dryRun)) {
+                inputFile.copyTo(destination)
+                inputFile.delete()
             }
-            logger.logger.fine(
-                    String.format("- File '%s' moved to '%s'.", inputFile.name, destinationFolder))
+            logger.logger.fine("- File '${inputFile.name}' moved to '${destinationFolder}'.")
         } catch (e: IOException) {
-            logger.logger.severe(String.format("- Error moving file: %s", e))
+            logger.logger.severe("- Error moving file: $e")
         }
 
     }
@@ -287,12 +254,10 @@ internal class Mover(private val options: Options,
     private fun replaceWordsSeparatorsInFileNameFragment(fileName: String): String {
 
         var existingSeparator = " "
-        if (fileName.matches(" ".toRegex())) {
-            existingSeparator = " "
-        } else if (fileName.matches("_".toRegex())) {
-            existingSeparator = "_"
-        } else if (fileName.matches("\\.".toRegex())) {
-            existingSeparator = "."
+        when {
+            fileName.matches(" ".toRegex())   -> existingSeparator = " "
+            fileName.matches("_".toRegex())   -> existingSeparator = "_"
+            fileName.matches("\\.".toRegex()) -> existingSeparator = "."
         }
 
         return fileName.replace(existingSeparator, config.tvShowsWordsSeparatorFile)
@@ -300,32 +265,32 @@ internal class Mover(private val options: Options,
 
     private fun replaceWordsSeparatorsInFileName(fileNameWithoutExtension: String): String {
 
-        return fileNameWithoutExtension.replace(" ", config.tvShowsWordsSeparatorFile).replace("_",
-                                                                                               config.tvShowsWordsSeparatorFile).replace(
-                ".", config.tvShowsWordsSeparatorFile)
+        var r = fileNameWithoutExtension
+        r = r.replace(" ", config.tvShowsWordsSeparatorFile)
+        r = r.replace("_", config.tvShowsWordsSeparatorFile)
+        r = r.replace(".", config.tvShowsWordsSeparatorFile)
+        return r
     }
 
     private fun replaceWordsSeparatorsInTvShowName(fileNameWithoutExtension: String): String {
 
-        return fileNameWithoutExtension.replace(" ", config.tvShowsWordsSeparatorShow).replace("_",
-                                                                                               config.tvShowsWordsSeparatorShow).replace(
-                ".", config.tvShowsWordsSeparatorShow)
+        var r = fileNameWithoutExtension
+        r = r.replace(" ", config.tvShowsWordsSeparatorShow)
+        r = r.replace("_", config.tvShowsWordsSeparatorShow)
+        r = r.replace(".", config.tvShowsWordsSeparatorShow)
+        return r
     }
 
     /**
      * Find all the possible destinations for a file.
-     *
-     * @param fileClassification The file classification
-     * @return A list of destinations
      */
-    private fun findSuitableDestinations(fileClassification: Classification): ArrayList<Map<*, *>> {
+    private fun findSuitableDestinations(fileClassification: Classification): MutableList<Map<String, String>> {
 
-        val destinations = ArrayList<Map<*, *>>()
+        val destinations = mutableListOf<Map<String, String>>()
 
         for (outputFolder in config.outputFolders) {
             if (outputFolder["contents"] == fileClassification.name) {
-                logger.logger.fine(String.format("- Suitable destination folder found: '%s'.",
-                                                 outputFolder["path"]))
+                logger.logger.fine("- Suitable destination folder found: '${outputFolder["path"]}'.")
 
                 destinations.add(outputFolder)
             }
@@ -336,12 +301,9 @@ internal class Mover(private val options: Options,
 
     /**
      * Move a file to the first of the suitable destinations.
-     *
-     * @param inputFile
-     * @param suitableDestinations
      */
     private fun moveRegularFileToDestination(inputFile: File,
-                                             suitableDestinations: ArrayList<Map<*, *>>) {
+                                             suitableDestinations: MutableList<Map<String, String>>) {
 
         if (suitableDestinations.isEmpty()) {
             logger.logger.warning("- No suitable destination found, skipping.")
@@ -356,14 +318,10 @@ internal class Mover(private val options: Options,
 
     /**
      * Moves a music file to one of the suitable destinations.
-     *
-     * @param inputFile            The input file
-     * @param fileClassification   The file classification
-     * @param suitableDestinations List of suitable destinations
      */
     private fun moveMusicToDestination(inputFile: File,
                                        fileClassification: Classification,
-                                       suitableDestinations: ArrayList<Map<*, *>>) {
+                                       suitableDestinations: MutableList<Map<String, String>>) {
 
         if (fileClassification.albumName.isEmpty()) {
             // no album, it is just a regular move
@@ -372,22 +330,17 @@ internal class Mover(private val options: Options,
         }
 
         // use the first suitable destination, adding the album as subfolder
-        val albumFolder = Paths.get(suitableDestinations[0]["path"].toString(),
-                                    fileClassification.albumName).toFile()
+        val albumFolder = File(suitableDestinations[0]["path"]).resolve(fileClassification.albumName)
 
         moveTheFile(inputFile, albumFolder)
     }
 
     /**
      * Moves a TV show file to one of the suitable destinations.
-     *
-     * @param inputFile            The input file
-     * @param fileClassification   The file classification
-     * @param suitableDestinations List of suitable destinations
      */
     private fun moveTvShowToDestination(inputFile: File,
                                         fileClassification: Classification,
-                                        suitableDestinations: ArrayList<Map<*, *>>) {
+                                        suitableDestinations: List<Map<String, String>>) {
 
         // find the parent destination folder for that TV show
         var parentDestinationFolder = findParentDestinationFolder(inputFile, fileClassification,
@@ -398,9 +351,7 @@ internal class Mover(private val options: Options,
             val path = suitableDestinations[suitableDestinations.size - 1]["path"].toString()
             parentDestinationFolder = File(path)
 
-            logger.logger.fine(
-                    String.format("- No suitable destination folder found, using '%s' as default.",
-                                  path))
+            logger.logger.fine("- No suitable destination folder found, using '$path' as default.")
         }
 
         // apply season and numbering schemas
@@ -408,8 +359,7 @@ internal class Mover(private val options: Options,
         val tvShowFileName = applyTvShowNumberingSchema(fileClassification)
 
         // replace separators in TV show name
-        fileClassification.tvShowName = replaceWordsSeparatorsInTvShowName(
-                fileClassification.tvShowName)
+        fileClassification.tvShowName = replaceWordsSeparatorsInTvShowName(fileClassification.tvShowName)
 
         // ensure we have a valid folder name for the tv show, wheather preexisting or new
         if (fileClassification.tvShowFolderName.isEmpty()) {
@@ -417,19 +367,16 @@ internal class Mover(private val options: Options,
         }
 
         // the real destination folder is a subfolder of the parent found
-        val tvShowDestinationFolder = Paths.get(parentDestinationFolder.absolutePath,
-                                                fileClassification.tvShowFolderName,
-                                                seasonName).toFile()
+        val tvShowDestinationFolder = parentDestinationFolder.resolve(fileClassification.tvShowFolderName).resolve(
+                seasonName)
 
         if (!tvShowDestinationFolder.exists()) {
-            if ((!options.dryRun!!)) {
+            if ((!options.dryRun)) {
                 tvShowDestinationFolder.mkdirs()
             }
-            logger.logger.fine(String.format("- Created folder for TV show/season: '%s'.",
-                                             tvShowDestinationFolder.absolutePath))
+            logger.logger.fine("- Created folder for TV show/season: '${tvShowDestinationFolder.absolutePath}'.")
         } else {
-            logger.logger.fine(String.format("- Using existing folder for TV show/season: '%s'.",
-                                             tvShowDestinationFolder.absolutePath))
+            logger.logger.fine("- Using existing folder for TV show/season: '${tvShowDestinationFolder.absolutePath}'.")
         }
 
         // move the file
@@ -438,19 +385,12 @@ internal class Mover(private val options: Options,
 
     /**
      * Find the parent folder of an existing TV show folder.
-     *
-     * @param inputFile            The input file
-     * @param fileClassification   The file classification
-     * @param suitableDestinations List of suitable destinations
-     * @return The destination folder
      */
     private fun findParentDestinationFolder(inputFile: File,
                                             fileClassification: Classification,
-                                            suitableDestinations: ArrayList<Map<*, *>>): File? {
+                                            suitableDestinations: List<Map<String, String>>): File? {
 
-        logger.logger.fine(
-                String.format("- Find suitable parent destination folder for file \"%s\"",
-                              inputFile.name))
+        logger.logger.fine("- Find suitable parent destination folder for file \"${inputFile.name}\"")
 
         // NOTE: using a final array[1] because of lambda usage limitations
         val parentDestinationFolder = arrayOfNulls<File>(1)
@@ -458,9 +398,7 @@ internal class Mover(private val options: Options,
         suitableDestinations.forEach { destination ->
             val destinationFolder = File(destination["path"].toString())
 
-            logger.logger.fine(
-                    String.format("- Checking candidate parent destination folder \"%s\"",
-                                  destinationFolder))
+            logger.logger.fine("- Checking candidate parent destination folder \"$destinationFolder\"")
 
             // try finding an existing subfolder for the TV show
             val tvShowSubfolders = destinationFolder.list { dir, name ->
@@ -472,7 +410,7 @@ internal class Mover(private val options: Options,
                     // save real folder name to avoid creating extra folders on case or separators change
                     fileClassification.tvShowFolderName = name
 
-                    logger.logger.finer(String.format("- Matched folder name \"%s\"", name))
+                    logger.logger.finer("- Matched folder name \"$name\"")
                     return@list true
                 }
 
@@ -486,8 +424,7 @@ internal class Mover(private val options: Options,
         }
 
         if (parentDestinationFolder[0] != null) {
-            logger.logger.fine(String.format("- Using parent destination folder \"%s\"",
-                                             parentDestinationFolder[0]))
+            logger.logger.fine("- Using parent destination folder \"$parentDestinationFolder[0]\"")
             return parentDestinationFolder[0]
         }
 
@@ -513,14 +450,14 @@ internal class Mover(private val options: Options,
         seasonAndEpisode = replaceTag(seasonAndEpisode, "season", classification.season)
         seasonAndEpisode = replaceTag(seasonAndEpisode, "episode", classification.episode)
 
-        val newName = ArrayList<String>()
-        newName.add(replaceWordsSeparatorsInFileNameFragment(classification.tvShowName))
-        newName.add(config.tvShowsWordsSeparatorFile)
-        newName.add(seasonAndEpisode)
-
-        if (!classification.tvShowRest.isEmpty()) {
-            newName.add(config.tvShowsWordsSeparatorFile)
-            newName.add(replaceWordsSeparatorsInFileNameFragment(classification.tvShowRest))
+        val newName = mutableListOf<String>().apply {
+            add(replaceWordsSeparatorsInFileNameFragment(classification.tvShowName))
+            add(config.tvShowsWordsSeparatorFile)
+            add(seasonAndEpisode)
+            if (!classification.tvShowRest.isEmpty()) {
+                add(config.tvShowsWordsSeparatorFile)
+                add(replaceWordsSeparatorsInFileNameFragment(classification.tvShowRest))
+            }
         }
 
         val baseName = newName.joinToString("")
@@ -542,15 +479,13 @@ internal class Mover(private val options: Options,
 
         var replacedString = inputString
 
-        val regExp = Pattern.compile(
-                String.format("(?<pre>)(?<tag>\\{%s(?::(?<number>[0-9]+))\\})(?<post>)", tag))
+        val regExp = Pattern.compile(String.format("(?<pre>)(?<tag>\\{%s(?::(?<number>[0-9]+))\\})(?<post>)",
+                                                   tag))
         val matcher = regExp.matcher(inputString)
         if (matcher.find()) {
             val number = Integer.parseInt(matcher.group("number"))
-
             val formatted = String.format("%0" + number + "d", value)
             replacedString = matcher.replaceAll("\${pre}$formatted\${post}")
-
         }
 
         return replacedString
@@ -570,10 +505,9 @@ internal class Mover(private val options: Options,
 
         try {
             if (!destinationFolder.exists()) {
-                if ((!options.dryRun!!)) {
+                if ((!options.dryRun)) {
                     destinationFolder.mkdirs()
-                    logger.logger.fine(String.format("- Created destination folder '%s'.",
-                                                     destinationFolder.absolutePath))
+                    logger.logger.fine("- Created destination folder '${destinationFolder.absolutePath}'.")
                 }
             }
 
@@ -587,28 +521,21 @@ internal class Mover(private val options: Options,
             summary!!.outputFolder = destinationFolder.toString()
             summary!!.outputFilename = newName
 
-            if (options.copyOnly!!) {
-                if ((!options.dryRun!!)) {
-                    Files.copy(inputFile.toPath(), destinationFolder.toPath().resolve(newName))
+            if (options.copyOnly) {
+                if ((!options.dryRun)) {
+                    inputFile.copyTo(destinationFolder.resolve(newName))
                 }
-                actionPerformed = String.format("copied [%s] to [%s] as [%s]",
-                                                inputFile.absolutePath,
-                                                destinationFolder.absolutePath, newName)
-                logger.logger.info(
-                        String.format("- File '%s' copied to '%s' as '%s'.", inputFile.name,
-                                      destinationFolder.absolutePath, newName))
+                actionPerformed = "copied [${inputFile.absolutePath}] to [${destinationFolder.absolutePath}] as [$newName]"
+                logger.logger.info("- File '${destinationFolder.absolutePath}' copied to '${inputFile.name}' as '$newName'.")
                 summary!!.action = "copy"
 
             } else {
-                if ((!options.dryRun!!)) {
-                    Files.move(inputFile.toPath(), destinationFolder.toPath().resolve(newName))
+                if ((!options.dryRun)) {
+                    inputFile.copyTo(destinationFolder.resolve(newName), false)
+                    inputFile.delete()
                 }
-                actionPerformed = String.format("moved [%s] to [%s] as [%s]",
-                                                inputFile.absolutePath,
-                                                destinationFolder.absolutePath, newName)
-                logger.logger.info(
-                        String.format("- File '%s' moved to '%s' as '%s'.", inputFile.name,
-                                      destinationFolder.absolutePath, newName))
+                actionPerformed = "moved [${inputFile.absolutePath}] to [${destinationFolder.absolutePath}] as [$newName]"
+                logger.logger.info("- File '${inputFile.name}' moved to '${destinationFolder.absolutePath}' as '$newName'.")
                 summary!!.action = "move"
             }
 
@@ -616,36 +543,22 @@ internal class Mover(private val options: Options,
 
             isDuplicated = true
 
-            var msg = "- Cannot move already existing file '%s' to '%s': %s"
-            if (options.copyOnly!!) {
-                msg = "- Cannot copy already existing file '%s' to '%s': %s"
-            }
-            logger.logger.severe(String.format(msg, inputFile.name, destinationFolder.absolutePath,
-                                               e.toString()))
+            var action = if (options.copyOnly) "copy" else "move"
+            var msg = "- Cannot $action already existing file '${inputFile.name}' to '${destinationFolder.absolutePath}': $e"
+            logger.logger.severe(msg)
         } catch (e: IOException) {
 
-            var msg = "- Cannot move file '%s' to '%s': %s"
-            if (options.copyOnly!!) {
-                msg = "- Cannot copy file '%s' to '%s': %s"
-            }
-            logger.logger.severe(String.format(msg, inputFile.name, destinationFolder.absolutePath,
-                                               e.toString()))
+            var action = if (options.copyOnly) "copy" else "move"
+            var msg = "- Cannot $action file '${inputFile.name}' to '${destinationFolder.absolutePath}': $e"
+            logger.logger.severe(msg)
         }
 
     }
 
-    internal inner class Summary {
-
-        var inputFolder = ""
-        var inputFilename = ""
-        var outputFolder = ""
-        var outputFilename = ""
-        var action = ""
-    }
+    internal data class Summary(var inputFolder: String = "",
+                                var inputFilename: String = "",
+                                var outputFolder: String = "",
+                                var outputFilename: String = "",
+                                var action: String = "")
 }
-/**
- * Do the actual file move.
- *
- * @param inputFile
- * @param destinationFolder
- */
+

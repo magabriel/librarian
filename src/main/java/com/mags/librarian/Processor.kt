@@ -51,9 +51,12 @@ internal class Processor(private val options: Options,
         eventDispatcher.addListener(Event.FILE_PROCESSED, object : Listener<EventData> {
             override fun onEvent(eventData: EventData) {
                 val data = eventData as FileProcessedEventData
-                val arguments = Arrays.asList<String>(data.inputFolder, data.inputFilename,
-                                                      data.outputFolder, data.outputFilename,
-                                                      data.fileClassification!!.name, data.action)
+                val arguments = listOf<String>(data.inputFolder,
+                                               data.inputFilename,
+                                               data.outputFolder,
+                                               data.outputFilename,
+                                               data.fileClassification?.name!!,
+                                               data.action)
                 if (!config.executeSuccess.isEmpty()) {
                     command!!.execute(config.executeSuccess, arguments)
                 }
@@ -64,9 +67,11 @@ internal class Processor(private val options: Options,
         eventDispatcher.addListener(Event.FILE_UNKNOWN, object : Listener<EventData> {
             override fun onEvent(eventData: EventData) {
                 val data = eventData as FileUnknownEventData
-                val arguments = Arrays.asList<String>(data.inputFolder, data.inputFilename,
-                                                      data.outputFolder, data.outputFilename,
-                                                      data.action)
+                val arguments = listOf<String>(data.inputFolder,
+                                               data.inputFilename,
+                                               data.outputFolder,
+                                               data.outputFilename,
+                                               data.action)
                 if (!config.executeError.isEmpty()) {
                     command!!.execute(config.executeError, arguments)
                 }
@@ -76,9 +81,11 @@ internal class Processor(private val options: Options,
         eventDispatcher.addListener(Event.FILE_ERROR, object : Listener<EventData> {
             override fun onEvent(eventData: EventData) {
                 val data = eventData as FileErrorEventData
-                val arguments = Arrays.asList<String>(data.inputFolder, data.inputFilename,
-                                                      data.outputFolder, data.outputFilename,
-                                                      data.action)
+                val arguments = listOf<String>(data.inputFolder,
+                                               data.inputFilename,
+                                               data.outputFolder,
+                                               data.outputFilename,
+                                               data.action)
                 if (!config.executeError.isEmpty()) {
                     command!!.execute(config.executeError, arguments)
                 }
@@ -90,20 +97,20 @@ internal class Processor(private val options: Options,
      * Write options and configuration values to the logger.
      */
     private fun logOptionsAndConfig() {
-        if (options.dryRun!!) {
+        if (options.dryRun) {
             logger.logger.config("- Dry run: true")
         }
 
         logger.logger.config("- Log level: ${options.logLevel}")
         logger.logger.config("- Verbosity: ${options.verbosity}")
 
-        if (options.copyOnly!!) {
+        if (options.copyOnly) {
             logger.logger.config("- Copy only: true")
         }
 
         logger.logger.config("- Extensions: ")
         for (extension in config.extensions) {
-            val name = extension.keys.toTypedArray()[0].toString()
+            val name = extension.keys.toTypedArray()[0]
             val values = extension[name].toString()
             logger.logger.config("    - $name : \"$values\"")
         }
@@ -128,7 +135,7 @@ internal class Processor(private val options: Options,
 
         logger.logger.config("- Content classes: ")
         for (contentClass in config.contentClasses) {
-            val name = contentClass.keys.toTypedArray()[0].toString()
+            val name = contentClass.keys.toTypedArray()[0]
             val values = contentClass[name].toString()
             logger.logger.config("    - $name : \"$values\"")
         }
@@ -155,7 +162,6 @@ internal class Processor(private val options: Options,
      */
     private fun process() {
         processInputFiles()
-
         removeEmptyInputSubfolders()
     }
 
@@ -179,18 +185,16 @@ internal class Processor(private val options: Options,
         } else {
             logger.logger.info("Found $totalCount input files.")
         }
-        // using array for lambda limitations
-        val count = intArrayOf(0)
 
+        var count = 0
         inputFiles.forEach { folder: File, files: Array<File> ->
             for (inputFile in files) {
-                count[0]++
-                logger.logger.info("Processing file ($count[0]/$totalCount) '${inputFile.name}'.")
+                count++
+                logger.logger.info("Processing file ($count/$totalCount) '${inputFile.name}'.")
                 val fileClassification = classifier.classify(inputFile, folder)
 
                 if (fileClassification.name.isEmpty()) {
                     logger.logger.warning("- File class not found for file '${inputFile.name}'.")
-
                     mover.processUnknownFile(inputFile)
                     continue
                 }
@@ -199,8 +203,7 @@ internal class Processor(private val options: Options,
 
                 if (fileClassification.name == "tvshows") {
                     with(fileClassification) {
-                        logger.logger.info(
-                                "- TV show: '$tvShowName', season $season, episode $episode.")
+                        logger.logger.info("- TV show: '$tvShowName', season $season, episode $episode.")
                     }
                 }
                 // perform the actual move
@@ -215,8 +218,6 @@ internal class Processor(private val options: Options,
 
     /**
      * Write performed action to feed.
-     *
-     * @param fileClassification
      */
     private fun addMovedToFeed(fileClassification: Classification?,
                                actionPerformed: String?) {
@@ -234,8 +235,6 @@ internal class Processor(private val options: Options,
 
     /**
      * Construct a list of files in the input folders.
-     *
-     * @return List of files.
      */
     private fun collectInputFiles(): Map<File, Array<File>> {
         val collectedFiles = LinkedHashMap<File, Array<File>>()
@@ -257,11 +256,9 @@ internal class Processor(private val options: Options,
 
     /**
      * Construct a list of files in the folder
-     *
-     * @return List of files.
      */
     private fun collectFiles(inputFolder: File): List<File> {
-        val allFiles = ArrayList<File>()
+        val allFiles = mutableListOf<File>()
         val files = inputFolder.listFiles()
         if (files != null) {
             for (file in files) {
@@ -272,7 +269,6 @@ internal class Processor(private val options: Options,
                 }
             }
         }
-
         return allFiles
     }
 
@@ -297,8 +293,6 @@ internal class Processor(private val options: Options,
 
     /**
      * Construct a list of subfolders in the input folders.
-     *
-     * @return List of subfolders.
      */
     private fun collectInputSubfolders(): Map<File, Array<File>> {
         val collectedFolders = LinkedHashMap<File, Array<File>>()
@@ -316,17 +310,14 @@ internal class Processor(private val options: Options,
 
             collectedFolders.put(folder, folders)
         }
-
         return collectedFolders
     }
 
     /**
      * Construct a list of folders in the folder
-     *
-     * @return List of folders.
      */
-    private fun collectFolders(inputFolder: File): ArrayList<File> {
-        val allFolders = ArrayList<File>()
+    private fun collectFolders(inputFolder: File): List<File> {
+        val allFolders = mutableListOf<File>()
         val files = inputFolder.listFiles()
         if (files != null) {
             for (file in files) {
@@ -337,7 +328,6 @@ internal class Processor(private val options: Options,
                 }
             }
         }
-
         return allFolders
     }
 }

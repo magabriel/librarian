@@ -18,20 +18,12 @@ class Classifier(private val criteria: MutableList<Criterium> = mutableListOf<Cr
 
     /**
      * Adds a new criterium to the criteria.
-     *
-     * @param name
-     * @param extensions
-     * @param filters
      */
     fun addCriterium(name: String,
-                     extensions: Array<String>,
-                     filters: Array<String>) {
+                     extensions: List<String>,
+                     filters: List<String>) {
 
-        val criterium = Criterium()
-        criterium.name = name
-        criterium.extensions = extensions
-        criterium.filters = filters
-
+        val criterium = Criterium(name, extensions, filters)
         criteria.add(criterium)
     }
 
