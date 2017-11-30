@@ -9,6 +9,7 @@
 
 package com.mags.librarian
 
+import com.mags.librarian.Options.Options
 import com.mags.librarian.config.Config
 import com.mags.librarian.config.ConfigLoader
 import com.mags.librarian.config.ConfigReader

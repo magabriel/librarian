@@ -9,10 +9,10 @@
 
 package com.mags.librarian.config
 
-import org.junit.After
-import org.junit.Assert.*
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.util.*
 
 class ConfigLoaderTest {
@@ -20,7 +20,7 @@ class ConfigLoaderTest {
     private val yamlSource: String
         get() = "key1: value1\n" + "key2: 123\n" + "key3:\n" + "  key3_1:\n" + "    key3_1_1: abc\n" + "    key3_1_2: true\n" + "    key3_1_3: yes\n" + "key4:\n" + "    - first\n" + "    - second\n" + "    - third"
 
-    @Before
+    @BeforeEach
     @Throws(Exception::class)
     fun setUp() {
         loader = ConfigLoader()
@@ -28,7 +28,7 @@ class ConfigLoaderTest {
 
     }
 
-    @After
+    @AfterEach
     @Throws(Exception::class)
     fun tearDown() {
 

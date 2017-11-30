@@ -9,25 +9,20 @@
 
 package com.mags.librarian
 
+import com.mags.librarian.Options.Options
 import com.mags.librarian.config.ConfigReader
 import com.mags.librarian.event.EventDispatcher
-import org.junit.AfterClass
-import org.junit.Assert.*
-import org.junit.BeforeClass
-import org.junit.Test
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import java.io.File
 import java.io.IOException
 import java.nio.file.*
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.ArrayList
 import java.util.logging.Level
-import kotlin.Array
 import kotlin.Comparator
-import kotlin.Exception
-import kotlin.String
-import kotlin.arrayOfNulls
-import kotlin.plus
-import kotlin.toString
 
 class ProcessorTest {
     @Test
@@ -108,27 +103,27 @@ class ProcessorTest {
         // get input folders' subfolders (after) to check everything moved
         val inputSubfoldersAfter = collectSubfoldersOfInputFolders(config.inputFolders)
 
-        assertArrayEquals("All files moved to output", expectedFilePaths.toTypedArray(),
-                          outputFilePaths.toTypedArray())
-        assertArrayEquals("All files removed from input", arrayOfNulls<String>(0),
-                          inputFilePathsAfter.toTypedArray())
-        assertArrayEquals("All subfolders removed from input", arrayOfNulls<String>(0),
-                          inputSubfoldersAfter.toTypedArray())
+        // "All files moved to output"
+        assertArrayEquals(expectedFilePaths.toTypedArray(), outputFilePaths.toTypedArray())
+        // "All files removed from input"
+        assertArrayEquals(arrayOfNulls<String>(0), inputFilePathsAfter.toTypedArray())
+        // "All subfolders removed from input"
+        assertArrayEquals(arrayOfNulls<String>(0), inputSubfoldersAfter.toTypedArray())
 
-        assertTrue("RSS file created",
-                   Files.exists(executionFolder!!.toPath().resolve("librarian.rss")))
-        assertTrue("Log file created",
-                   Files.exists(executionFolder!!.toPath().resolve("librarian.log")))
+        // "RSS file created"
+        assertTrue(Files.exists(executionFolder!!.toPath().resolve("librarian.rss")))
+        // "Log file created"
+        assertTrue(Files.exists(executionFolder!!.toPath().resolve("librarian.log")))
         // check success and error script invocation
         val logLines = Files.readAllLines(Paths.get(logFilename))
         val countSuccess = logLines.stream().filter { s ->
             s.toString().contains("SUCCESS:")
         }.count()
-        assertEquals("Success script executed for each file", EXPECTED_FILES_OK.toLong(),
-                     countSuccess)
+        // ("Success script executed for each file"
+        assertEquals(EXPECTED_FILES_OK.toLong(), countSuccess)
         val countError = logLines.stream().filter { s -> s.toString().contains("ERROR:") }.count()
-        assertEquals("Error script executed for each file", EXPECTED_FILES_ERROR.toLong(),
-                     countError)
+        // "Error script executed for each file"
+        assertEquals(EXPECTED_FILES_ERROR.toLong(), countError)
 
         logger!!.logger.log(Level.INFO, "Ended functional test")
     }
@@ -214,7 +209,7 @@ class ProcessorTest {
         private var logger: Log? = null
         private var eventDispatcher: EventDispatcher? = null
 
-        @BeforeClass
+        @BeforeAll
         @Throws(Exception::class)
         @JvmStatic
         fun setUpBeforeClass() {
@@ -241,7 +236,7 @@ class ProcessorTest {
             eventDispatcher = EventDispatcher()
         }
 
-        @AfterClass
+        @AfterAll
         @Throws(Exception::class)
         @JvmStatic
         fun tearDownAfterClass() {

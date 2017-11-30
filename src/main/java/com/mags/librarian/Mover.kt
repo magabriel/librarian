@@ -9,6 +9,7 @@
 
 package com.mags.librarian
 
+import com.mags.librarian.Options.Options
 import com.mags.librarian.classifier.Classification
 import com.mags.librarian.classifier.FileMatcher
 import com.mags.librarian.config.Config

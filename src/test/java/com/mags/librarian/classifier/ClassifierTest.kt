@@ -9,10 +9,10 @@
 
 package com.mags.librarian.classifier
 
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
-import org.junit.BeforeClass
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import java.io.File
 
 class ClassifierTest {
@@ -98,8 +98,7 @@ class ClassifierTest {
         expected.tvShowRest = "something else"
         expected.tvShowName = "A TV show"
 
-        assertEquals("TV show nXnn", expected,
-                     classifier.classify(File(expected.fileName), File("/input1")))
+        assertEquals(expected, classifier.classify(File(expected.fileName), File("/input1")))
     }
 
     @Test
@@ -115,8 +114,7 @@ class ClassifierTest {
         expected.tvShowRest = ""
         expected.tvShowName = "A TV show"
 
-        assertEquals("TV show SEE", expected,
-                     classifier.classify(File(expected.fileName), File("/input1")))
+        assertEquals(expected, classifier.classify(File(expected.fileName), File("/input1")))
     }
 
     @Test
@@ -132,8 +130,7 @@ class ClassifierTest {
         expected.tvShowRest = "something"
         expected.tvShowName = "A TV show"
 
-        assertEquals("TV show SEE with rest", expected,
-                     classifier.classify(File(expected.fileName), File("/input1")))
+        assertEquals(expected, classifier.classify(File(expected.fileName), File("/input1")))
     }
 
     @Test
@@ -145,8 +142,7 @@ class ClassifierTest {
         expected.extension = "avi"
         expected.name = "videos"
 
-        assertEquals("Movie with year", expected,
-                     classifier.classify(File(expected.fileName), File("/input1")))
+        assertEquals(expected, classifier.classify(File(expected.fileName), File("/input1")))
     }
 
     @Test
@@ -158,8 +154,7 @@ class ClassifierTest {
         expected.extension = "avi"
         expected.name = "videos"
 
-        assertEquals("Movie with year without parenthesis", expected,
-                     classifier.classify(File(expected.fileName), File("/input1")))
+        assertEquals(expected, classifier.classify(File(expected.fileName), File("/input1")))
     }
 
     @Test
@@ -171,14 +166,13 @@ class ClassifierTest {
         expected.extension = "avi"
         expected.name = "videos"
 
-        assertEquals("Movie with year without parenthesis without rest", expected,
-                     classifier.classify(File(expected.fileName), File("/input1")))
+        assertEquals(expected, classifier.classify(File(expected.fileName), File("/input1")))
     }
 
     companion object {
         internal var classifier = Classifier()
 
-        @BeforeClass
+        @BeforeAll
         @Throws(Exception::class)
         @JvmStatic
         fun setUpBeforeClass() {

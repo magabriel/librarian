@@ -9,26 +9,27 @@
 
 package com.mags.librarian
 
+import com.mags.librarian.Options.Options
 import com.mags.librarian.classifier.Classification
 import com.mags.librarian.config.Config
 import com.mags.librarian.event.EventDispatcher
-import org.junit.After
-import org.junit.AfterClass
-import org.junit.Assert.assertEquals
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.io.File
 import java.util.*
 
 class MoverTest {
-    @Before
+    @BeforeEach
     @Throws(Exception::class)
     fun setUp() {
         myEventDispatcher = getEventDispatcher()
         myMover = getMover()
     }
 
-    @After
+    @AfterEach
     @Throws(Exception::class)
     fun tearDown() {
         logger!!.close()
@@ -60,9 +61,8 @@ class MoverTest {
 
         myMover!!.moveToDestination(File("/input/" + classification.fileName), classification)
 
-        assertEquals(
-                "moved [/input/My_Tvshow_S02E10_some_data.avi] to [/output/tvshows/My_Tvshow/The.season.002] as [My_Tvshow_S=2E=010_some_data.avi]",
-                myMover!!.actionPerformed)
+        assertEquals("moved [/input/My_Tvshow_S02E10_some_data.avi] to [/output/tvshows/My_Tvshow/The.season.002] as [My_Tvshow_S=2E=010_some_data.avi]",
+                     myMover!!.actionPerformed)
     }
 
     companion object {
@@ -70,7 +70,7 @@ class MoverTest {
         private var logger: Log? = null
         private var myEventDispatcher: EventDispatcher? = null
 
-        @AfterClass
+        @AfterAll
         @Throws(Exception::class)
         fun tearDownAfterClass() {
 

@@ -9,21 +9,21 @@
 
 package com.mags.librarian.classifier
 
-import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 
 class FileMatcherTest {
 
-    @Before
+    @BeforeEach
     @Throws(Exception::class)
     fun setUp() {
 
     }
 
-    @After
+    @AfterEach
     @Throws(Exception::class)
     fun tearDown() {
 
@@ -33,21 +33,28 @@ class FileMatcherTest {
     @Throws(Exception::class)
     fun matchTVShowName() {
         // TV show name with spaces
-        assertTrue("Spaces", FileMatcher.matchTVShowName("A TV show.s01e02.avi", "A TV Show"))
-        assertTrue("Underscores", FileMatcher.matchTVShowName("A_TV_show.s01e02.avi", "A TV Show"))
-        assertTrue("Dots", FileMatcher.matchTVShowName("A.TV.show.s01e02.avi", "A TV Show"))
-        assertTrue("Mixed", FileMatcher.matchTVShowName("a_tv.show.s01e02.avi", "A TV Show"))
+        // "Spaces"
+        assertTrue(FileMatcher.matchTVShowName("A TV show.s01e02.avi", "A TV Show"))
+        // "Underscores"
+        assertTrue(FileMatcher.matchTVShowName("A_TV_show.s01e02.avi", "A TV Show"))
+        // "Dots"
+        assertTrue(FileMatcher.matchTVShowName("A.TV.show.s01e02.avi", "A TV Show"))
+        // "Mixed"
+        assertTrue(FileMatcher.matchTVShowName("a_tv.show.s01e02.avi", "A TV Show"))
     }
 
     @Test
     @Throws(Exception::class)
     fun matchTVShowNameWithDots() {
-
         // TV show name with spaces
-        assertTrue("Spaces", FileMatcher.matchTVShowName("A TV show.s01e02.avi", "A.TV.Show"))
-        assertTrue("Underscores", FileMatcher.matchTVShowName("A_TV_show.s01e02.avi", "A.TV.Show"))
-        assertTrue("Dots", FileMatcher.matchTVShowName("A.TV.show.s01e02.avi", "A.TV.Show"))
-        assertTrue("Mixed", FileMatcher.matchTVShowName("a_tv.show.s01e02.avi", "A.TV.Show"))
+        // "Spaces"
+        assertTrue(FileMatcher.matchTVShowName("A TV show.s01e02.avi", "A.TV.Show"))
+        // "Underscores"
+        assertTrue(FileMatcher.matchTVShowName("A_TV_show.s01e02.avi", "A.TV.Show"))
+        // "Dots"
+        assertTrue(FileMatcher.matchTVShowName("A.TV.show.s01e02.avi", "A.TV.Show"))
+        // "Mixed"
+        assertTrue(FileMatcher.matchTVShowName("a_tv.show.s01e02.avi", "A.TV.Show"))
     }
 
     @Test
