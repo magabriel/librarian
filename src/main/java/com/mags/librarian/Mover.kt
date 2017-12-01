@@ -9,11 +9,11 @@
 
 package com.mags.librarian
 
-import com.mags.librarian.Options.Options
 import com.mags.librarian.classifier.Classification
 import com.mags.librarian.classifier.FileMatcher
 import com.mags.librarian.config.Config
 import com.mags.librarian.event.*
+import com.mags.librarian.options.Options
 import java.io.File
 import java.io.IOException
 import java.util.*

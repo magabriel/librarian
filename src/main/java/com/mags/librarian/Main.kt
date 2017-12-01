@@ -9,12 +9,12 @@
 
 package com.mags.librarian
 
-import com.mags.librarian.Options.Options
 import com.mags.librarian.config.Config
 import com.mags.librarian.config.ConfigLoader
 import com.mags.librarian.config.ConfigReader
 import com.mags.librarian.event.EventDispatcher
-
+import com.mags.librarian.options.Options
+import com.mags.librarian.options.OptionsReader
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -31,10 +31,6 @@ object Main {
     private const val LOG_FILE = "librarian.log"
     private const val RSS_FILE = "librarian.rss"
 
-    private lateinit var configFile: String
-    private lateinit var logFile: String
-    private lateinit var rssFile: String
-
     private var config = Config()
     private var options = Options()
     private lateinit var logger: Log
@@ -45,25 +41,25 @@ object Main {
 
         // set file defaults
         with(File(System.getProperty("user.dir")).toPath()) {
-            configFile = resolve(CONFIG_FILE).toString()
-            logFile = resolve(LOG_FILE).toString()
-            rssFile = resolve(RSS_FILE).toString()
+            options.configFileName = resolve(CONFIG_FILE).toString()
+            options.logFileName = resolve(LOG_FILE).toString()
+            options.rssFileName = resolve(RSS_FILE).toString()
         }
 
         // our eventDispatcher
         eventDispatcher = EventDispatcher()
 
         // create logger but no logging allowed yet
-        logger = Log(logFile)
+        logger = Log(options.logFileName)
 
         writeMessage("$NAME version $VERSION $COPYRIGHT")
 
-        options = readOptions(args)
+        readOptions(args)
 
         // start logging
         logger.start()
 
-        config = loadConfig()
+        loadConfig()
 
         val processor = Processor(options, config, logger, eventDispatcher)
         processor.run()
@@ -72,87 +68,47 @@ object Main {
     /**
      * Read and configure the command line options.
      */
-    private fun readOptions(args: Array<String>): Options {
+    private fun readOptions(args: Array<String>) {
 
-        val opt = Options()
-
-        var i = 0
-        while (i < args.size) {
-            val arg = args[i]
-
-            when (arg) {
-                "--help", "-h"    -> showUsage()
-
-                "--copy"          -> opt.copyOnly = true
-
-                "--create-config" -> {
-                    createConfig()
-                    // no point on continuing execution
-                    System.exit(0)
-                }
-
-                "--dry-run"       -> opt.dryRun = true
-
-                "-v"             -> {
-                    opt.verbosity = Options.Verbosity.NORMAL
-                    logger.consoleLogLevel = Level.INFO
-                }
-
-                "-vv"            -> {
-                    opt.verbosity = Options.Verbosity.HIGH
-                    logger.consoleLogLevel = Level.CONFIG
-                }
-
-                "--quiet"        -> {
-                    opt.verbosity = Options.Verbosity.NONE
-                    logger.consoleLogLevel = Level.OFF
-                }
-
-                "--config", "-c" -> if (i < args.lastIndex) {
-                    i++
-                    configFile = args[i]
-                }
-
-                "--log", "-l"    -> if (i < args.lastIndex) {
-                    i++
-                    logFile = args[i]
-                    try {
-                        logger.logFileName = logFile
-                        opt.logFileName = logFile
-                    } catch (e: IOException) {
-                        logger.logger.severe(e.message)
-                        System.exit(1)
-                    }
-
-                }
-
-                "--rss", "-r"    -> if (i < args.lastIndex) {
-                    i++
-                    rssFile = args[i]
-                    opt.rssFileName = rssFile
-                }
-
-                "--loglevel"     -> if (i < args.lastIndex) {
-                    i++
-                    val level = args[i]
-
-                    try {
-                        val logLevel = Level.parse(level.toUpperCase())
-                        opt.logLevel = logLevel
-                        logger.logLevel = logLevel
-                    } catch (e: IllegalArgumentException) {
-                        logger.logger.severe(String.format("Invalid log level \"%s\"", level))
-                        System.exit(1)
-                    }
-
-                }
-
-                else             -> showUsage()
+        val optionsReader = object : OptionsReader(args.toList(), defaultOptions = options) {
+            override fun onUnknownOption(option: String) {
+                writeMessage()
+                writeMessage("ERROR: Unknown option \"$option\"")
+                showUsage()
             }
-            i++
+
+            override fun onMissingValue(option: String) {
+                writeMessage()
+                writeMessage("ERROR: Missing value for option \"$option\"")
+                showUsage()
+            }
+
+            override fun onInvalidValue(option: String,
+                                        value: String) {
+                writeMessage()
+                writeMessage("ERROR: Invalid value \"$value\" for option \"$option\"")
+                showUsage()
+            }
+        }
+        options = optionsReader.process()
+
+        if (options.help) {
+            showUsage()
         }
 
-        return opt
+        if (options.createConfig) {
+            createConfig()
+            System.exit(0)
+        }
+
+        when (options.verbosity) {
+            Options.Verbosity.NORMAL -> logger.consoleLogLevel = Level.INFO
+            Options.Verbosity.HIGH   -> logger.consoleLogLevel = Level.CONFIG
+            Options.Verbosity.NONE   -> logger.consoleLogLevel = Level.OFF
+        }
+
+        logger.logFileName = options.logFileName
+        logger.logLevel = options.logLevel
     }
 
     private fun showUsage() {
@@ -160,11 +116,11 @@ object Main {
         writeMessage()
         writeMessage("Usage: librarian <options>")
         writeMessage()
-        writeMessage("Options: -h | --help        : Show this help.")
+        writeMessage("options: -h | --help        : Show this help.")
         writeMessage("         --copy             : Copy instead of move the files.")
         writeMessage("         --create-config    : Create a default configuration file in current directory.")
         writeMessage("         --dry-run          : Do not change anything, just tell what would have been done.")
-        writeMessage("         --loglevel <level> : Loglevel (ALL, FINEST, FINER, FINE, CONFIG, INFO, WARNING, " + "SEVERE, OFF). Default INFO.")
+        writeMessage("         --loglevel <level> : Loglevel (ALL, FINEST, FINER, FINE, CONFIG, INFO, WARNING, SEVERE, OFF). Default INFO.")
         writeMessage("         -c --config <file> : Use that config file instead of the one in execution directory.")
         writeMessage("         -l --log <file>    : Write to that log file instead of creating one in the execution directory.")
         writeMessage("         -r --rss<file>     : Write to that rss file instead of the one in execution directory.")
@@ -177,23 +133,23 @@ object Main {
     /**
      * Loads the configuration file.
      */
-    private fun loadConfig(): Config {
+    private fun loadConfig() {
 
         var conf = Config()
 
         try {
             val reader = ConfigReader()
-            conf = reader.read(configFile)
+            conf = reader.read(options.configFileName)
 
         } catch (e: FileNotFoundException) {
-            logger.logger.severe("ERROR: Configuration file '${configFile}' not found.")
+            logger.logger.severe("ERROR: Configuration file '${options.configFileName}' not found.")
             logger.logger.severe("HINT: You can generate a default configuration file with the provided command line option.")
             logger.logger.finer(e.toString())
 
             System.exit(1)
         }
 
-        return conf
+        config = conf
     }
 
     private fun createConfig() {
@@ -201,18 +157,17 @@ object Main {
         val configLoader = ConfigLoader()
 
         try {
-            configLoader.createDefault("/librarian-default.yml", configFile)
-            logger.logger.info("Default configuration file created as '$configFile'")
+            configLoader.createDefault("/librarian-default.yml", options.configFileName)
+            logger.logger.info("Default configuration file created as '${options.configFileName}'")
 
         } catch (e: FileNotFoundException) {
-            logger.logger.severe("ERROR: Configuration file '$configFile' could not be created. Check intermediate folders exist.")
+            logger.logger.severe("ERROR: Configuration file '${options.configFileName}' could not be created. Check intermediate folders exist.")
             System.exit(1)
 
         } catch (e: IOException) {
-            logger.logger.severe("ERROR: Configuration file '$configFile' could not be created: '${e.message}'")
+            logger.logger.severe("ERROR: Configuration file '${options.configFileName}' could not be created: '${e.message}'")
             System.exit(1)
         }
-
     }
 
     private fun writeMessage(msg: String) {

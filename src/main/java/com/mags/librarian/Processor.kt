@@ -9,12 +9,12 @@
 
 package com.mags.librarian
 
-import com.mags.librarian.Options.Options
 import com.mags.librarian.classifier.Classification
 import com.mags.librarian.classifier.Classifier
 import com.mags.librarian.classifier.Criteria
 import com.mags.librarian.config.Config
 import com.mags.librarian.event.*
+import com.mags.librarian.options.Options
 import java.io.File
 import java.util.*
 

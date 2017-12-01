@@ -9,10 +9,10 @@
 
 package com.mags.librarian
 
-import com.mags.librarian.Options.Options
 import com.mags.librarian.classifier.Classification
 import com.mags.librarian.config.Config
 import com.mags.librarian.event.EventDispatcher
+import com.mags.librarian.options.Options
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
