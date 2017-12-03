@@ -23,7 +23,7 @@ import java.util.*
  */
 internal class Processor(private val options: Options,
                          private val config: Config,
-                         val logger: Log,
+                         private val logger: LogWriter,
                          private val eventDispatcher: EventDispatcher) {
     private var feedWriter: FeedWriter? = null
     private var command: Command? = null
@@ -32,17 +32,17 @@ internal class Processor(private val options: Options,
      * Runs the classification process.
      */
     fun run() {
-        logger.logger.fine("Started")
+        logger.fine("Started")
         logOptionsAndConfig()
         if (config.outputFolders.isEmpty()) {
-            logger.logger.severe("No output folders set, cannot continue.")
+            logger.severe("No output folders set, cannot continue.")
             return
         }
         feedWriter = FeedWriter(options.rssFileName, logger)
         command = Command(logger)
         addListeners()
         process()
-        logger.logger.fine("Finished")
+        logger.fine("Finished")
     }
 
     /**
@@ -99,62 +99,62 @@ internal class Processor(private val options: Options,
      */
     private fun logOptionsAndConfig() {
         if (options.dryRun) {
-            logger.logger.config("- Dry run: true")
+            logger.config("- Dry run: true")
         }
 
-        logger.logger.config("- Log level: ${options.logLevel}")
-        logger.logger.config("- Verbosity: ${options.verbosity}")
+        logger.config("- Log level: ${options.logLevel}")
+        logger.config("- Verbosity: ${options.verbosity}")
 
         if (options.copyOnly) {
-            logger.logger.config("- Copy only: true")
+            logger.config("- Copy only: true")
         }
 
-        logger.logger.config("- Extensions: ")
+        logger.config("- Extensions: ")
         for (extension in config.extensions) {
             val name = extension.keys.toTypedArray()[0]
             val values = extension[name].toString()
-            logger.logger.config("    - $name : \"$values\"")
+            logger.config("    - $name : \"$values\"")
         }
 
-        logger.logger.config("- Filters: ")
+        logger.config("- Filters: ")
         for (filter in config.filters) {
             filter.forEach { name, filterItems ->
-                logger.logger.config("    - " + name)
+                logger.config("    - " + name)
                 for (regExp in filterItems) {
-                    logger.logger.config("        - " + regExp)
+                    logger.config("        - " + regExp)
                 }
             }
         }
 
-        logger.logger.config("- Unknown files: ")
-        logger.logger.config("    - Action: ${config.unknownFilesAction}")
-        logger.logger.config("    - Move path: ${config.unknownFilesMovePath}")
+        logger.config("- Unknown files: ")
+        logger.config("    - Action: ${config.unknownFilesAction}")
+        logger.config("    - Move path: ${config.unknownFilesMovePath}")
 
-        logger.logger.config("- Error files: ")
-        logger.logger.config("    - Action: ${config.errorFilesAction}")
-        logger.logger.config("    - Move path: ${config.errorFilesMovePath}")
+        logger.config("- Error files: ")
+        logger.config("    - Action: ${config.errorFilesAction}")
+        logger.config("    - Move path: ${config.errorFilesMovePath}")
 
-        logger.logger.config("- Content classes: ")
+        logger.config("- Content classes: ")
         for (contentClass in config.contentClasses) {
             val name = contentClass.keys.toTypedArray()[0]
             val values = contentClass[name].toString()
-            logger.logger.config("    - $name : \"$values\"")
+            logger.config("    - $name : \"$values\"")
         }
 
-        logger.logger.config("- TV shows : ")
-        logger.logger.config("    - Numbering schema: ${config.tvShowsNumberingSchema}")
-        logger.logger.config("    - Season schema: ${config.tvShowsSeasonSchema}")
-        logger.logger.config("    - Words separators for show: ${config.tvShowsWordsSeparatorShow}")
-        logger.logger.config("    - Words separators for file: ${config.tvShowsWordsSeparatorFile}")
+        logger.config("- TV shows : ")
+        logger.config("    - Numbering schema: ${config.tvShowsNumberingSchema}")
+        logger.config("    - Season schema: ${config.tvShowsSeasonSchema}")
+        logger.config("    - Words separators for show: ${config.tvShowsWordsSeparatorShow}")
+        logger.config("    - Words separators for file: ${config.tvShowsWordsSeparatorFile}")
 
-        logger.logger.config("- Input folders: ")
+        logger.config("- Input folders: ")
         for (folder in config.inputFolders) {
-            logger.logger.config("    - $folder")
+            logger.config("    - $folder")
         }
 
-        logger.logger.config("- Output folders: ")
+        logger.config("- Output folders: ")
         for (folder in config.outputFolders) {
-            logger.logger.config("    - $folder")
+            logger.config("    - $folder")
         }
     }
 
@@ -182,29 +182,29 @@ internal class Processor(private val options: Options,
         // get the total files count
         val totalCount = inputFiles.values.map { it.size }.sum()
         if (totalCount == 0) {
-            logger.logger.fine("No input files found")
+            logger.fine("No input files found")
         } else {
-            logger.logger.info("Found $totalCount input files.")
+            logger.info("Found $totalCount input files.")
         }
 
         var count = 0
         inputFiles.forEach { folder: File, files: Array<File> ->
             for (inputFile in files) {
                 count++
-                logger.logger.info("Processing file ($count/$totalCount) '${inputFile.name}'.")
+                logger.info("Processing file ($count/$totalCount) '${inputFile.name}'.")
                 val fileClassification = classifier.classify(inputFile, folder)
 
                 if (fileClassification.name.isEmpty()) {
-                    logger.logger.warning("- File class not found for file '${inputFile.name}'.")
+                    logger.warning("- File class not found for file '${inputFile.name}'.")
                     mover.processUnknownFile(inputFile)
                     continue
                 }
 
-                logger.logger.info("- File class found: '${fileClassification.name}'.")
+                logger.info("- File class found: '${fileClassification.name}'.")
 
                 if (fileClassification.name == "tvshows") {
                     with(fileClassification) {
-                        logger.logger.info("- TV show: '$tvShowName', season $season, episode $episode.")
+                        logger.info("- TV show: '$tvShowName', season $season, episode $episode.")
                     }
                 }
                 // perform the actual move
@@ -244,7 +244,7 @@ internal class Processor(private val options: Options,
             val inputFilesInFolder: List<File>
             val folder = File(inputFolder)
             if (!folder.exists()) {
-                logger.logger.warning("- Input folder '$inputFolder' does not exist.")
+                logger.warning("- Input folder '$inputFolder' does not exist.")
                 continue
             }
             inputFilesInFolder = collectFiles(folder)
@@ -280,12 +280,12 @@ internal class Processor(private val options: Options,
             for (subfolder in subfolders) {
                 // note that .delete() only deletes folder if empty
                 if (subfolder.delete()) {
-                    logger.logger.fine("Input empty subfolder '$subfolder' deleted.")
+                    logger.fine("Input empty subfolder '$subfolder' deleted.")
                     continue
                 }
 
                 if (subfolder.exists() && collectFiles(subfolder).isEmpty()) {
-                    logger.logger.warning("Empty input subfolder '$subfolder' cannot be deleted.")
+                    logger.warning("Empty input subfolder '$subfolder' cannot be deleted.")
                 }
 
             }

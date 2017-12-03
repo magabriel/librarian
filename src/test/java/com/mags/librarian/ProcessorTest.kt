@@ -28,7 +28,7 @@ class ProcessorTest {
     @Test
     @Throws(Exception::class)
     fun run() {
-        logger!!.logger.log(Level.INFO, "Starting functional test")
+        logWriter!!.info("Starting functional test")
         // read configuration
         val reader = ConfigReader()
         val config = reader.read(inputPath!! + "/librarian.yml")
@@ -80,7 +80,7 @@ class ProcessorTest {
         options.copyOnly = false
         options.rssFileName = executionPath!! + "/librarian.rss"
         // execute
-        val proc = Processor(options, config, logger!!, eventDispatcher!!)
+        val proc = Processor(options, config, logWriter!!, eventDispatcher!!)
         proc.run()
         // get actual output files
         val outputFiles = collectFiles(outputdDir)
@@ -125,7 +125,7 @@ class ProcessorTest {
         // "Error script executed for each file"
         assertEquals(EXPECTED_FILES_ERROR.toLong(), countError)
 
-        logger!!.logger.log(Level.INFO, "Ended functional test")
+        logWriter!!.info("Ended functional test")
     }
 
     private fun relativizePaths(outputFiles: List<File>,
@@ -206,7 +206,7 @@ class ProcessorTest {
         private var outputPath: String? = null
         private var expectedPath: String? = null
         private var logFilename: String? = null
-        private var logger: Log? = null
+        private var logWriter: LogWriter? = null
         private var eventDispatcher: EventDispatcher? = null
 
         @BeforeAll
@@ -229,9 +229,10 @@ class ProcessorTest {
             expectedPath = File("src/test/resources/functional/expected").absolutePath
 
             logFilename = executionPath!! + "/librarian.log"
-            logger = Log(logFilename)
-            logger!!.logLevel = Level.ALL
-            logger!!.start()
+            logWriter = LogWriter(java.util.logging.Logger.getLogger(this.javaClass.name))
+            logWriter!!.logFileName = executionPath!! + "/librarian.log"
+            logWriter!!.logLevel = Level.ALL
+            logWriter!!.start()
 
             eventDispatcher = EventDispatcher()
         }

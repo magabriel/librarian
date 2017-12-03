@@ -32,7 +32,7 @@ class MoverTest {
     @AfterEach
     @Throws(Exception::class)
     fun tearDown() {
-        logger!!.close()
+        logWriter!!.close()
     }
 
     @Test
@@ -67,7 +67,7 @@ class MoverTest {
 
     companion object {
         private var myMover: Mover? = null
-        private var logger: Log? = null
+        private var logWriter: LogWriter? = null
         private var myEventDispatcher: EventDispatcher? = null
 
         @AfterAll
@@ -81,8 +81,9 @@ class MoverTest {
             options.dryRun = true
             val config = setUpConfig()
 
-            logger = Log(System.getProperty("java.io.tmpdir") + "/librarian.log")
-            return Mover(options, config, logger!!, myEventDispatcher!!)
+            logWriter = LogWriter(java.util.logging.Logger.getLogger(this.javaClass.name))
+            logWriter!!.logFileName = System.getProperty("java.io.tmpdir") + "/librarian.log"
+            return Mover(options, config, logWriter!!, myEventDispatcher!!)
         }
 
         private fun getEventDispatcher(): EventDispatcher {

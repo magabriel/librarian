@@ -33,8 +33,9 @@ object Main {
 
     private var config = Config()
     private var options = Options()
-    private lateinit var logger: Log
+    private lateinit var logger: LogWriter
     private lateinit var eventDispatcher: EventDispatcher
+    private var systemLogger = java.util.logging.Logger.getLogger(this.javaClass.name)
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -50,7 +51,8 @@ object Main {
         eventDispatcher = EventDispatcher()
 
         // create logger but no logging allowed yet
-        logger = Log(options.logFileName)
+        logger = LogWriter(systemLogger)
+        logger.logFileName = options.logFileName
 
         writeMessage("$NAME version $VERSION $COPYRIGHT")
 
@@ -142,9 +144,9 @@ object Main {
             conf = reader.read(options.configFileName)
 
         } catch (e: FileNotFoundException) {
-            logger.logger.severe("ERROR: Configuration file '${options.configFileName}' not found.")
-            logger.logger.severe("HINT: You can generate a default configuration file with the provided command line option.")
-            logger.logger.finer(e.toString())
+            logger.severe("ERROR: Configuration file '${options.configFileName}' not found.")
+            logger.severe("HINT: You can generate a default configuration file with the provided command line option.")
+            logger.finer(e.toString())
 
             System.exit(1)
         }
@@ -158,14 +160,14 @@ object Main {
 
         try {
             configLoader.createDefault("/librarian-default.yml", options.configFileName)
-            logger.logger.info("Default configuration file created as '${options.configFileName}'")
+            logger.info("Default configuration file created as '${options.configFileName}'")
 
         } catch (e: FileNotFoundException) {
-            logger.logger.severe("ERROR: Configuration file '${options.configFileName}' could not be created. Check intermediate folders exist.")
+            logger.severe("ERROR: Configuration file '${options.configFileName}' could not be created. Check intermediate folders exist.")
             System.exit(1)
 
         } catch (e: IOException) {
-            logger.logger.severe("ERROR: Configuration file '${options.configFileName}' could not be created: '${e.message}'")
+            logger.severe("ERROR: Configuration file '${options.configFileName}' could not be created: '${e.message}'")
             System.exit(1)
         }
     }

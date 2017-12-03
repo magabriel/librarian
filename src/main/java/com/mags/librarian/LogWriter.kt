@@ -18,17 +18,16 @@ import java.util.logging.Formatter
 /**
  * Configures the logger.
  */
-class Log internal constructor(var logFileName: String?) {
+class LogWriter internal constructor(private val logger: Logger) {
 
+    lateinit var logFileName: String
     var logLevel = Level.FINE
     var consoleLogLevel = Level.INFO
-    val logger: java.util.logging.Logger
 
     private var consoleHandler: Handler? = null
     private var fileHandler: Handler? = null
 
     init {
-        logger = java.util.logging.Logger.getLogger(this.javaClass.name)
         logger.useParentHandlers = false
     }
 
@@ -45,7 +44,7 @@ class Log internal constructor(var logFileName: String?) {
     /**
      * Initializations.
      */
-    internal fun initLogger() {
+    private fun initLogger() {
         logger.level = Level.ALL
         /*
          * Create the console handler with reduced info and INFO level
@@ -68,7 +67,7 @@ class Log internal constructor(var logFileName: String?) {
                 return
             }
             //FileHandler file name with max size and number of log files limit
-            fileHandler = FileHandler(logFileName!!, true)
+            fileHandler = FileHandler(logFileName, true)
             fileHandler!!.formatter = object : Formatter() {
                 override fun format(record: LogRecord): String {
                     val dt = SimpleDateFormat("yyyy-MM-dd HH.mm:ss")
@@ -88,5 +87,12 @@ class Log internal constructor(var logFileName: String?) {
         }
 
     }
+
+    fun severe(s: String?) = logger.severe(s)
+    fun warning(s: String?) = logger.warning(s)
+    fun info(s: String?) = logger.info(s)
+    fun config(s: String?) = logger.config(s)
+    fun fine(s: String?) = logger.fine(s)
+    fun finer(s: String?) = logger.finer(s)
 
 }

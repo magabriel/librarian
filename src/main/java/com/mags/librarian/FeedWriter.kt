@@ -23,7 +23,7 @@ import java.util.*
  * Writes an RSS feed.
  */
 internal class FeedWriter(rssFilename: String,
-                          private val logger: Log) {
+                          private val logger: LogWriter) {
 
     private val feed: SyndFeedImpl
     private val entries: MutableList<SyndEntry>
@@ -77,9 +77,9 @@ internal class FeedWriter(rssFilename: String,
             val writer = FileWriter(rssFilename)
             output.output(feed, writer)
         } catch (e: IOException) {
-            logger.logger.severe(e.message)
+            logger.severe(e.message)
         } catch (e: FeedException) {
-            logger.logger.severe(e.toString())
+            logger.severe(e.toString())
             e.printStackTrace()
         }
 

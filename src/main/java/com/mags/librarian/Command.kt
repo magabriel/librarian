@@ -18,8 +18,8 @@ import java.util.concurrent.TimeUnit
 /**
  * Executes a command with arguments.
  */
-class Command(private val logger: Log) {
-    public var timeout = DEFAULT_TIMEOUT
+class Command(private val logger: LogWriter) {
+    var timeout = DEFAULT_TIMEOUT
 
     companion object {
         val DEFAULT_TIMEOUT = 10000
@@ -48,14 +48,14 @@ class Command(private val logger: Log) {
 
             val logLines = Files.readAllLines(auxLog.toPath())
             if (!logLines.isEmpty()) {
-                logger.logger.fine("- Command executed. Results: [")
+                logger.fine("- Command executed. Results: [")
             } else {
-                logger.logger.fine("- Command executed")
+                logger.fine("- Command executed")
             }
-            logLines.forEach { s -> logger.logger.fine(": " + s) }
+            logLines.forEach { s -> logger.fine(": " + s) }
 
             if (!logLines.isEmpty()) {
-                logger.logger.fine("- ] end command execution results")
+                logger.fine("- ] end command execution results")
             }
 
             auxLog.delete()
@@ -65,9 +65,9 @@ class Command(private val logger: Log) {
             } else -1
 
         } catch (e: InterruptedException) {
-            logger.logger.warning("- Error executing command '$commandToExecute': ${e.message}")
+            logger.warning("- Error executing command '$commandToExecute': ${e.message}")
         } catch (e: IOException) {
-            logger.logger.warning("- Cannot execute command '$commandToExecute': ${e.message}")
+            logger.warning("- Cannot execute command '$commandToExecute': ${e.message}")
         }
 
         return -1

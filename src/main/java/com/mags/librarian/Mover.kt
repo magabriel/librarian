@@ -21,7 +21,7 @@ import java.util.regex.Pattern
 
 internal class Mover(private val options: Options,
                      private val config: Config,
-                     private val logger: Log,
+                     private val logger: LogWriter,
                      private val eventDispatcher: EventDispatcher) {
     private var isDuplicated = false
 
@@ -89,7 +89,7 @@ internal class Mover(private val options: Options,
 
         when (config.unknownFilesAction) {
             Config.FilesAction.IGNORE -> {
-                logger.logger.warning("- File '${inputFile.name}' ignored (left in place).")
+                logger.warning("- File '${inputFile.name}' ignored (left in place).")
                 summary!!.action = "ignore"
             }
 
@@ -100,7 +100,7 @@ internal class Mover(private val options: Options,
 
             Config.FilesAction.MOVE   -> {
                 if (config.unknownFilesMovePath.isEmpty()) {
-                    logger.logger.warning("- Unknown files move path is empty, cannot move file '${inputFile.name}'.")
+                    logger.warning("- Unknown files move path is empty, cannot move file '${inputFile.name}'.")
                     return
                 }
 
@@ -132,7 +132,7 @@ internal class Mover(private val options: Options,
 
         when (config.duplicateFilesAction) {
             Config.FilesAction.IGNORE -> {
-                logger.logger.warning("- File '${inputFile.name}' ignored (left in place).")
+                logger.warning("- File '${inputFile.name}' ignored (left in place).")
                 summary!!.action = "ignore"
             }
 
@@ -143,7 +143,7 @@ internal class Mover(private val options: Options,
 
             Config.FilesAction.MOVE   -> {
                 if (config.duplicateFilesMovePath.isEmpty()) {
-                    logger.logger.warning("- Duplicate files move path is empty, cannot move file '${inputFile.name}'.")
+                    logger.warning("- Duplicate files move path is empty, cannot move file '${inputFile.name}'.")
                     return
                 }
 
@@ -175,7 +175,7 @@ internal class Mover(private val options: Options,
 
         when (config.errorFilesAction) {
             Config.FilesAction.IGNORE -> {
-                logger.logger.warning("- File '${inputFile.name}' ignored (left in place).")
+                logger.warning("- File '${inputFile.name}' ignored (left in place).")
                 summary!!.action = "ignore"
             }
 
@@ -186,7 +186,7 @@ internal class Mover(private val options: Options,
 
             Config.FilesAction.MOVE   -> {
                 if (config.errorFilesMovePath.isEmpty()) {
-                    logger.logger.warning("- Error files move path is empty, cannot move file '${inputFile.name}'.")
+                    logger.warning("- Error files move path is empty, cannot move file '${inputFile.name}'.")
                     return
                 }
 
@@ -214,9 +214,9 @@ internal class Mover(private val options: Options,
             if ((!options.dryRun)) {
                 inputFile.delete()
             }
-            logger.logger.fine("- File '${inputFile.name}' deleted.")
+            logger.fine("- File '${inputFile.name}' deleted.")
         } catch (e: IOException) {
-            logger.logger.warning("- Error deleting file: $e")
+            logger.warning("- Error deleting file: $e")
         }
     }
 
@@ -231,7 +231,7 @@ internal class Mover(private val options: Options,
             if ((!options.dryRun)) {
                 destinationFolder.mkdirs()
             }
-            logger.logger.fine("- Created folder '${destinationFolder.absolutePath}'.")
+            logger.fine("- Created folder '${destinationFolder.absolutePath}'.")
         }
 
         try {
@@ -245,9 +245,9 @@ internal class Mover(private val options: Options,
                 inputFile.copyTo(destination)
                 inputFile.delete()
             }
-            logger.logger.fine("- File '${inputFile.name}' moved to '${destinationFolder}'.")
+            logger.fine("- File '${inputFile.name}' moved to '${destinationFolder}'.")
         } catch (e: IOException) {
-            logger.logger.severe("- Error moving file: $e")
+            logger.severe("- Error moving file: $e")
         }
 
     }
@@ -291,7 +291,7 @@ internal class Mover(private val options: Options,
 
         for (outputFolder in config.outputFolders) {
             if (outputFolder["contents"] == fileClassification.name) {
-                logger.logger.fine("- Suitable destination folder found: '${outputFolder["path"]}'.")
+                logger.fine("- Suitable destination folder found: '${outputFolder["path"]}'.")
 
                 destinations.add(outputFolder)
             }
@@ -307,7 +307,7 @@ internal class Mover(private val options: Options,
                                              suitableDestinations: MutableList<Map<String, String>>) {
 
         if (suitableDestinations.isEmpty()) {
-            logger.logger.warning("- No suitable destination found, skipping.")
+            logger.warning("- No suitable destination found, skipping.")
             return
         }
 
@@ -352,7 +352,7 @@ internal class Mover(private val options: Options,
             val path = suitableDestinations[suitableDestinations.size - 1]["path"].toString()
             parentDestinationFolder = File(path)
 
-            logger.logger.fine("- No suitable destination folder found, using '$path' as default.")
+            logger.fine("- No suitable destination folder found, using '$path' as default.")
         }
 
         // apply season and numbering schemas
@@ -375,9 +375,9 @@ internal class Mover(private val options: Options,
             if ((!options.dryRun)) {
                 tvShowDestinationFolder.mkdirs()
             }
-            logger.logger.fine("- Created folder for TV show/season: '${tvShowDestinationFolder.absolutePath}'.")
+            logger.fine("- Created folder for TV show/season: '${tvShowDestinationFolder.absolutePath}'.")
         } else {
-            logger.logger.fine("- Using existing folder for TV show/season: '${tvShowDestinationFolder.absolutePath}'.")
+            logger.fine("- Using existing folder for TV show/season: '${tvShowDestinationFolder.absolutePath}'.")
         }
 
         // move the file
@@ -391,7 +391,7 @@ internal class Mover(private val options: Options,
                                             fileClassification: Classification,
                                             suitableDestinations: List<Map<String, String>>): File? {
 
-        logger.logger.fine("- Find suitable parent destination folder for file \"${inputFile.name}\"")
+        logger.fine("- Find suitable parent destination folder for file \"${inputFile.name}\"")
 
         // NOTE: using a final array[1] because of lambda usage limitations
         val parentDestinationFolder = arrayOfNulls<File>(1)
@@ -399,7 +399,7 @@ internal class Mover(private val options: Options,
         suitableDestinations.forEach { destination ->
             val destinationFolder = File(destination["path"].toString())
 
-            logger.logger.fine("- Checking candidate parent destination folder \"$destinationFolder\"")
+            logger.fine("- Checking candidate parent destination folder \"$destinationFolder\"")
 
             // try finding an existing subfolder for the TV show
             val tvShowSubfolders = destinationFolder.list { dir, name ->
@@ -411,7 +411,7 @@ internal class Mover(private val options: Options,
                     // save real folder name to avoid creating extra folders on case or separators change
                     fileClassification.tvShowFolderName = name
 
-                    logger.logger.finer("- Matched folder name \"$name\"")
+                    logger.finer("- Matched folder name \"$name\"")
                     return@list true
                 }
 
@@ -425,11 +425,11 @@ internal class Mover(private val options: Options,
         }
 
         if (parentDestinationFolder[0] != null) {
-            logger.logger.fine("- Using parent destination folder \"$parentDestinationFolder[0]\"")
+            logger.fine("- Using parent destination folder \"$parentDestinationFolder[0]\"")
             return parentDestinationFolder[0]
         }
 
-        logger.logger.fine("- Parent destination folder not found")
+        logger.fine("- Parent destination folder not found")
         return null
     }
 
@@ -508,7 +508,7 @@ internal class Mover(private val options: Options,
             if (!destinationFolder.exists()) {
                 if ((!options.dryRun)) {
                     destinationFolder.mkdirs()
-                    logger.logger.fine("- Created destination folder '${destinationFolder.absolutePath}'.")
+                    logger.fine("- Created destination folder '${destinationFolder.absolutePath}'.")
                 }
             }
 
@@ -527,7 +527,7 @@ internal class Mover(private val options: Options,
                     inputFile.copyTo(destinationFolder.resolve(newName))
                 }
                 actionPerformed = "copied [${inputFile.absolutePath}] to [${destinationFolder.absolutePath}] as [$newName]"
-                logger.logger.info("- File '${destinationFolder.absolutePath}' copied to '${inputFile.name}' as '$newName'.")
+                logger.info("- File '${destinationFolder.absolutePath}' copied to '${inputFile.name}' as '$newName'.")
                 summary!!.action = "copy"
 
             } else {
@@ -536,7 +536,7 @@ internal class Mover(private val options: Options,
                     inputFile.delete()
                 }
                 actionPerformed = "moved [${inputFile.absolutePath}] to [${destinationFolder.absolutePath}] as [$newName]"
-                logger.logger.info("- File '${inputFile.name}' moved to '${destinationFolder.absolutePath}' as '$newName'.")
+                logger.info("- File '${inputFile.name}' moved to '${destinationFolder.absolutePath}' as '$newName'.")
                 summary!!.action = "move"
             }
 
@@ -546,12 +546,12 @@ internal class Mover(private val options: Options,
 
             var action = if (options.copyOnly) "copy" else "move"
             var msg = "- Cannot $action already existing file '${inputFile.name}' to '${destinationFolder.absolutePath}': $e"
-            logger.logger.severe(msg)
+            logger.severe(msg)
         } catch (e: IOException) {
 
             var action = if (options.copyOnly) "copy" else "move"
             var msg = "- Cannot $action file '${inputFile.name}' to '${destinationFolder.absolutePath}': $e"
-            logger.logger.severe(msg)
+            logger.severe(msg)
         }
 
     }
