@@ -81,7 +81,7 @@ class MoverTest {
             options.dryRun = true
             val config = setUpConfig()
 
-            logWriter = LogWriter(java.util.logging.Logger.getLogger(this.javaClass.name))
+            logWriter = LogWriter(java.util.logging.Logger.getLogger(this::class.java.name))
             logWriter!!.logFileName = System.getProperty("java.io.tmpdir") + "/librarian.log"
             return Mover(options, config, logWriter!!, myEventDispatcher!!)
         }

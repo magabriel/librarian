@@ -16,7 +16,7 @@ import java.util.logging.*
 import java.util.logging.Formatter
 
 /**
- * Configures the logger.
+ * Configures the logWriter.
  */
 class LogWriter internal constructor(private val logger: Logger) {
 

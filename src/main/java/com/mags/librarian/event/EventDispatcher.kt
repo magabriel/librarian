@@ -9,7 +9,10 @@
 
 package com.mags.librarian.event
 
-class EventDispatcher {
+import javax.inject.Inject
+
+class EventDispatcher
+@Inject constructor() {
 
     private val listeners = mutableMapOf<Event, MutableList<Listener<EventData>>>()
 

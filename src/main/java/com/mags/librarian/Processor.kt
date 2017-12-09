@@ -15,16 +15,19 @@ import com.mags.librarian.classifier.Criteria
 import com.mags.librarian.config.Config
 import com.mags.librarian.event.*
 import com.mags.librarian.options.Options
+import com.mags.librarian.utils.FileUtils
 import java.io.File
 import java.util.*
+import javax.inject.Inject
 
 /**
  * Processes the config file to actually move the files.
  */
-internal class Processor(private val options: Options,
-                         private val config: Config,
-                         private val logger: LogWriter,
-                         private val eventDispatcher: EventDispatcher) {
+internal class Processor
+@Inject constructor(private val options: Options,
+                    private val config: Config,
+                    private val logger: LogWriter,
+                    private val eventDispatcher: EventDispatcher) {
     private var feedWriter: FeedWriter? = null
     private var command: Command? = null
 
@@ -59,7 +62,7 @@ internal class Processor(private val options: Options,
                                                data.fileClassification?.name!!,
                                                data.action)
                 if (!config.executeSuccess.isEmpty()) {
-                    command!!.execute(config.executeSuccess, arguments)
+                    command!!.execute(File(config.executeSuccess).absolutePath, arguments)
                 }
                 addMovedToFeed(data.fileClassification, data.actionPerformed)
             }
@@ -74,7 +77,7 @@ internal class Processor(private val options: Options,
                                                data.outputFilename,
                                                data.action)
                 if (!config.executeError.isEmpty()) {
-                    command!!.execute(config.executeError, arguments)
+                    command!!.execute(File(config.executeError).absolutePath, arguments)
                 }
             }
         })
@@ -88,14 +91,14 @@ internal class Processor(private val options: Options,
                                                data.outputFilename,
                                                data.action)
                 if (!config.executeError.isEmpty()) {
-                    command!!.execute(config.executeError, arguments)
+                    command!!.execute(File(config.executeError).absolutePath, arguments)
                 }
             }
         })
     }
 
     /**
-     * Write options and configuration values to the logger.
+     * Write options and configuration values to the logWriter.
      */
     private fun logOptionsAndConfig() {
         if (options.dryRun) {
@@ -208,7 +211,7 @@ internal class Processor(private val options: Options,
                     }
                 }
                 // perform the actual move
-                mover.moveToDestination(inputFile, fileClassification)
+                mover.moveToDestination(inputFile.absoluteFile, fileClassification)
             }
         }
         // only write feed if new entries added
@@ -242,7 +245,7 @@ internal class Processor(private val options: Options,
 
         for (inputFolder in config.inputFolders) {
             val inputFilesInFolder: List<File>
-            val folder = File(inputFolder)
+            val folder = File(inputFolder).absoluteFile
             if (!folder.exists()) {
                 logger.warning("- Input folder '$inputFolder' does not exist.")
                 continue
@@ -274,9 +277,9 @@ internal class Processor(private val options: Options,
     }
 
     private fun removeEmptyInputSubfolders() {
-        val remainingInputSubFolders = collectInputSubfolders()
+        val remainingInputSubFolders = FileUtils.findSubfoldersTree(config.inputFolders.toList())
 
-        remainingInputSubFolders.forEach { folder: File, subfolders: Array<File> ->
+        remainingInputSubFolders.forEach { folder: File, subfolders: List<File> ->
             for (subfolder in subfolders) {
                 // note that .delete() only deletes folder if empty
                 if (subfolder.delete()) {
@@ -292,27 +295,33 @@ internal class Processor(private val options: Options,
         }
     }
 
-    /**
-     * Construct a list of subfolders in the input folders.
-     */
-    private fun collectInputSubfolders(): Map<File, Array<File>> {
-        val collectedFolders = LinkedHashMap<File, Array<File>>()
-
-        for (inputFolder in config.inputFolders) {
-            val subfoldersInFolder: List<File>
-            val folder = File(inputFolder)
-
-            if (!folder.exists()) {
-                continue
-            }
-
-            subfoldersInFolder = collectFolders(folder)
-            val folders = subfoldersInFolder.toTypedArray()
-
-            collectedFolders.put(folder, folders)
-        }
-        return collectedFolders
-    }
+//    /**
+//     * Construct a list of subfolders in the input folders.
+//     */
+//    private fun collectInputSubfolders(): Map<File, Array<File>> {
+//        val collectedFolders = LinkedHashMap<File, Array<File>>()
+//
+//        for (inputFolder in config.inputFolders) {
+//            val folder = File(inputFolder).absoluteFile
+//            val subfolders = folder.walkTopDown().toList().filter { it.isDirectory}
+//            collectedFolders.put(folder, subfolders.toTypedArray())
+//        }
+//
+////        for (inputFolder in config.inputFolders) {
+////            val subfoldersInFolder: List<File>
+////            val folder = File(inputFolder).absoluteFile
+////
+////            if (!folder.exists()) {
+////                continue
+////            }
+////
+////            subfoldersInFolder = collectFolders(folder)
+////            val folders = subfoldersInFolder.toTypedArray()
+////
+////            collectedFolders.put(folder, folders)
+////        }
+//        return collectedFolders
+//    }
 
     /**
      * Construct a list of folders in the folder

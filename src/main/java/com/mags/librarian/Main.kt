@@ -12,6 +12,7 @@ package com.mags.librarian
 import com.mags.librarian.config.Config
 import com.mags.librarian.config.ConfigLoader
 import com.mags.librarian.config.ConfigReader
+import com.mags.librarian.di.DaggerAppComponent
 import com.mags.librarian.event.EventDispatcher
 import com.mags.librarian.options.Options
 import com.mags.librarian.options.OptionsReader
@@ -33,12 +34,13 @@ object Main {
 
     private var config = Config()
     private var options = Options()
-    private lateinit var logger: LogWriter
-    private lateinit var eventDispatcher: EventDispatcher
-    private var systemLogger = java.util.logging.Logger.getLogger(this.javaClass.name)
+    private var eventDispatcher = EventDispatcher()
+
+    lateinit var logWriter: LogWriter
 
     @JvmStatic
     fun main(args: Array<String>) {
+        var app = DaggerAppComponent.create()
 
         // set file defaults
         with(File(System.getProperty("user.dir")).toPath()) {
@@ -47,23 +49,21 @@ object Main {
             options.rssFileName = resolve(RSS_FILE).toString()
         }
 
-        // our eventDispatcher
-        eventDispatcher = EventDispatcher()
+        // create logWriter but no logging allowed yet
+        logWriter = app.getLogWriter()
+        logWriter.logFileName = options.logFileName
 
-        // create logger but no logging allowed yet
-        logger = LogWriter(systemLogger)
-        logger.logFileName = options.logFileName
+        readOptions(args)
+        processOptions()
 
         writeMessage("$NAME version $VERSION $COPYRIGHT")
 
-        readOptions(args)
-
         // start logging
-        logger.start()
+        logWriter.start()
 
         loadConfig()
 
-        val processor = Processor(options, config, logger, eventDispatcher)
+        val processor = Processor(options, config, logWriter, eventDispatcher)
         processor.run()
     }
 
@@ -93,6 +93,9 @@ object Main {
             }
         }
         options = optionsReader.process()
+    }
+
+    private fun processOptions() {
 
         if (options.help) {
             showUsage()
@@ -104,13 +107,13 @@ object Main {
         }
 
         when (options.verbosity) {
-            Options.Verbosity.NORMAL -> logger.consoleLogLevel = Level.INFO
-            Options.Verbosity.HIGH   -> logger.consoleLogLevel = Level.CONFIG
-            Options.Verbosity.NONE   -> logger.consoleLogLevel = Level.OFF
+            Options.Verbosity.NORMAL -> logWriter.consoleLogLevel = Level.INFO
+            Options.Verbosity.HIGH   -> logWriter.consoleLogLevel = Level.CONFIG
+            Options.Verbosity.NONE   -> logWriter.consoleLogLevel = Level.OFF
         }
 
-        logger.logFileName = options.logFileName
-        logger.logLevel = options.logLevel
+        logWriter.logFileName = options.logFileName
+        logWriter.logLevel = options.logLevel
     }
 
     private fun showUsage() {
@@ -137,21 +140,22 @@ object Main {
      */
     private fun loadConfig() {
 
-        var conf = Config()
+        object : ConfigReader() {
+            override fun onFileRead(configuration: Config) {
+                config = configuration
+            }
 
-        try {
-            val reader = ConfigReader()
-            conf = reader.read(options.configFileName)
+            override fun onFileNotFound(fileName: String) {
+                logWriter.severe("ERROR: Configuration file '${options.configFileName}' not found.")
+                logWriter.severe("HINT: You can generate a default configuration file with the provided command line option.")
+                System.exit(1)
+            }
 
-        } catch (e: FileNotFoundException) {
-            logger.severe("ERROR: Configuration file '${options.configFileName}' not found.")
-            logger.severe("HINT: You can generate a default configuration file with the provided command line option.")
-            logger.finer(e.toString())
-
-            System.exit(1)
-        }
-
-        config = conf
+            override fun onIncludedFileNotFound(fileName: String) {
+                logWriter.severe("ERROR: Included file \"$fileName\" does not exist.")
+                System.exit(1)
+            }
+        }.read(options.configFileName)
     }
 
     private fun createConfig() {
@@ -160,14 +164,14 @@ object Main {
 
         try {
             configLoader.createDefault("/librarian-default.yml", options.configFileName)
-            logger.info("Default configuration file created as '${options.configFileName}'")
+            logWriter.info("Default configuration file created as '${options.configFileName}'")
 
         } catch (e: FileNotFoundException) {
-            logger.severe("ERROR: Configuration file '${options.configFileName}' could not be created. Check intermediate folders exist.")
+            logWriter.severe("ERROR: Configuration file '${options.configFileName}' could not be created. Check intermediate folders exist.")
             System.exit(1)
 
         } catch (e: IOException) {
-            logger.severe("ERROR: Configuration file '${options.configFileName}' could not be created: '${e.message}'")
+            logWriter.severe("ERROR: Configuration file '${options.configFileName}' could not be created: '${e.message}'")
             System.exit(1)
         }
     }

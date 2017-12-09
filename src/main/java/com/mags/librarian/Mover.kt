@@ -104,7 +104,7 @@ internal class Mover(private val options: Options,
                     return
                 }
 
-                moveFile(inputFile, File(config.unknownFilesMovePath), true)
+                moveErroredFile(inputFile, File(config.unknownFilesMovePath), true)
                 summary!!.outputFolder = config.unknownFilesMovePath
                 summary!!.action = "move"
             }
@@ -147,7 +147,7 @@ internal class Mover(private val options: Options,
                     return
                 }
 
-                moveFile(inputFile, File(config.duplicateFilesMovePath), true)
+                moveErroredFile(inputFile, File(config.duplicateFilesMovePath), true)
                 summary!!.outputFolder = config.duplicateFilesMovePath
                 summary!!.action = "move"
             }
@@ -190,7 +190,7 @@ internal class Mover(private val options: Options,
                     return
                 }
 
-                moveFile(inputFile, File(config.errorFilesMovePath), true)
+                moveErroredFile(inputFile, File(config.errorFilesMovePath), true)
                 summary!!.outputFolder = config.errorFilesMovePath
                 summary!!.action = "move"
             }
@@ -221,11 +221,11 @@ internal class Mover(private val options: Options,
     }
 
     /**
-     * Move a file to a destination folder.
+     * Move an errored file to a destination folder.
      */
-    private fun moveFile(inputFile: File,
-                         destinationFolder: File,
-                         autoRenameIfExisting: Boolean) {
+    private fun moveErroredFile(inputFile: File,
+                                destinationFolder: File,
+                                autoRenameIfExisting: Boolean) {
 
         if (!destinationFolder.exists()) {
             if ((!options.dryRun)) {
@@ -235,7 +235,7 @@ internal class Mover(private val options: Options,
         }
 
         try {
-            var destination = destinationFolder.resolve(inputFile.name)
+            var destination = destinationFolder.absoluteFile.resolve(inputFile.name)
             if (destination.exists()) {
                 val time = Date().time.toString()
                 destination = destinationFolder.resolve(inputFile.name + '-' + time)
@@ -293,7 +293,10 @@ internal class Mover(private val options: Options,
             if (outputFolder["contents"] == fileClassification.name) {
                 logger.fine("- Suitable destination folder found: '${outputFolder["path"]}'.")
 
-                destinations.add(outputFolder)
+                // make folder path absolute
+                val absoluteOutputFolder = outputFolder.toMutableMap()
+                absoluteOutputFolder["path"] = File(absoluteOutputFolder["path"]).absolutePath.toString()
+                destinations.add(absoluteOutputFolder.toMap())
             }
         }
 

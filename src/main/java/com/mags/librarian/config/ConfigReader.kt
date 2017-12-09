@@ -12,27 +12,39 @@ package com.mags.librarian.config
 import java.io.File
 import java.io.FileNotFoundException
 
-class ConfigReader {
-    @Throws(FileNotFoundException::class)
-    fun read(configFile: String): Config {
+abstract class ConfigReader {
+
+    abstract fun onFileRead(configuration: Config)
+    abstract fun onFileNotFound(fileName: String)
+    abstract fun onIncludedFileNotFound(fileName: String)
+
+    fun read(configFile: String) {
         val configLoader = ConfigLoader()
-        configLoader.load(configFile)
+        try {
+            configLoader.load(configFile)
+        } catch (e: FileNotFoundException) {
+            onFileNotFound(configFile)
+            return
+        }
+
         val adaptor = ConfigAdaptor(configLoader)
         val config = adaptor.process()
 
         if (!config.include.isEmpty()) {
-            val includeFile = File(configFile).parentFile.toPath().resolve(config.include).toFile()
-            if (!includeFile.exists()) {
-                throw FileNotFoundException(
-                        "Included file \"${includeFile.toString()}\" does not exist.")
+            val includeFile = File(configFile).parentFile.toPath().resolve(config.include).toFile().toString()
+            try {
+                configLoader.load(includeFile)
+            } catch (e: FileNotFoundException) {
+                onIncludedFileNotFound(includeFile)
+                return
             }
-
-            configLoader.load(includeFile.toString())
             val includedConfig = adaptor.process()
             // merge the base over the included
-            return includedConfig.merge(config)
+            val mergedConfig = includedConfig.merge(config)
+            onFileRead(mergedConfig)
+            return
         }
 
-        return config
+        onFileRead(config)
     }
 }
