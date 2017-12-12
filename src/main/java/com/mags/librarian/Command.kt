@@ -14,11 +14,13 @@ import java.io.IOException
 import java.nio.file.Files
 import java.util.*
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
 /**
  * Executes a command with arguments.
  */
-class Command(private val logger: LogWriter) {
+class Command
+@Inject constructor(private val logWriter: LogWriter) {
     var timeout = DEFAULT_TIMEOUT
 
     companion object {
@@ -48,14 +50,14 @@ class Command(private val logger: LogWriter) {
 
             val logLines = Files.readAllLines(auxLog.toPath())
             if (!logLines.isEmpty()) {
-                logger.fine("- Command executed. Results: [")
+                logWriter.fine("- Command executed. Results: [")
             } else {
-                logger.fine("- Command executed")
+                logWriter.fine("- Command executed")
             }
-            logLines.forEach { s -> logger.fine(": " + s) }
+            logLines.forEach { s -> logWriter.fine(": " + s) }
 
             if (!logLines.isEmpty()) {
-                logger.fine("- ] end command execution results")
+                logWriter.fine("- ] end command execution results")
             }
 
             auxLog.delete()
@@ -65,9 +67,9 @@ class Command(private val logger: LogWriter) {
             } else -1
 
         } catch (e: InterruptedException) {
-            logger.warning("- Error executing command '$commandToExecute': ${e.message}")
+            logWriter.warning("- Error executing command '$commandToExecute': ${e.message}")
         } catch (e: IOException) {
-            logger.warning("- Cannot execute command '$commandToExecute': ${e.message}")
+            logWriter.warning("- Cannot execute command '$commandToExecute': ${e.message}")
         }
 
         return -1

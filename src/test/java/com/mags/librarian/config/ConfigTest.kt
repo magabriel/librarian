@@ -114,7 +114,6 @@ class ConfigTest {
         }
 
     @Test
-    @Throws(Exception::class)
     fun merge() {
         val base = baseConfig
         val other = otherConfig

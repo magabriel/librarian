@@ -23,20 +23,17 @@ import java.util.*
 
 class MoverTest {
     @BeforeEach
-    @Throws(Exception::class)
     fun setUp() {
         myEventDispatcher = getEventDispatcher()
         myMover = getMover()
     }
 
     @AfterEach
-    @Throws(Exception::class)
     fun tearDown() {
         logWriter!!.close()
     }
 
     @Test
-    @Throws(Exception::class)
     fun moveVideo() {
         val classification = Classification()
         classification.name = "videos"
@@ -47,7 +44,6 @@ class MoverTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun moveTvShow() {
         val classification = Classification()
         classification.fileName = "My_Tvshow_S02E10_some_data.avi"
@@ -71,7 +67,7 @@ class MoverTest {
         private var myEventDispatcher: EventDispatcher? = null
 
         @AfterAll
-        @Throws(Exception::class)
+
         fun tearDownAfterClass() {
 
         }

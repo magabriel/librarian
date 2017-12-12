@@ -14,11 +14,13 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.logging.*
 import java.util.logging.Formatter
+import javax.inject.Inject
 
 /**
  * Configures the logWriter.
  */
-class LogWriter internal constructor(private val logger: Logger) {
+class LogWriter
+@Inject constructor(private val logger: Logger) {
 
     lateinit var logFileName: String
     var logLevel = Level.FINE
@@ -62,7 +64,7 @@ class LogWriter internal constructor(private val logger: Logger) {
          * Create the custom file handler
          */
         try {
-            if (logFileName == null) {
+            if (!::logFileName.isInitialized) {
                 // no log file name, no logging
                 return
             }

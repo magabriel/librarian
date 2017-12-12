@@ -11,13 +11,23 @@ package com.mags.librarian.options
 
 import java.util.logging.Level
 
-open class OptionsReader(val arguments: List<String> = listOf(),
-                         val defaultOptions: Options = Options()) {
+class OptionsReader(val arguments: List<String> = listOf(),
+                    val defaultOptions: Options = Options()) {
 
-    open fun onUnknownOption(option: String) {}
-    open fun onMissingValue(option: String) {}
-    open fun onInvalidValue(option: String,
-                            value: String) {
+    private var onUnknownOptionCallback: ((option: String) -> Unit)? = null
+    private var onMissingValueCallback: ((option: String) -> Unit)? = null
+    private var onInvalidValueCallback: ((option: String, value: String) -> Unit)? = null
+
+    fun onUnknownOption(callback: (option: String) -> Unit) {
+        onUnknownOptionCallback = callback
+    }
+
+    fun onMissingValue(callback: (option: String) -> Unit) {
+        onMissingValueCallback = callback
+    }
+
+    fun onInvalidValue(callback: (option: String, value: String) -> Unit) {
+        onInvalidValueCallback = callback
     }
 
     fun process(): Options {
@@ -29,9 +39,9 @@ open class OptionsReader(val arguments: List<String> = listOf(),
             val currentArgument = arguments[i]
 
             when (currentArgument) {
-                "--help", "-h"    -> options.help = true
-                "--copy"          -> options.copyOnly = true
-                "--config", "-c"  -> options.configFileName = getValueArgument(arguments,
+                "--help", "-h"   -> options.help = true
+                "--copy"         -> options.copyOnly = true
+                "--config", "-c" -> options.configFileName = getValueArgument(arguments,
                                                                                currentArgument,
                                                                                ++i)
                 "--log", "-l"     -> options.logFileName = getValueArgument(arguments,
@@ -42,15 +52,15 @@ open class OptionsReader(val arguments: List<String> = listOf(),
                                                                             ++i)
                 "--dry-run"       -> options.dryRun = true
                 "--create-config" -> options.createConfig = true
-                "-v"              -> options.verbosity = Options.Verbosity.NORMAL
-                "-vv"             -> options.verbosity = Options.Verbosity.HIGH
-                "--quiet"         -> options.verbosity = Options.Verbosity.NONE
-                "--loglevel"      -> options.logLevel = getLogLevel(arguments,
+                "-v"             -> options.verbosity = Options.Verbosity.NORMAL
+                "-vv"            -> options.verbosity = Options.Verbosity.HIGH
+                "--quiet"        -> options.verbosity = Options.Verbosity.NONE
+                "--loglevel"     -> options.logLevel = getLogLevel(arguments,
                                                                     currentArgument,
                                                                     ++i,
                                                                     options.logLevel)
 
-                else              -> onUnknownOption(currentArgument)
+                else             -> onUnknownOptionCallback?.invoke(currentArgument)
             }
             i++
         }
@@ -64,7 +74,7 @@ open class OptionsReader(val arguments: List<String> = listOf(),
         if (index <= arguments.lastIndex) {
             return arguments[index]
         }
-        onMissingValue(option)
+        onMissingValueCallback?.invoke(option)
         return ""
     }
 
@@ -76,7 +86,7 @@ open class OptionsReader(val arguments: List<String> = listOf(),
         try {
             return Level.parse(loglevelStr.toUpperCase())
         } catch (e: IllegalArgumentException) {
-            onInvalidValue(option, loglevelStr)
+            onInvalidValueCallback?.invoke(option, loglevelStr)
         }
         return default
     }

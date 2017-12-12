@@ -18,11 +18,10 @@ internal class OptionsReaderTest {
     @Test
     fun unknownOption() {
         var called = 0
-        val optionsReader = object : OptionsReader(listOf("badoption")) {
-            override fun onUnknownOption(option: String) {
-                assertEquals("badoption", option)
-                called++
-            }
+        val optionsReader = OptionsReader(listOf("badoption"))
+        optionsReader.onUnknownOption { option: String ->
+            assertEquals("badoption", option)
+            called++
         }
         optionsReader.process()
         assertEquals(1, called)
@@ -129,32 +128,28 @@ internal class OptionsReaderTest {
     @Test
     fun optionLogLevelNotValid() {
         var called = 0
-        val optionsReader = object : OptionsReader(listOf("--loglevel", "notvalid")) {
-            override fun onInvalidValue(option: String,
-                                        value: String) {
-                assertEquals("--loglevel", option)
-                assertEquals("notvalid", value)
-                called++
-            }
+        val optionsReader = OptionsReader(listOf("--loglevel", "notvalid"))
+        optionsReader.onInvalidValue { option: String,
+                                       value: String ->
+            assertEquals("--loglevel", option)
+            assertEquals("notvalid", value)
+            called++
         }
         optionsReader.process()
         assertEquals(1, called)
     }
 
     private fun executeReader(arguments: List<String>): Options {
-        val optionsReader = object : OptionsReader(arguments) {
-            override fun onUnknownOption(option: String) {
-                fail<String>("Unknown option \"$option\"")
-            }
-
-            override fun onMissingValue(option: String) {
-                fail<String>("Missing value for option \"$option\"")
-            }
-
-            override fun onInvalidValue(option: String,
-                                        value: String) {
-                fail<String>("Invalid value \"$value\" for option \"$option\"")
-            }
+        val optionsReader = OptionsReader(arguments)
+        optionsReader.onUnknownOption { option: String ->
+            fail<String>("Unknown option \"$option\"")
+        }
+        optionsReader.onMissingValue { option: String ->
+            fail<String>("Missing value for option \"$option\"")
+        }
+        optionsReader.onInvalidValue { option: String,
+                                       value: String ->
+            fail<String>("Invalid value \"$value\" for option \"$option\"")
         }
         return optionsReader.process()
     }

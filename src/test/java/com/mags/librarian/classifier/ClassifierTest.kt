@@ -17,7 +17,6 @@ import java.io.File
 
 class ClassifierTest {
     @Test
-    @Throws(Exception::class)
     fun classifyVideos() {
         val expected = Classification()
         expected.name = "videos"
@@ -38,7 +37,6 @@ class ClassifierTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun classifyTVShow_nXnn() {
         val expected = Classification()
         expected.fileName = "A_TV_show_2x10_something.avi"
@@ -54,7 +52,6 @@ class ClassifierTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun classifyTVShow_SnnEnn() {
         val expected = Classification()
         expected.fileName = "A_TV_show_S02E10_something.avi"
@@ -70,7 +67,6 @@ class ClassifierTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun classifyTVShow_SnnEnn_Dots() {
         val expected = Classification()
         expected.fileName = "A.TV.show.S02E10.something.avi"
@@ -86,7 +82,6 @@ class ClassifierTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun classifyTVShow_WithSpacesAndDashes() {
         val expected = Classification()
         expected.fileName = "A TV show - 2x10 something else.avi"
@@ -102,7 +97,6 @@ class ClassifierTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun classifyTVShow_SEE_withoutRest() {
         val expected = Classification()
         expected.fileName = "A TV show 123.avi"
@@ -118,7 +112,6 @@ class ClassifierTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun classifyTVShow_SEE_withRest() {
         val expected = Classification()
         expected.fileName = "A TV show 123 something.avi"
@@ -134,7 +127,6 @@ class ClassifierTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun classifyMovie_WithYear() {
         val expected = Classification()
         expected.fileName = "A movie (1945) something.avi"
@@ -146,7 +138,6 @@ class ClassifierTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun classifyMovie_WithYear_WithoutParenthesis() {
         val expected = Classification()
         expected.fileName = "A movie 1945 something.avi"
@@ -158,7 +149,6 @@ class ClassifierTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun classifyMovie_WithYear_WithoutParenthesis_WithoutRest() {
         val expected = Classification()
         expected.fileName = "A movie 1945.avi"
@@ -170,10 +160,9 @@ class ClassifierTest {
     }
 
     companion object {
-        internal var classifier = Classifier()
+        internal lateinit var classifier: Classifier
 
         @BeforeAll
-        @Throws(Exception::class)
         @JvmStatic
         fun setUpBeforeClass() {
             classifier = Classifier()

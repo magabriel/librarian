@@ -12,28 +12,28 @@ package com.mags.librarian
 import com.rometools.rome.feed.synd.SyndContentImpl
 import com.rometools.rome.feed.synd.SyndEntry
 import com.rometools.rome.feed.synd.SyndEntryImpl
-import com.rometools.rome.feed.synd.SyndFeedImpl
+import com.rometools.rome.feed.synd.SyndFeed
 import com.rometools.rome.io.FeedException
 import com.rometools.rome.io.SyndFeedOutput
 import java.io.FileWriter
 import java.io.IOException
 import java.util.*
+import javax.inject.Inject
 
 /**
  * Writes an RSS feed.
  */
-internal class FeedWriter(rssFilename: String,
-                          private val logger: LogWriter) {
+class FeedWriter
+@Inject constructor(rssFilename: String,
+                    private val logWriter: LogWriter,
+                    private val feed: SyndFeed) {
 
-    private val feed: SyndFeedImpl
     private val entries: MutableList<SyndEntry>
     private var rssFilename = ""
 
     init {
-
         this.rssFilename = rssFilename
 
-        feed = SyndFeedImpl()
         feed.feedType = "rss_2.0"
         feed.title = "Librarian - Processed files"
         feed.description = ""
@@ -77,9 +77,9 @@ internal class FeedWriter(rssFilename: String,
             val writer = FileWriter(rssFilename)
             output.output(feed, writer)
         } catch (e: IOException) {
-            logger.severe(e.message)
+            logWriter.severe(e.message)
         } catch (e: FeedException) {
-            logger.severe(e.toString())
+            logWriter.severe(e.toString())
             e.printStackTrace()
         }
 

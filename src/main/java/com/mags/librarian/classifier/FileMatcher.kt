@@ -70,8 +70,7 @@ object FileMatcher {
         val filenameNoExtension = getFilenameWithoutExtension(fileName)
 
         // check filters now
-        for (filter in criterium.filters) {
-
+        criterium.filters.forEach { filter ->
             val regExp = Pattern.compile(filter, Pattern.CASE_INSENSITIVE)
             val matcher = regExp.matcher(filenameNoExtension)
 
@@ -119,7 +118,6 @@ object FileMatcher {
 
                 return classification
             }
-
         }
 
         return classification
@@ -136,7 +134,6 @@ object FileMatcher {
         val classification = Classification()
 
         var matchExtensions = false
-        var matchFilters = false
 
         // check extension if specified
         if (criterium.extensions.isNotEmpty()) {
@@ -148,15 +145,10 @@ object FileMatcher {
         val filenameNoExtension = getFilenameWithoutExtension(fileName)
 
         // check filters if specified
-        for (filter in criterium.filters) {
-
-            val regExp = Pattern.compile(filter, Pattern.CASE_INSENSITIVE)
-            val matcher = regExp.matcher(filenameNoExtension)
-
-            if (matcher.find()) {
-                matchFilters = true
-            }
-        }
+        val matchFilters = criterium.filters
+                .map { Pattern.compile(it, Pattern.CASE_INSENSITIVE) }
+                .map { it.matcher(filenameNoExtension) }
+                .any { it.find() }
 
         // just one if enough
         if (matchExtensions || matchFilters) {

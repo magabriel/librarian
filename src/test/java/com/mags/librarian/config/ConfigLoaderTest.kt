@@ -13,6 +13,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.yaml.snakeyaml.Yaml
 import java.util.*
 
 class ConfigLoaderTest {
@@ -21,21 +22,18 @@ class ConfigLoaderTest {
         get() = "key1: value1\n" + "key2: 123\n" + "key3:\n" + "  key3_1:\n" + "    key3_1_1: abc\n" + "    key3_1_2: true\n" + "    key3_1_3: yes\n" + "key4:\n" + "    - first\n" + "    - second\n" + "    - third"
 
     @BeforeEach
-    @Throws(Exception::class)
     fun setUp() {
-        loader = ConfigLoader()
+        loader = ConfigLoader(Yaml())
         loader!!.loadFromString(yamlSource)
 
     }
 
     @AfterEach
-    @Throws(Exception::class)
     fun tearDown() {
 
     }
 
     @Test
-    @Throws(Exception::class)
     fun loadFromString() {
         val config = loader!!.configRaw
         // non-existent
@@ -46,7 +44,6 @@ class ConfigLoaderTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun getValueString() {
         assertEquals("", loader!!.getValueString("key0"))
         assertEquals("notfound", loader!!.getValueString("key0", "notfound"))
@@ -56,7 +53,6 @@ class ConfigLoaderTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun getValueInt() {
         assertTrue(123 == loader!!.getValueInt("key2"))
         assertTrue(null == loader!!.getValueInt("key0"))
@@ -64,7 +60,6 @@ class ConfigLoaderTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun getValueBoolean() {
         assertEquals(true, loader!!.getValueBoolean("key3.key3_1.key3_1_2"))
         assertEquals(true, loader!!.getValueBoolean("key3.key3_1.key3_1_3"))
@@ -72,7 +67,6 @@ class ConfigLoaderTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun getValueList() {
         val expected = arrayOf("first", "second", "third")
 
@@ -85,7 +79,6 @@ class ConfigLoaderTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun getConfigFlat() {
         val expected = LinkedHashMap<String, Any>()
         expected.put("key1", "value1")

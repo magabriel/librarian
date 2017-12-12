@@ -18,19 +18,16 @@ import org.junit.jupiter.api.Test
 class FileMatcherTest {
 
     @BeforeEach
-    @Throws(Exception::class)
     fun setUp() {
 
     }
 
     @AfterEach
-    @Throws(Exception::class)
     fun tearDown() {
 
     }
 
     @Test
-    @Throws(Exception::class)
     fun matchTVShowName() {
         // TV show name with spaces
         // "Spaces"
@@ -44,7 +41,6 @@ class FileMatcherTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun matchTVShowNameWithDots() {
         // TV show name with spaces
         // "Spaces"
@@ -58,7 +54,6 @@ class FileMatcherTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun matchTVShow() {
 
         val criterium = Criterium()
@@ -80,7 +75,6 @@ class FileMatcherTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun doesNotMatchTVShowBecauseOfExtension() {
 
         val criterium = Criterium()
@@ -95,7 +89,6 @@ class FileMatcherTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun matchTVShowSeasonXTwoFigures() {
 
         val criterium = Criterium()
@@ -117,7 +110,6 @@ class FileMatcherTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun matchTVShowSpacesAndDashes() {
 
         val criterium = Criterium()
@@ -140,7 +132,6 @@ class FileMatcherTest {
     }
 
     @Test
-    @Throws(Exception::class)
     fun matchRegExp() {
 
         assertTrue(FileMatcher.matchRegExp("a.song.mp3", "\\.mp3|\\.ogg|music|album|disco|cdrip'"))

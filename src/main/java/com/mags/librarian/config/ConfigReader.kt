@@ -10,41 +10,48 @@
 package com.mags.librarian.config
 
 import java.io.File
-import java.io.FileNotFoundException
+import javax.inject.Inject
 
-abstract class ConfigReader {
+class ConfigReader
+@Inject constructor(val configLoader: ConfigLoader) {
 
-    abstract fun onFileRead(configuration: Config)
-    abstract fun onFileNotFound(fileName: String)
-    abstract fun onIncludedFileNotFound(fileName: String)
+    private var onFileReadCallback: ((config: Config) -> Unit)? = null
+    private var onFileNotFoundCallback: ((fileName: String) -> Unit)? = null
+    private var onIncludedFileNotFoundCallback: ((fileName: String) -> Unit)? = null
+
+    fun onFileRead(callback: (configuration: Config) -> Unit) {
+        onFileReadCallback = callback
+    }
+
+    fun onFileNotFound(callback: (fileName: String) -> Unit) {
+        onFileNotFoundCallback = callback
+    }
+
+    fun onIncludedFileNotFound(callback: (fileName: String) -> Unit) {
+        onIncludedFileNotFoundCallback = callback
+    }
 
     fun read(configFile: String) {
-        val configLoader = ConfigLoader()
-        try {
-            configLoader.load(configFile)
-        } catch (e: FileNotFoundException) {
-            onFileNotFound(configFile)
-            return
+
+        configLoader.onFileNotFound { fileName ->
+            onFileNotFoundCallback?.invoke(fileName)
         }
 
+        configLoader.load(configFile)
         val adaptor = ConfigAdaptor(configLoader)
         val config = adaptor.process()
 
         if (!config.include.isEmpty()) {
             val includeFile = File(configFile).parentFile.toPath().resolve(config.include).toFile().toString()
-            try {
-                configLoader.load(includeFile)
-            } catch (e: FileNotFoundException) {
-                onIncludedFileNotFound(includeFile)
-                return
-            }
+            configLoader.load(includeFile)
+
             val includedConfig = adaptor.process()
             // merge the base over the included
             val mergedConfig = includedConfig.merge(config)
-            onFileRead(mergedConfig)
+            onFileReadCallback?.invoke(mergedConfig)
             return
         }
 
-        onFileRead(config)
+        onFileReadCallback?.invoke(config)
     }
 }

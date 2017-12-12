@@ -11,9 +11,52 @@ package com.mags.librarian.classifier
 
 import com.mags.librarian.config.Config
 
-class Criteria(private val config: Config) {
+class Criteria(private val config: Config? = null) : MutableCollection<Criterium> {
 
     val criteriumList = mutableListOf<Criterium>()
+
+    override val size: Int
+        get() = criteriumList.size
+
+    override fun contains(element: Criterium): Boolean {
+        return criteriumList.contains(element)
+    }
+
+    override fun containsAll(elements: Collection<Criterium>): Boolean {
+        return criteriumList.containsAll(elements)
+    }
+
+    override fun isEmpty(): Boolean {
+        return criteriumList.isEmpty()
+    }
+
+    override fun add(element: Criterium): Boolean {
+        return criteriumList.add(element)
+    }
+
+    override fun addAll(elements: Collection<Criterium>): Boolean {
+        return criteriumList.addAll(elements)
+    }
+
+    override fun clear() {
+        return criteriumList.clear()
+    }
+
+    override fun iterator(): MutableIterator<Criterium> {
+        return criteriumList.iterator()
+    }
+
+    override fun remove(element: Criterium): Boolean {
+        return criteriumList.remove(element)
+    }
+
+    override fun removeAll(elements: Collection<Criterium>): Boolean {
+        return criteriumList.removeAll(elements)
+    }
+
+    override fun retainAll(elements: Collection<Criterium>): Boolean {
+        return retainAll(elements)
+    }
 
     init {
         processContentClasses()
@@ -24,7 +67,7 @@ class Criteria(private val config: Config) {
      */
     private fun processContentClasses() {
 
-        for (contentClass in config.contentClasses) {
+        config?.contentClasses?.forEach { contentClass ->
             val name = contentClass.keys.toTypedArray()[0]
             val criterium = Criterium(name,
                                       extractExtensions(contentClass, name),
@@ -48,7 +91,7 @@ class Criteria(private val config: Config) {
 
         val extensionName = contentClass[criteriumName]!!["extension"].toString()
 
-        for (extensionItems in config.extensions) {
+        config?.extensions?.forEach { extensionItems ->
             val currentExtensionName = extensionItems.keys.toTypedArray()[0]
             if (extensionName == currentExtensionName) {
                 // found
@@ -73,7 +116,7 @@ class Criteria(private val config: Config) {
 
         val filterName = contentClass[criteriumName]!!["filter"].toString()
 
-        for (filterItems in config.filters) {
+        config?.filters?.forEach { filterItems ->
             val currentFilterName = filterItems.keys.toTypedArray()[0].toString()
             if (filterName == currentFilterName) {
                 // found

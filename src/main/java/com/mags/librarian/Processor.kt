@@ -26,26 +26,25 @@ import javax.inject.Inject
 internal class Processor
 @Inject constructor(private val options: Options,
                     private val config: Config,
-                    private val logger: LogWriter,
-                    private val eventDispatcher: EventDispatcher) {
-    private var feedWriter: FeedWriter? = null
-    private var command: Command? = null
+                    private val logWriter: LogWriter,
+                    private val eventDispatcher: EventDispatcher,
+                    private var feedWriter: FeedWriter,
+                    private var command: Command,
+                    private var mover: Mover) {
 
     /**
      * Runs the classification process.
      */
     fun run() {
-        logger.fine("Started")
+        logWriter.fine("Started")
         logOptionsAndConfig()
         if (config.outputFolders.isEmpty()) {
-            logger.severe("No output folders set, cannot continue.")
+            logWriter.severe("No output folders set, cannot continue.")
             return
         }
-        feedWriter = FeedWriter(options.rssFileName, logger)
-        command = Command(logger)
         addListeners()
         process()
-        logger.fine("Finished")
+        logWriter.fine("Finished")
     }
 
     /**
@@ -62,7 +61,7 @@ internal class Processor
                                                data.fileClassification?.name!!,
                                                data.action)
                 if (!config.executeSuccess.isEmpty()) {
-                    command!!.execute(File(config.executeSuccess).absolutePath, arguments)
+                    command.execute(File(config.executeSuccess).absolutePath, arguments)
                 }
                 addMovedToFeed(data.fileClassification, data.actionPerformed)
             }
@@ -77,7 +76,7 @@ internal class Processor
                                                data.outputFilename,
                                                data.action)
                 if (!config.executeError.isEmpty()) {
-                    command!!.execute(File(config.executeError).absolutePath, arguments)
+                    command.execute(File(config.executeError).absolutePath, arguments)
                 }
             }
         })
@@ -91,7 +90,7 @@ internal class Processor
                                                data.outputFilename,
                                                data.action)
                 if (!config.executeError.isEmpty()) {
-                    command!!.execute(File(config.executeError).absolutePath, arguments)
+                    command.execute(File(config.executeError).absolutePath, arguments)
                 }
             }
         })
@@ -102,62 +101,60 @@ internal class Processor
      */
     private fun logOptionsAndConfig() {
         if (options.dryRun) {
-            logger.config("- Dry run: true")
+            logWriter.config("- Dry run: true")
         }
 
-        logger.config("- Log level: ${options.logLevel}")
-        logger.config("- Verbosity: ${options.verbosity}")
+        logWriter.config("- Log level: ${options.logLevel}")
+        logWriter.config("- Verbosity: ${options.verbosity}")
 
         if (options.copyOnly) {
-            logger.config("- Copy only: true")
+            logWriter.config("- Copy only: true")
         }
 
-        logger.config("- Extensions: ")
-        for (extension in config.extensions) {
+        logWriter.config("- Extensions: ")
+        config.extensions.forEach { extension ->
             val name = extension.keys.toTypedArray()[0]
             val values = extension[name].toString()
-            logger.config("    - $name : \"$values\"")
+            logWriter.config("    - $name : \"$values\"")
         }
 
-        logger.config("- Filters: ")
-        for (filter in config.filters) {
+        logWriter.config("- Filters: ")
+        config.filters.forEach { filter ->
             filter.forEach { name, filterItems ->
-                logger.config("    - " + name)
-                for (regExp in filterItems) {
-                    logger.config("        - " + regExp)
-                }
+                logWriter.config("    - " + name)
+                filterItems.forEach { regExp -> logWriter.config("        - " + regExp) }
             }
         }
 
-        logger.config("- Unknown files: ")
-        logger.config("    - Action: ${config.unknownFilesAction}")
-        logger.config("    - Move path: ${config.unknownFilesMovePath}")
+        logWriter.config("- Unknown files: ")
+        logWriter.config("    - Action: ${config.unknownFilesAction}")
+        logWriter.config("    - Move path: ${config.unknownFilesMovePath}")
 
-        logger.config("- Error files: ")
-        logger.config("    - Action: ${config.errorFilesAction}")
-        logger.config("    - Move path: ${config.errorFilesMovePath}")
+        logWriter.config("- Error files: ")
+        logWriter.config("    - Action: ${config.errorFilesAction}")
+        logWriter.config("    - Move path: ${config.errorFilesMovePath}")
 
-        logger.config("- Content classes: ")
-        for (contentClass in config.contentClasses) {
+        logWriter.config("- Content classes: ")
+        config.contentClasses.forEach { contentClass ->
             val name = contentClass.keys.toTypedArray()[0]
             val values = contentClass[name].toString()
-            logger.config("    - $name : \"$values\"")
+            logWriter.config("    - $name : \"$values\"")
         }
 
-        logger.config("- TV shows : ")
-        logger.config("    - Numbering schema: ${config.tvShowsNumberingSchema}")
-        logger.config("    - Season schema: ${config.tvShowsSeasonSchema}")
-        logger.config("    - Words separators for show: ${config.tvShowsWordsSeparatorShow}")
-        logger.config("    - Words separators for file: ${config.tvShowsWordsSeparatorFile}")
+        logWriter.config("- TV shows : ")
+        logWriter.config("    - Numbering schema: ${config.tvShowsNumberingSchema}")
+        logWriter.config("    - Season schema: ${config.tvShowsSeasonSchema}")
+        logWriter.config("    - Words separators for show: ${config.tvShowsWordsSeparatorShow}")
+        logWriter.config("    - Words separators for file: ${config.tvShowsWordsSeparatorFile}")
 
-        logger.config("- Input folders: ")
+        logWriter.config("- Input folders: ")
         for (folder in config.inputFolders) {
-            logger.config("    - $folder")
+            logWriter.config("    - $folder")
         }
 
-        logger.config("- Output folders: ")
+        logWriter.config("- Output folders: ")
         for (folder in config.outputFolders) {
-            logger.config("    - $folder")
+            logWriter.config("    - $folder")
         }
     }
 
@@ -170,44 +167,41 @@ internal class Processor
     }
 
     /**
-     * Process all inputf files
+     * Process all input files
      */
     private fun processInputFiles() {
         // create criteria from config
         val criteria = Criteria(config)
-        val criteriumList = criteria.criteriumList
-        // get a classifier for the criterium list
-        val classifier = Classifier(criteriumList)
-        // get a mover
-        val mover = Mover(options, config, logger, eventDispatcher)
+        // get a classifier for the criteria
+        val classifier = Classifier(criteria)
         // classify all input files
         val inputFiles = collectInputFiles()
         // get the total files count
         val totalCount = inputFiles.values.map { it.size }.sum()
         if (totalCount == 0) {
-            logger.fine("No input files found")
+            logWriter.fine("No input files found")
         } else {
-            logger.info("Found $totalCount input files.")
+            logWriter.info("Found $totalCount input files.")
         }
 
         var count = 0
         inputFiles.forEach { folder: File, files: Array<File> ->
-            for (inputFile in files) {
+            files.forEach file@ { inputFile ->
                 count++
-                logger.info("Processing file ($count/$totalCount) '${inputFile.name}'.")
+                logWriter.info("Processing file ($count/$totalCount) '${inputFile.name}'.")
                 val fileClassification = classifier.classify(inputFile, folder)
 
                 if (fileClassification.name.isEmpty()) {
-                    logger.warning("- File class not found for file '${inputFile.name}'.")
+                    logWriter.warning("- File class not found for file '${inputFile.name}'.")
                     mover.processUnknownFile(inputFile)
-                    continue
+                    return@file
                 }
 
-                logger.info("- File class found: '${fileClassification.name}'.")
+                logWriter.info("- File class found: '${fileClassification.name}'.")
 
                 if (fileClassification.name == "tvshows") {
                     with(fileClassification) {
-                        logger.info("- TV show: '$tvShowName', season $season, episode $episode.")
+                        logWriter.info("- TV show: '$tvShowName', season $season, episode $episode.")
                     }
                 }
                 // perform the actual move
@@ -215,8 +209,8 @@ internal class Processor
             }
         }
         // only write feed if new entries added
-        if (feedWriter!!.hasEntries()) {
-            feedWriter!!.writeFeed()
+        if (feedWriter.hasEntries()) {
+            feedWriter.writeFeed()
         }
     }
 
@@ -233,7 +227,7 @@ internal class Processor
                 title = "Track \"$fileName\" of album \"$albumName\" -> \"$name\""
             }
 
-            feedWriter!!.addEntry(title, actionPerformed!!)
+            feedWriter.addEntry(title, actionPerformed!!)
         }
     }
 
@@ -243,12 +237,12 @@ internal class Processor
     private fun collectInputFiles(): Map<File, Array<File>> {
         val collectedFiles = LinkedHashMap<File, Array<File>>()
 
-        for (inputFolder in config.inputFolders) {
+        config.inputFolders.forEach { inputFolder ->
             val inputFilesInFolder: List<File>
             val folder = File(inputFolder).absoluteFile
             if (!folder.exists()) {
-                logger.warning("- Input folder '$inputFolder' does not exist.")
-                continue
+                logWriter.warning("- Input folder '$inputFolder' does not exist.")
+                return@forEach
             }
             inputFilesInFolder = collectFiles(folder)
             val files = inputFilesInFolder.toTypedArray()
@@ -265,7 +259,7 @@ internal class Processor
         val allFiles = mutableListOf<File>()
         val files = inputFolder.listFiles()
         if (files != null) {
-            for (file in files) {
+            files.forEach { file ->
                 if (file.isDirectory) {
                     allFiles.addAll(collectFiles(file))
                 } else {
@@ -279,65 +273,19 @@ internal class Processor
     private fun removeEmptyInputSubfolders() {
         val remainingInputSubFolders = FileUtils.findSubfoldersTree(config.inputFolders.toList())
 
-        remainingInputSubFolders.forEach { folder: File, subfolders: List<File> ->
-            for (subfolder in subfolders) {
+        remainingInputSubFolders.forEach { _: File, subfolders: List<File> ->
+            subfolders.forEach subfolder@ { subfolder ->
                 // note that .delete() only deletes folder if empty
                 if (subfolder.delete()) {
-                    logger.fine("Input empty subfolder '$subfolder' deleted.")
-                    continue
+                    logWriter.fine("Input empty subfolder '$subfolder' deleted.")
+                    return@subfolder
                 }
 
                 if (subfolder.exists() && collectFiles(subfolder).isEmpty()) {
-                    logger.warning("Empty input subfolder '$subfolder' cannot be deleted.")
+                    logWriter.warning("Empty input subfolder '$subfolder' cannot be deleted.")
                 }
-
             }
         }
     }
 
-//    /**
-//     * Construct a list of subfolders in the input folders.
-//     */
-//    private fun collectInputSubfolders(): Map<File, Array<File>> {
-//        val collectedFolders = LinkedHashMap<File, Array<File>>()
-//
-//        for (inputFolder in config.inputFolders) {
-//            val folder = File(inputFolder).absoluteFile
-//            val subfolders = folder.walkTopDown().toList().filter { it.isDirectory}
-//            collectedFolders.put(folder, subfolders.toTypedArray())
-//        }
-//
-////        for (inputFolder in config.inputFolders) {
-////            val subfoldersInFolder: List<File>
-////            val folder = File(inputFolder).absoluteFile
-////
-////            if (!folder.exists()) {
-////                continue
-////            }
-////
-////            subfoldersInFolder = collectFolders(folder)
-////            val folders = subfoldersInFolder.toTypedArray()
-////
-////            collectedFolders.put(folder, folders)
-////        }
-//        return collectedFolders
-//    }
-
-    /**
-     * Construct a list of folders in the folder
-     */
-    private fun collectFolders(inputFolder: File): List<File> {
-        val allFolders = mutableListOf<File>()
-        val files = inputFolder.listFiles()
-        if (files != null) {
-            for (file in files) {
-                if (!file.isDirectory) {
-                    allFolders.addAll(collectFiles(file))
-                } else {
-                    allFolders.add(file)
-                }
-            }
-        }
-        return allFolders
-    }
 }

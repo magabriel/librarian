@@ -23,7 +23,7 @@ object FileUtils {
     fun findSubfolders(folders: List<File>): List<File> {
         val subFolders = mutableListOf<File>()
 
-        for (folder in folders) {
+        folders.forEach { folder ->
             val subfolders = folder.absoluteFile.walkTopDown().filter {
                 it.isDirectory && it.absolutePath != folder.absolutePath
             }.toList()
@@ -38,7 +38,7 @@ object FileUtils {
     fun findSubfoldersTree(folders: List<File>): Map<File, List<File>> {
         val subFolders = LinkedHashMap<File, List<File>>()
 
-        for (folder in folders) {
+        folders.forEach { folder ->
             val subfolders = folder.absoluteFile.walkTopDown().filter {
                 it.isDirectory && it.absolutePath != folder.absolutePath
             }.toList()

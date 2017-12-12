@@ -9,12 +9,30 @@
 
 package com.mags.librarian.di
 
+import com.mags.librarian.Command
+import com.mags.librarian.FeedWriter
 import com.mags.librarian.LogWriter
+import com.mags.librarian.Mover
+import com.mags.librarian.config.Config
+import com.mags.librarian.event.EventDispatcher
+import com.mags.librarian.options.Options
 import dagger.Component
 import javax.inject.Singleton
 
-@Component(modules = [LogModule::class])
+@Component(modules = [
+    ConfigModule::class,
+    OptionsModule::class,
+    FeedWriterModule::class,
+    LogModule::class,
+    EventDispatcherModule::class
+])
 @Singleton
 interface AppComponent {
+    fun getConfig(): Config
+    fun getOptions(): Options
     fun getLogWriter(): LogWriter
+    fun getFeedWriter(): FeedWriter
+    fun getCommand(): Command
+    fun getMover(): Mover
+    fun getEventDispatcher(): EventDispatcher
 }

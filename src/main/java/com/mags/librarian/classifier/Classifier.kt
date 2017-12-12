@@ -14,7 +14,7 @@ import java.io.File
 /**
  * Classifies files based on criteria.
  */
-class Classifier(private val criteria: MutableList<Criterium> = mutableListOf<Criterium>()) {
+class Classifier(private val criteria: Criteria = Criteria()) {
 
     /**
      * Adds a new criterium to the criteria.
@@ -39,7 +39,7 @@ class Classifier(private val criteria: MutableList<Criterium> = mutableListOf<Cr
         var classification = Classification()
 
         // check first for tvshows if present
-        for (criterium in criteria) {
+        criteria.forEach { criterium ->
             if (criterium.name == "tvshows") {
                 // try to match against this tv show criterium
                 classification = FileMatcher.matchTVShow(sourceFile.name, criterium)
@@ -51,7 +51,7 @@ class Classifier(private val criteria: MutableList<Criterium> = mutableListOf<Cr
         }
 
         // other kind of files
-        for (criterium in criteria) {
+        criteria.forEach { criterium ->
             if (criterium.name != "tvshows") {
                 classification = FileMatcher.matchOtherFiles(sourceFile.name, criterium)
 

@@ -11,14 +11,20 @@ package com.mags.librarian.config
 
 import org.yaml.snakeyaml.Yaml
 import java.io.*
-import java.nio.file.FileAlreadyExistsException
 import java.util.*
+import javax.inject.Inject
 
 /**
  * Loads a configuration YAML file.
  */
-class ConfigLoader {
-    private val configYaml: Yaml
+class ConfigLoader
+@Inject constructor(private val configYaml: Yaml) {
+
+    private var onFileNotFoundCallback: ((fileName: String) -> Unit)? = null
+    private var onFileAlreadyExistsCallback: ((fileName: String) -> Unit)? = null
+    private var onInvalidPathCallback: ((fileName: String) -> Unit)? = null
+    private var onIOErrorCallback: ((fileName: String, e: IOException) -> Unit)? = null
+
     /**
      * Return the raw configuration object.
      */
@@ -31,17 +37,15 @@ class ConfigLoader {
     internal val configFlat: Map<String, Any>
         get() = configMap
 
-    init {
-        configYaml = Yaml()
-    }
-
-    @Throws(FileNotFoundException::class)
     fun load(fileName: String) {
-        // load the config file
-        val input = FileInputStream(File(fileName))
-        configRaw = this.configYaml.load(input) as Map<String, Any>
-
-        flatten("", configRaw, configMap)
+        try {
+            // load the config file
+            val input = FileInputStream(File(fileName))
+            configRaw = this.configYaml.load(input) as Map<String, Any>
+            flatten("", configRaw, configMap)
+        } catch (e: FileNotFoundException) {
+            onFileNotFoundCallback?.invoke(fileName)
+        }
     }
 
     /**
@@ -73,26 +77,51 @@ class ConfigLoader {
         }
     }
 
+    fun onFileNotFound(callback: (fileName: String) -> Unit) {
+        onFileNotFoundCallback = callback
+    }
+
+    fun onFileAlreadyExists(callback: (fileName: String) -> Unit) {
+        onFileAlreadyExistsCallback = callback
+    }
+
+    fun onInvalidPath(callback: (fileName: String) -> Unit) {
+        onInvalidPathCallback = callback
+    }
+
+    fun onIOError(callback: (fileName: String, e: IOException) -> Unit) {
+        onIOErrorCallback = callback
+    }
+
     /**
      * Create the default config file from a given template.
      */
     @Throws(IOException::class)
     fun createDefault(templateFile: String,
                       fileName: String) {
-        val file = File(fileName)
-        if (file.exists()) {
-            throw FileAlreadyExistsException(
-                    "File already exists. Delete or rename it an try again.")
+
+        try {
+            val file = File(fileName)
+            if (file.exists()) {
+                onFileAlreadyExistsCallback?.invoke(fileName)
+                return
+            }
+
+            // read default file
+            val res = javaClass.getResourceAsStream(templateFile)
+            val br = BufferedReader(InputStreamReader(res))
+            val lines = br.lines().toArray()
+
+            // write it
+            val content = lines.joinToString(System.lineSeparator())
+            val bw = BufferedWriter(FileWriter(file.absoluteFile))
+            bw.write(content)
+            bw.close()
+        } catch (e: FileNotFoundException) {
+            onInvalidPathCallback?.invoke(fileName)
+        } catch (e: IOException) {
+            onIOErrorCallback?.invoke(fileName, e)
         }
-        // read default file
-        val res = javaClass.getResourceAsStream(templateFile)
-        val br = BufferedReader(InputStreamReader(res))
-        val lines = br.lines().toArray()
-        // write it
-        val content = lines.joinToString(System.lineSeparator())
-        val bw = BufferedWriter(FileWriter(file.absoluteFile))
-        bw.write(content)
-        bw.close()
     }
 
     /**

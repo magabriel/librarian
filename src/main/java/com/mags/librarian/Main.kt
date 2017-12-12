@@ -12,14 +12,13 @@ package com.mags.librarian
 import com.mags.librarian.config.Config
 import com.mags.librarian.config.ConfigLoader
 import com.mags.librarian.config.ConfigReader
+import com.mags.librarian.di.ConfigModule
 import com.mags.librarian.di.DaggerAppComponent
-import com.mags.librarian.event.EventDispatcher
+import com.mags.librarian.di.DaggerConfigReaderComponent
+import com.mags.librarian.di.OptionsModule
 import com.mags.librarian.options.Options
 import com.mags.librarian.options.OptionsReader
 import java.io.File
-import java.io.FileNotFoundException
-import java.io.IOException
-import java.util.logging.Level
 
 object Main {
 
@@ -34,13 +33,14 @@ object Main {
 
     private var config = Config()
     private var options = Options()
-    private var eventDispatcher = EventDispatcher()
 
     lateinit var logWriter: LogWriter
 
+    private lateinit var configLoader: ConfigLoader
+    private lateinit var configReader: ConfigReader
+
     @JvmStatic
     fun main(args: Array<String>) {
-        var app = DaggerAppComponent.create()
 
         // set file defaults
         with(File(System.getProperty("user.dir")).toPath()) {
@@ -49,21 +49,41 @@ object Main {
             options.rssFileName = resolve(RSS_FILE).toString()
         }
 
-        // create logWriter but no logging allowed yet
-        logWriter = app.getLogWriter()
-        logWriter.logFileName = options.logFileName
-
         readOptions(args)
-        processOptions()
-
         writeMessage("$NAME version $VERSION $COPYRIGHT")
 
-        // start logging
-        logWriter.start()
+        // chicken-and-egg problem: we need a config reader to read config and need config to
+        // configure app, so we use a separate component to get a config loader and reader first
+        var configComponent = DaggerConfigReaderComponent.create()
+        configLoader = configComponent.getConfigLoader()
+        configReader = configComponent.getConfigReader()
 
-        loadConfig()
+        // config loading errors cannot be logged until the logWriter is configure
+        val configErrors = loadConfig()
 
-        val processor = Processor(options, config, logWriter, eventDispatcher)
+        var app = DaggerAppComponent.builder()
+                .configModule(ConfigModule(config))
+                .optionsModule(OptionsModule(options))
+                .build()
+
+        // get the fully configured logWriter
+        logWriter = app.getLogWriter()
+
+        processOptions()
+
+        // now we can log config errors
+        if (configErrors.isNotEmpty()) {
+            configErrors.forEach { logWriter.severe(it) }
+            System.exit(1)
+        }
+
+        val processor = Processor(options,
+                                  config,
+                                  logWriter,
+                                  app.getEventDispatcher(),
+                                  app.getFeedWriter(),
+                                  app.getCommand(),
+                                  app.getMover())
         processor.run()
     }
 
@@ -72,26 +92,27 @@ object Main {
      */
     private fun readOptions(args: Array<String>) {
 
-        val optionsReader = object : OptionsReader(args.toList(), defaultOptions = options) {
-            override fun onUnknownOption(option: String) {
-                writeMessage()
-                writeMessage("ERROR: Unknown option \"$option\"")
-                showUsage()
-            }
+        val optionsReader = OptionsReader(args.toList(), defaultOptions = options)
 
-            override fun onMissingValue(option: String) {
-                writeMessage()
-                writeMessage("ERROR: Missing value for option \"$option\"")
-                showUsage()
-            }
-
-            override fun onInvalidValue(option: String,
-                                        value: String) {
-                writeMessage()
-                writeMessage("ERROR: Invalid value \"$value\" for option \"$option\"")
-                showUsage()
-            }
+        optionsReader.onUnknownOption { option: String ->
+            writeMessage()
+            writeMessage("ERROR: Unknown option \"$option\"")
+            showUsage()
         }
+
+        optionsReader.onMissingValue { option: String ->
+            writeMessage()
+            writeMessage("ERROR: Missing value for option \"$option\"")
+            showUsage()
+        }
+
+        optionsReader.onInvalidValue { option: String,
+                                       value: String ->
+            writeMessage()
+            writeMessage("ERROR: Invalid value \"$value\" for option \"$option\"")
+            showUsage()
+        }
+
         options = optionsReader.process()
     }
 
@@ -105,15 +126,6 @@ object Main {
             createConfig()
             System.exit(0)
         }
-
-        when (options.verbosity) {
-            Options.Verbosity.NORMAL -> logWriter.consoleLogLevel = Level.INFO
-            Options.Verbosity.HIGH   -> logWriter.consoleLogLevel = Level.CONFIG
-            Options.Verbosity.NONE   -> logWriter.consoleLogLevel = Level.OFF
-        }
-
-        logWriter.logFileName = options.logFileName
-        logWriter.logLevel = options.logLevel
     }
 
     private fun showUsage() {
@@ -138,42 +150,47 @@ object Main {
     /**
      * Loads the configuration file.
      */
-    private fun loadConfig() {
+    private fun loadConfig(): List<String> {
 
-        object : ConfigReader() {
-            override fun onFileRead(configuration: Config) {
-                config = configuration
-            }
+        val errors = mutableListOf<String>()
 
-            override fun onFileNotFound(fileName: String) {
-                logWriter.severe("ERROR: Configuration file '${options.configFileName}' not found.")
-                logWriter.severe("HINT: You can generate a default configuration file with the provided command line option.")
-                System.exit(1)
-            }
+        configReader.onFileRead { configuration ->
+            config = configuration
+        }
 
-            override fun onIncludedFileNotFound(fileName: String) {
-                logWriter.severe("ERROR: Included file \"$fileName\" does not exist.")
-                System.exit(1)
-            }
-        }.read(options.configFileName)
+        configReader.onFileNotFound { fileName ->
+            errors.add("ERROR: Configuration file '$fileName' not found.")
+            errors.add("HINT: You can generate a default configuration file with the provided command line option.")
+        }
+
+        configReader.onIncludedFileNotFound { fileName ->
+            errors.add("ERROR: Included file \"$fileName\" does not exist.")
+        }
+
+        configReader.read(options.configFileName)
+
+        return errors
     }
 
     private fun createConfig() {
 
-        val configLoader = ConfigLoader()
-
-        try {
-            configLoader.createDefault("/librarian-default.yml", options.configFileName)
-            logWriter.info("Default configuration file created as '${options.configFileName}'")
-
-        } catch (e: FileNotFoundException) {
-            logWriter.severe("ERROR: Configuration file '${options.configFileName}' could not be created. Check intermediate folders exist.")
-            System.exit(1)
-
-        } catch (e: IOException) {
-            logWriter.severe("ERROR: Configuration file '${options.configFileName}' could not be created: '${e.message}'")
+        configLoader.onInvalidPath { fileName ->
+            logWriter.severe("ERROR: Configuration file '$fileName' could not be created. Check intermediate folders exist.")
             System.exit(1)
         }
+
+        configLoader.onFileAlreadyExists { fileName ->
+            logWriter.severe("File '$fileName' already exists. Delete or rename it an try again.")
+            System.exit(1)
+        }
+
+        configLoader.onIOError { fileName, _ ->
+            logWriter.severe("ERROR: Configuration file '$fileName' could not be created. Check intermediate folders exist.")
+            System.exit(1)
+        }
+
+        configLoader.createDefault("/librarian-default.yml", options.configFileName)
+        logWriter.info("Default configuration file created as '${options.configFileName}'")
     }
 
     private fun writeMessage(msg: String) {

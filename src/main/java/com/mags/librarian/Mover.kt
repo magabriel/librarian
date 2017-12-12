@@ -18,11 +18,13 @@ import java.io.File
 import java.io.IOException
 import java.util.*
 import java.util.regex.Pattern
+import javax.inject.Inject
 
-internal class Mover(private val options: Options,
-                     private val config: Config,
-                     private val logger: LogWriter,
-                     private val eventDispatcher: EventDispatcher) {
+class Mover
+@Inject constructor(private val options: Options,
+                    private val config: Config,
+                    private val logger: LogWriter,
+                    private val eventDispatcher: EventDispatcher) {
     private var isDuplicated = false
 
     // for testing purposes
@@ -104,7 +106,7 @@ internal class Mover(private val options: Options,
                     return
                 }
 
-                moveErroredFile(inputFile, File(config.unknownFilesMovePath), true)
+                moveErroredFile(inputFile, File(config.unknownFilesMovePath))
                 summary!!.outputFolder = config.unknownFilesMovePath
                 summary!!.action = "move"
             }
@@ -147,7 +149,7 @@ internal class Mover(private val options: Options,
                     return
                 }
 
-                moveErroredFile(inputFile, File(config.duplicateFilesMovePath), true)
+                moveErroredFile(inputFile, File(config.duplicateFilesMovePath))
                 summary!!.outputFolder = config.duplicateFilesMovePath
                 summary!!.action = "move"
             }
@@ -190,7 +192,7 @@ internal class Mover(private val options: Options,
                     return
                 }
 
-                moveErroredFile(inputFile, File(config.errorFilesMovePath), true)
+                moveErroredFile(inputFile, File(config.errorFilesMovePath))
                 summary!!.outputFolder = config.errorFilesMovePath
                 summary!!.action = "move"
             }
@@ -224,8 +226,7 @@ internal class Mover(private val options: Options,
      * Move an errored file to a destination folder.
      */
     private fun moveErroredFile(inputFile: File,
-                                destinationFolder: File,
-                                autoRenameIfExisting: Boolean) {
+                                destinationFolder: File) {
 
         if (!destinationFolder.exists()) {
             if ((!options.dryRun)) {
@@ -289,7 +290,7 @@ internal class Mover(private val options: Options,
 
         val destinations = mutableListOf<Map<String, String>>()
 
-        for (outputFolder in config.outputFolders) {
+        config.outputFolders.forEach { outputFolder ->
             if (outputFolder["contents"] == fileClassification.name) {
                 logger.fine("- Suitable destination folder found: '${outputFolder["path"]}'.")
 
@@ -405,7 +406,7 @@ internal class Mover(private val options: Options,
             logger.fine("- Checking candidate parent destination folder \"$destinationFolder\"")
 
             // try finding an existing subfolder for the TV show
-            val tvShowSubfolders = destinationFolder.list { dir, name ->
+            val tvShowSubfolders = destinationFolder.list { _, name ->
 
                 // for tvshows output folders, only accept it as a destination if
                 // a folder for the TV show already exists
@@ -505,7 +506,7 @@ internal class Mover(private val options: Options,
     private fun moveTheFile(inputFile: File,
                             destinationFolder: File,
                             newName: String = "") {
-        var newName = newName
+        var theNewName = newName
 
         try {
             if (!destinationFolder.exists()) {
@@ -515,31 +516,31 @@ internal class Mover(private val options: Options,
                 }
             }
 
-            if (newName.isEmpty()) {
-                newName = inputFile.name
+            if (theNewName.isEmpty()) {
+                theNewName = inputFile.name
             }
 
             // create summary
             summary!!.inputFolder = inputFile.parent
             summary!!.inputFilename = inputFile.name
             summary!!.outputFolder = destinationFolder.toString()
-            summary!!.outputFilename = newName
+            summary!!.outputFilename = theNewName
 
             if (options.copyOnly) {
                 if ((!options.dryRun)) {
-                    inputFile.copyTo(destinationFolder.resolve(newName))
+                    inputFile.copyTo(destinationFolder.resolve(theNewName))
                 }
-                actionPerformed = "copied [${inputFile.absolutePath}] to [${destinationFolder.absolutePath}] as [$newName]"
-                logger.info("- File '${destinationFolder.absolutePath}' copied to '${inputFile.name}' as '$newName'.")
+                actionPerformed = "copied [${inputFile.absolutePath}] to [${destinationFolder.absolutePath}] as [$theNewName]"
+                logger.info("- File '${destinationFolder.absolutePath}' copied to '${inputFile.name}' as '$theNewName'.")
                 summary!!.action = "copy"
 
             } else {
                 if ((!options.dryRun)) {
-                    inputFile.copyTo(destinationFolder.resolve(newName), false)
+                    inputFile.copyTo(destinationFolder.resolve(theNewName), false)
                     inputFile.delete()
                 }
-                actionPerformed = "moved [${inputFile.absolutePath}] to [${destinationFolder.absolutePath}] as [$newName]"
-                logger.info("- File '${inputFile.name}' moved to '${destinationFolder.absolutePath}' as '$newName'.")
+                actionPerformed = "moved [${inputFile.absolutePath}] to [${destinationFolder.absolutePath}] as [$theNewName]"
+                logger.info("- File '${inputFile.name}' moved to '${destinationFolder.absolutePath}' as '$theNewName'.")
                 summary!!.action = "move"
             }
 
@@ -548,7 +549,7 @@ internal class Mover(private val options: Options,
             isDuplicated = true
 
             var action = if (options.copyOnly) "copy" else "move"
-            var msg = "- Cannot $action already existing file '${inputFile.name}' to '${destinationFolder.absolutePath}': $e"
+            var msg = "- Cannot $action already existing file '${inputFile.name}' to '${destinationFolder.absolutePath}'"
             logger.severe(msg)
         } catch (e: IOException) {
 
@@ -559,10 +560,10 @@ internal class Mover(private val options: Options,
 
     }
 
-    internal data class Summary(var inputFolder: String = "",
-                                var inputFilename: String = "",
-                                var outputFolder: String = "",
-                                var outputFilename: String = "",
-                                var action: String = "")
+    data class Summary(var inputFolder: String = "",
+                       var inputFilename: String = "",
+                       var outputFolder: String = "",
+                       var outputFilename: String = "",
+                       var action: String = "")
 }
 
