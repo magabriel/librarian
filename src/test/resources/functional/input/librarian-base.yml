@@ -34,15 +34,15 @@ config:
   errors:
     unknown_files:
       action: move # ignore, move, delete
-      move_path: unknown
+      move_path: ../output/unknown
 
     duplicate_files:
       action: move # ignore, move, delete
-      move_path: duplicates
+      move_path: ../output/duplicates
 
     error_files:
       action: move # ignore, move, delete
-      move_path: errors
+      move_path: ../output/errors
 
   execute:
     success: "success_script.sh"
@@ -56,22 +56,22 @@ input:
 output:
   folders:
     -
-      path: tvshows
+      path: ../output/tvshows
       contents: tvshows
 
     -
-      path: tvshows2
+      path: ../output/tvshows2
       contents: tvshows
 
     -
-      path: movies
+      path: ../output/movies
       contents: videos
 
     -
-      path: music
+      path: ../output/music
       contents: music
 
     -
-      path: books
+      path: ../output/books
       contents: books
 
