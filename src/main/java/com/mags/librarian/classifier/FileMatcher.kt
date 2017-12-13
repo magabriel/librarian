@@ -20,17 +20,17 @@ object FileMatcher {
      */
     fun matchTVShowName(fileName: String,
                         tvshowName: String): Boolean {
-        var tvshowName = tvshowName
+        var myTvshowName = tvshowName
 
         // transform word separators to match any of them
-        tvshowName = tvshowName.replace("_", " ")
-        tvshowName = tvshowName.replace(".", " ")
-        tvshowName = tvshowName.trim { it <= ' ' }
-        tvshowName = tvshowName.replace(" ", "[ _\\.]")
-        tvshowName = tvshowName.replace("(", "\\(")
-        tvshowName = tvshowName.replace(")", "\\)")
+        myTvshowName = myTvshowName.replace("_", " ")
+        myTvshowName = myTvshowName.replace(".", " ")
+        myTvshowName = myTvshowName.trim { it <= ' ' }
+        myTvshowName = myTvshowName.replace(" ", "[ _\\.]")
+        myTvshowName = myTvshowName.replace("(", "\\(")
+        myTvshowName = myTvshowName.replace(")", "\\)")
 
-        val regExp = Pattern.compile(tvshowName, Pattern.CASE_INSENSITIVE)
+        val regExp = Pattern.compile(myTvshowName, Pattern.CASE_INSENSITIVE)
         val matcher = regExp.matcher(fileName)
 
         return matcher.find()

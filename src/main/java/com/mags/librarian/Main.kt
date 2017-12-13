@@ -10,11 +10,11 @@
 package com.mags.librarian
 
 import com.mags.librarian.config.Config
-import com.mags.librarian.config.ConfigLoader
+import com.mags.librarian.config.ConfigCreator
 import com.mags.librarian.config.ConfigReader
 import com.mags.librarian.di.ConfigModule
 import com.mags.librarian.di.DaggerAppComponent
-import com.mags.librarian.di.DaggerConfigReaderComponent
+import com.mags.librarian.di.DaggerConfigurationComponent
 import com.mags.librarian.di.OptionsModule
 import com.mags.librarian.options.Options
 import com.mags.librarian.options.OptionsReader
@@ -36,7 +36,7 @@ object Main {
 
     lateinit var logWriter: LogWriter
 
-    private lateinit var configLoader: ConfigLoader
+    private lateinit var configCreator: ConfigCreator
     private lateinit var configReader: ConfigReader
 
     @JvmStatic
@@ -49,18 +49,20 @@ object Main {
             options.rssFileName = resolve(RSS_FILE).toString()
         }
 
-        readOptions(args)
+        options = readOptions(args)
         writeMessage("$NAME version $VERSION $COPYRIGHT")
 
         // chicken-and-egg problem: we need a config reader to read config and need config to
         // configure app, so we use a separate component to get a config loader and reader first
-        var configComponent = DaggerConfigReaderComponent.create()
-        configLoader = configComponent.getConfigLoader()
+        var configComponent = DaggerConfigurationComponent.create()
         configReader = configComponent.getConfigReader()
+        configCreator = configComponent.getConfigCreator()
 
-        // config loading errors cannot be logged until the logWriter is configure
-        val configErrors = loadConfig()
+        // config loading errors cannot be logged until the logWriter is configured
+        var configErrors = listOf<String>()
+        config = loadConfig { errors -> configErrors = errors }
 
+        // now we can configure the app component
         var app = DaggerAppComponent.builder()
                 .configModule(ConfigModule(config))
                 .optionsModule(OptionsModule(options))
@@ -90,7 +92,7 @@ object Main {
     /**
      * Read and configure the command line options.
      */
-    private fun readOptions(args: Array<String>) {
+    private fun readOptions(args: Array<String>): Options {
 
         val optionsReader = OptionsReader(args.toList(), defaultOptions = options)
 
@@ -113,7 +115,7 @@ object Main {
             showUsage()
         }
 
-        options = optionsReader.process()
+        return optionsReader.process()
     }
 
     private fun processOptions() {
@@ -150,12 +152,13 @@ object Main {
     /**
      * Loads the configuration file.
      */
-    private fun loadConfig(): List<String> {
+    private fun loadConfig(errorList: (errors: List<String>) -> Unit): Config {
 
+        var readConfig = Config()
         val errors = mutableListOf<String>()
 
         configReader.onFileRead { configuration ->
-            config = configuration
+            readConfig = configuration
         }
 
         configReader.onFileNotFound { fileName ->
@@ -169,27 +172,29 @@ object Main {
 
         configReader.read(options.configFileName)
 
-        return errors
+        errorList(errors)
+
+        return readConfig
     }
 
     private fun createConfig() {
 
-        configLoader.onInvalidPath { fileName ->
+        configCreator.onInvalidPath { fileName ->
             logWriter.severe("ERROR: Configuration file '$fileName' could not be created. Check intermediate folders exist.")
             System.exit(1)
         }
 
-        configLoader.onFileAlreadyExists { fileName ->
+        configCreator.onFileAlreadyExists { fileName ->
             logWriter.severe("File '$fileName' already exists. Delete or rename it an try again.")
             System.exit(1)
         }
 
-        configLoader.onIOError { fileName, _ ->
+        configCreator.onIOError { fileName, _ ->
             logWriter.severe("ERROR: Configuration file '$fileName' could not be created. Check intermediate folders exist.")
             System.exit(1)
         }
 
-        configLoader.createDefault("/librarian-default.yml", options.configFileName)
+        configCreator.createDefault("/librarian-default.yml", options.configFileName)
         logWriter.info("Default configuration file created as '${options.configFileName}'")
     }
 

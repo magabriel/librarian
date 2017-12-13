@@ -22,10 +22,13 @@ class ConfigAdaptor(private val loader: ConfigLoader) {
         val config = Config()
 
         config.include = loader.getValueString("include", "")
+        @Suppress("UNCHECKED_CAST")
         config.extensions = loader.getValueListMap(
                 "config.extensions").map { it as Map<String, List<String>> }.toTypedArray()
+        @Suppress("UNCHECKED_CAST")
         config.filters = loader.getValueListMap(
                 "config.filters").map { it as Map<String, List<String>> }.toTypedArray()
+        @Suppress("UNCHECKED_CAST")
         config.contentClasses = loader.getValueListMap(
                 "config.content_classes").map { it as Map<String, Map<String, String>> }.toTypedArray()
 
@@ -64,6 +67,7 @@ class ConfigAdaptor(private val loader: ConfigLoader) {
 
         config.executeError = loader.getValueString("config.execute.error", config.executeError)
         config.inputFolders = loader.getValueListStrings("input.folders").toTypedArray()
+        @Suppress("UNCHECKED_CAST")
         config.outputFolders = loader.getValueListMap("output.folders").map {
             it as Map<String, String>
         }.toTypedArray()

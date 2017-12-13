@@ -10,7 +10,9 @@
 package com.mags.librarian.config
 
 import org.yaml.snakeyaml.Yaml
-import java.io.*
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileNotFoundException
 import java.util.*
 import javax.inject.Inject
 
@@ -21,9 +23,6 @@ class ConfigLoader
 @Inject constructor(private val configYaml: Yaml) {
 
     private var onFileNotFoundCallback: ((fileName: String) -> Unit)? = null
-    private var onFileAlreadyExistsCallback: ((fileName: String) -> Unit)? = null
-    private var onInvalidPathCallback: ((fileName: String) -> Unit)? = null
-    private var onIOErrorCallback: ((fileName: String, e: IOException) -> Unit)? = null
 
     /**
      * Return the raw configuration object.
@@ -41,6 +40,7 @@ class ConfigLoader
         try {
             // load the config file
             val input = FileInputStream(File(fileName))
+            @Suppress("UNCHECKED_CAST")
             configRaw = this.configYaml.load(input) as Map<String, Any>
             flatten("", configRaw, configMap)
         } catch (e: FileNotFoundException) {
@@ -52,6 +52,7 @@ class ConfigLoader
      * Load a configuration file contents from a string.
      */
     fun loadFromString(document: String) {
+        @Suppress("UNCHECKED_CAST")
         configRaw = this.configYaml.load(document) as Map<String, Any>
 
         flatten("", configRaw, configMap)
@@ -70,6 +71,7 @@ class ConfigLoader
             }
 
             if (value.javaClass.name == "java.util.LinkedHashMap") {
+                @Suppress("UNCHECKED_CAST")
                 flatten(flatKey, value as Map<String, Any>, flatMap)
             } else {
                 flatMap.put(flatKey, value)
@@ -81,54 +83,12 @@ class ConfigLoader
         onFileNotFoundCallback = callback
     }
 
-    fun onFileAlreadyExists(callback: (fileName: String) -> Unit) {
-        onFileAlreadyExistsCallback = callback
-    }
-
-    fun onInvalidPath(callback: (fileName: String) -> Unit) {
-        onInvalidPathCallback = callback
-    }
-
-    fun onIOError(callback: (fileName: String, e: IOException) -> Unit) {
-        onIOErrorCallback = callback
-    }
-
-    /**
-     * Create the default config file from a given template.
-     */
-    @Throws(IOException::class)
-    fun createDefault(templateFile: String,
-                      fileName: String) {
-
-        try {
-            val file = File(fileName)
-            if (file.exists()) {
-                onFileAlreadyExistsCallback?.invoke(fileName)
-                return
-            }
-
-            // read default file
-            val res = javaClass.getResourceAsStream(templateFile)
-            val br = BufferedReader(InputStreamReader(res))
-            val lines = br.lines().toArray()
-
-            // write it
-            val content = lines.joinToString(System.lineSeparator())
-            val bw = BufferedWriter(FileWriter(file.absoluteFile))
-            bw.write(content)
-            bw.close()
-        } catch (e: FileNotFoundException) {
-            onInvalidPathCallback?.invoke(fileName)
-        } catch (e: IOException) {
-            onIOErrorCallback?.invoke(fileName, e)
-        }
-    }
-
     /**
      * Retrieve a String value with default.
      */
     @JvmOverloads internal fun getValueString(key: String,
                                               defaultValue: String = ""): String {
+        @Suppress("UNCHECKED_CAST", "PLATFORM_CLASS_MAPPED_TO_KOTLIN")
         return (this.configMap as java.util.Map<String, Any>).getOrDefault(key,
                                                                            defaultValue) as String
     }
@@ -138,6 +98,7 @@ class ConfigLoader
      */
     @JvmOverloads internal fun getValueInt(key: String,
                                            defaultValue: Int? = null): Int? {
+        @Suppress("UNCHECKED_CAST", "PLATFORM_CLASS_MAPPED_TO_KOTLIN")
         return (this.configMap as java.util.Map<String, Any>).getOrDefault(key,
                                                                            defaultValue) as Int?
     }
@@ -147,6 +108,7 @@ class ConfigLoader
      */
     @JvmOverloads internal fun getValueBoolean(key: String,
                                                defaultValue: Boolean? = false): Boolean? {
+        @Suppress("UNCHECKED_CAST", "PLATFORM_CLASS_MAPPED_TO_KOTLIN")
         return (this.configMap as java.util.Map<String, Any>).getOrDefault(key,
                                                                            defaultValue) as Boolean
     }
@@ -163,6 +125,7 @@ class ConfigLoader
      */
     internal fun getValueListStrings(key: String,
                                      defaultValue: List<String>): List<String> {
+        @Suppress("UNCHECKED_CAST", "PLATFORM_CLASS_MAPPED_TO_KOTLIN")
         return (this.configMap as java.util.Map<String, Any>).getOrDefault(key,
                                                                            defaultValue) as List<String>
     }
@@ -179,6 +142,7 @@ class ConfigLoader
      */
     internal fun getValueListMap(key: String,
                                  defaultValue: List<Map<String, Any>>): List<Map<String, Any>> {
+        @Suppress("UNCHECKED_CAST", "PLATFORM_CLASS_MAPPED_TO_KOTLIN")
         return (this.configMap as java.util.Map<String, Any>).getOrDefault(key,
                                                                            defaultValue) as List<Map<String, Any>>
     }
