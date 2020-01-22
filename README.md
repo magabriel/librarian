@@ -26,6 +26,10 @@ to teach myself Java (and Kotlin).
 
 ## Changelog
 
+### 0.8
+
+- Replaced the copy+delete operation by move.
+
 ### 0.7
 
 - Added Dagger2.

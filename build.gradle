@@ -1,8 +1,9 @@
 group 'librarian'
-version '0.7'
+version '0.8'
 
 apply plugin: 'java'
 apply plugin: 'kotlin'
+
 apply plugin: 'kotlin-kapt'
 apply plugin: 'idea'
 
@@ -22,7 +23,7 @@ dependencies {
     // to avoid a warning introduced by ROME
     compile group: 'org.slf4j', name: 'slf4j-nop', version: '1.7.21'
 
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compile "com.google.dagger:dagger:$dagger_version"
     kapt "com.google.dagger:dagger-compiler:$dagger_version"
 }
@@ -45,7 +46,7 @@ jar {
 
 }
 buildscript {
-    ext.kotlin_version = '1.2.0'
+    ext.kotlin_version = '1.2.51'
     ext.dagger_version = '2.10'
     repositories {
         mavenCentral()

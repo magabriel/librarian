@@ -161,7 +161,7 @@ class ClassifierTest {
 
     companion object {
         internal lateinit var classifier: Classifier
-
+        //
         @BeforeAll
         @JvmStatic
         fun setUpBeforeClass() {

@@ -16,6 +16,8 @@ import com.mags.librarian.event.*
 import com.mags.librarian.options.Options
 import java.io.File
 import java.io.IOException
+import java.nio.file.FileAlreadyExistsException
+import java.nio.file.Files
 import java.util.*
 import java.util.regex.Pattern
 import javax.inject.Inject
@@ -536,8 +538,7 @@ class Mover
 
             } else {
                 if ((!options.dryRun)) {
-                    inputFile.copyTo(destinationFolder.resolve(theNewName), false)
-                    inputFile.delete()
+                    Files.move(inputFile.toPath(), destinationFolder.resolve(theNewName).toPath())
                 }
                 actionPerformed = "moved [${inputFile.absolutePath}] to [${destinationFolder.absolutePath}] as [$theNewName]"
                 logger.info("- File '${inputFile.name}' moved to '${destinationFolder.absolutePath}' as '$theNewName'.")
