@@ -14,26 +14,28 @@ import java.util.regex.Pattern
 object FileMatcher {
 
     /**
-     * Try to match a TV show name against a filename.
+     * Try to match a TV show folder name against a TV show name.
+     *
+     * The names must match completely, so a TV show like "House" does not
+     * match a folder belonging to a different show like "House of cards".
      *
      * @return True if match
      */
     fun matchTVShowName(fileName: String,
                         tvshowName: String): Boolean {
-        var myTvshowName = tvshowName
+        return normalizeTvShowName(fileName) == normalizeTvShowName(tvshowName)
+    }
 
-        // transform word separators to match any of them
-        myTvshowName = myTvshowName.replace("_", " ")
-        myTvshowName = myTvshowName.replace(".", " ")
-        myTvshowName = myTvshowName.trim { it <= ' ' }
-        myTvshowName = myTvshowName.replace(" ", "[ _\\.]")
-        myTvshowName = myTvshowName.replace("(", "\\(")
-        myTvshowName = myTvshowName.replace(")", "\\)")
-
-        val regExp = Pattern.compile(myTvshowName, Pattern.CASE_INSENSITIVE)
-        val matcher = regExp.matcher(fileName)
-
-        return matcher.find()
+    /**
+     * Normalizes a TV show name so word separators and case do not prevent a match.
+     */
+    private fun normalizeTvShowName(name: String): String {
+        return name.replace("_", " ")
+                .replace(".", " ")
+                .replace("-", " ")
+                .replace(Regex("\\s+"), " ")
+                .trim()
+                .toLowerCase()
     }
 
     /**
