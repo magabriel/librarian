@@ -61,6 +61,48 @@ class MoverTest {
                      myMover!!.actionPerformed)
     }
 
+    @Test
+    fun doesNotMoveTvShowIntoDifferentShowFolderWithSamePrefix() {
+        val outputFolder = File.createTempFile("librarian-mover-test", "")
+        outputFolder.delete()
+        outputFolder.mkdirs()
+
+        try {
+            // an existing folder for a different TV show with a matching prefix
+            File(outputFolder, "House of cards").mkdirs()
+
+            val options = Options()
+            options.dryRun = true
+
+            val config = Config()
+            config.outputFolders = arrayOf(mapOf("path" to outputFolder.absolutePath,
+                                                 "contents" to "tvshows"))
+
+            val logWriter = LogWriter(java.util.logging.Logger.getLogger("librarian-mover-test"))
+            logWriter.logFileName = File(outputFolder, "librarian.log").absolutePath
+
+            val mover = Mover(options, config, logWriter, EventDispatcher())
+
+            val classification = Classification()
+            classification.fileName = "House.S01E02.avi"
+            classification.baseName = "House.S01E02"
+            classification.extension = "avi"
+            classification.name = "tvshows"
+            classification.season = 1
+            classification.episode = 2
+            classification.tvShowName = "House"
+
+            mover.moveToDestination(File("/input/House.S01E02.avi"), classification)
+
+            assertEquals(File(outputFolder, "House/Season_01").toString(),
+                         mover.summary!!.outputFolder)
+
+            logWriter.close()
+        } finally {
+            outputFolder.deleteRecursively()
+        }
+    }
+
     companion object {
         private var myMover: Mover? = null
         private var logWriter: LogWriter? = null

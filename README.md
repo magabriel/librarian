@@ -26,6 +26,11 @@ to teach myself Java (and Kotlin).
 
 ## Changelog
 
+### 0.8.1
+
+- Fixed TV show episodes being moved into another show's folder when one name is a prefix of the other
+  (e.g. "House" matched "House of cards").
+
 ### 0.8
 
 - Replaced the copy+delete operation by move.
